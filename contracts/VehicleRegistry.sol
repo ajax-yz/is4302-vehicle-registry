@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Roles.sol";
 contract VehicleRegistry is Ownable, Vehicle {
 
     Vehicle vehicleContract;
-    address _owner = msg.sender;
+    address public vehicleRegistryOwner; // Contract owner
 
     // -------------- OpenZeppelin Role-Based Access Control --------------- //
     using Roles for Roles.Role;
@@ -19,10 +19,16 @@ contract VehicleRegistry is Ownable, Vehicle {
     Roles.Role private _administrator;
 
     constructor(Vehicle vehicleAddress) public {
+
         vehicleContract = vehicleAddress;
-        // Add vehicle registry owner to admin
-        _administrator.add(_owner);
-        _numOfAdmins.increment();
+        vehicleRegistryOwner = msg.sender;
+
+        // Register vehicle registry owner to admin
+        registerAdmin(
+            vehicleRegistryOwner, 
+            stringToBytes32("Genesis Admin"), 
+            stringToBytes32("1 January 2021"), 
+            90004302);
     }
 
     // ---------------------------- Structs ---------------------------- //
@@ -125,7 +131,7 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     // Administrator events
     event adminRegistered (address registeredAddress);
-    event adminInfoRetrieved (address adminAddress);
+    event adminInfoRetrieved (address adminAddress, bytes32 adminName, bytes32 dateJoined, uint256 contact);
     event adminInfoUpdated (address adminAddress);
     event adminRemoved (address adminAddress);
 
@@ -602,13 +608,17 @@ contract VehicleRegistry is Ownable, Vehicle {
         public adminExists(_adminAddress) onlyAdmin
             returns (bytes32, bytes32, uint256) { 
 
+                bytes32 _adminName = admins[_adminAddress].adminName;
+                bytes32 _dateJoined = admins[_adminAddress].dateJoined;
+                uint256 _contact = admins[_adminAddress].contact;
+                
                 // emit event
-                emit adminInfoRetrieved(_adminAddress);
+                emit adminInfoRetrieved(_adminAddress, _adminName, _dateJoined, _contact);
 
                 return (
-                    admins[_adminAddress].adminName,
-                    admins[_adminAddress].dateJoined,
-                    admins[_adminAddress].contact
+                    _adminName,
+                    _dateJoined,
+                    _contact
                 );
     }    
 
@@ -1797,21 +1807,33 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     }
 
+    // Convert string to bytes32
+    function stringToBytes32(string memory source) public pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
     // Testing methods
     function getNoOfOwnersDealers() public view returns (uint256) {
         return _numOfOwnersDealers.current();
     }
     
     function getNoOfWorkshops() public view returns (uint256) {
-        _numOfWorkshops.current();
+        return _numOfWorkshops.current();
     }
 
     function getNoOfInsuranceCo() public view returns (uint256) {
-        _numOfInsuranceCos.current();
+        return _numOfInsuranceCos.current();
     }
 
     function getNoOfAdmins() public view returns (uint256) {
-        _numOfAdmins.current();
+        return _numOfAdmins.current();
     }
 
 }
