@@ -28,7 +28,7 @@ contract VehicleRegistry is Ownable, Vehicle {
             vehicleRegistryOwner, 
             stringToBytes32("Genesis Admin"), 
             stringToBytes32("1 January 2021"), 
-            90004302);
+            90000000);
     }
 
     // ---------------------------- Structs ---------------------------- //
@@ -108,7 +108,9 @@ contract VehicleRegistry is Ownable, Vehicle {
     // ---------------------------- Events ---------------------------- //
 
     // Owner / Dealer events
-    event ownerDealerRegistered (address ownerDealerAddress);
+    event ownerDealerRegistered(address ownerDealerAddress, 
+    bytes32 name, uint256 contact, bytes32 companyRegNo, bytes32 physicalAddress, bool isDealer);
+    // event ownerDealerRegistered (address ownerDealerAddress);
     event ownerDealerInfoRetrieved (address ownerDealerAddress);
     event ownerDealerInfoUpdated (address ownerDealerAddress);
     event ownerDealerRemoved (address ownerDealerAddress);
@@ -270,12 +272,17 @@ contract VehicleRegistry is Ownable, Vehicle {
                 _physicalAddress,
                 _isDealer,
                 0, // number of vehicles own
-                new uint256[](0), // [Empty array of 0 length] vehicleIds[]
                 // vehicleIdIndex[0] = 0; [No need to declare mapping here]
-                // noOfAuthorizedParties[0] = 0 [No need to declare mapping here]
-                // authorizedParties[0] = address[] [No need to declare mapping here]
-                // iaAuthorized[0][address(0)] = false; [No need to declare mapping here]
+                new uint256[](0), // [Empty array of 0 length] vehicleIds[]
+                // ownsVehicle[Vehicle ID] = true (Owns that vehicle id) [No need to declare mapping here]
+                // noOfAuthorizedParties[Vehicle ID] = 0 [No need to declare mapping here]
+                // authorizedParties[Vehicle ID] = address[] [No need to declare mapping here]
+                // isAuthorized[Vehicle ID][address(0x0)] = false; [No need to declare mapping here]
+                // unacknowledgedServicingIdIndex[Vehicle ID][ServicingID] = Servicing Index
+                // unacknowledgedServicingIds[Vehicle ID] = Array [Servicing Ids]
+                // vehicleIdToTransferIndex[Vehicle ID] = Transfer array index
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsToTransfer[]
+                // vehicleIdToAcceptIndex[Vehicle ID] = Accept array index
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsToAccept[]
                 true
             );
@@ -285,7 +292,12 @@ contract VehicleRegistry is Ownable, Vehicle {
             // Increment counter
             _numOfOwnersDealers.increment();
 
-            emit ownerDealerRegistered(_ownerDealerAddress);
+            emit ownerDealerRegistered(_ownerDealerAddress, 
+                newOwnerDealer.name, 
+                newOwnerDealer.contact, 
+                newOwnerDealer.companyRegNo, 
+                newOwnerDealer.physicalAddress, 
+                newOwnerDealer.isDealer);
 
             return true;
     }
@@ -296,18 +308,26 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveOwnerDealerInfo (address _ownerDealerAddress) 
         public ownerDealerExists(_ownerDealerAddress) 
-            returns (bytes32, uint256, bytes32, bytes32, bool, uint256) { 
+            returns (bytes32, uint256, bytes32, bytes32, bool, uint256) {
+
+                // Declare variables
+                bytes32 _ownerDealerName = ownersDealers[_ownerDealerAddress].name;
+                uint256 _ownerDealerContact = ownersDealers[_ownerDealerAddress].contact;
+                bytes32 _ownerDealerCompanyRegNo = ownersDealers[_ownerDealerAddress].companyRegNo;
+                bytes32 _ownerDealerPhysicalAddress = ownersDealers[_ownerDealerAddress].physicalAddress;
+                bool _isDealer = ownersDealers[_ownerDealerAddress].isDealer;
+                uint256 _noOfVehiclesOwn = ownersDealers[_ownerDealerAddress].noOfVehiclesOwn;
 
                 // emit event
                 emit ownerDealerInfoRetrieved(_ownerDealerAddress);
 
                 return (
-                    ownersDealers[_ownerDealerAddress].name,
-                    ownersDealers[_ownerDealerAddress].contact,
-                    ownersDealers[_ownerDealerAddress].companyRegNo,
-                    ownersDealers[_ownerDealerAddress].physicalAddress,
-                    ownersDealers[_ownerDealerAddress].isDealer,
-                    ownersDealers[_ownerDealerAddress].noOfVehiclesOwn
+                    _ownerDealerName,
+                    _ownerDealerContact,
+                    _ownerDealerCompanyRegNo,
+                    _ownerDealerPhysicalAddress,
+                    _isDealer,
+                    _noOfVehiclesOwn
                 );
     }
 
@@ -342,19 +362,20 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     /**
      * Function 4: Remove owner or dealer information
-     * Comments: 
+     * Comments: Only remove dealer while owner records will remain on the system,
+     * Comments 2: as it removes the need to register the owner yet again when he buys a new car
      */
-    function removeOwnerDealer (address _ownerDealerAddress) 
-        public ownerDealerExists(_ownerDealerAddress) onlyAdmin returns (bool) {
+    function removeDealer (address _dealerAddress) 
+        public ownerDealerExists(_dealerAddress) onlyAdmin returns (bool) {
 
             // Update fields
-            ownersDealers[_ownerDealerAddress].exists = false;
+            ownersDealers[_dealerAddress].exists = false;
 
             // Remove access right as owner/dealer
-            _ownerDealer.remove(_ownerDealerAddress);
+            _ownerDealer.remove(_dealerAddress);
 
             // emit event
-            emit ownerDealerRemoved(_ownerDealerAddress);
+            emit ownerDealerRemoved(_dealerAddress);
 
             return true;
     }
