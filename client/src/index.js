@@ -1,38 +1,34 @@
+import { CssBaseline } from "@material-ui/core";
+import { ThemeProvider } from "@material-ui/styles";
 import React from "react";
 import ReactDOM from "react-dom";
-import { ThemeProvider } from "@material-ui/styles";
-import { CssBaseline } from "@material-ui/core";
-
-import Themes from "./themes";
 import App from "./components/App";
-import * as serviceWorker from "./serviceWorker";
 import { LayoutProvider } from "./context/LayoutContext";
 import { UserProvider } from "./context/UserContext";
-
-// Drizzle
+import * as serviceWorker from "./serviceWorker";
+import Themes from "./themes";
+import drizzleOptions from './drizzleOptions';
+import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Drizzle } from "@drizzle/store";
-import VehicleRegistry from "./contracts/VehicleRegistry.json";
 
-// let drizzle know what contracts we want and how to access our test blockchain
-const drizzleOptions = {
-  contracts: [VehicleRegistry],
-  web3: {
-    fallback: {
-      type: "ws",
-      url: "ws://127.0.0.1:8545",
-    },
-  },
-};
+
+// Custom loading container
+import LoadingContainer from "./components/LoadingContainer";
 
 // setup drizzle
 const drizzle = new Drizzle(drizzleOptions);
+const { DrizzleProvider } = drizzleReactHooks;
 
 ReactDOM.render(
   <LayoutProvider>
     <UserProvider>
       <ThemeProvider theme={Themes.default}>
         <CssBaseline />
-        <App drizzle={drizzle}/>
+        <DrizzleProvider drizzle={drizzle}>
+          <LoadingContainer>
+            <App />
+          </LoadingContainer>
+        </DrizzleProvider>
       </ThemeProvider>
     </UserProvider>
   </LayoutProvider>,

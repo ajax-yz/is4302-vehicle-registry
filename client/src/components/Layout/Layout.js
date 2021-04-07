@@ -29,17 +29,20 @@ import Charts from "../../pages/charts";
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
+// constants
+import { ROLES_ENUM } from '../../constants';
+
 function Layout(props) {
   var classes = useStyles();
 
   // global
   var layoutState = useLayoutState();
-
+  const role = props.role;
   return (
     <div className={classes.root}>
       <>
         <Header history={props.history} />
-        <Sidebar />
+        <Sidebar role={role}/>
         <div
           className={classnames(classes.content, {
             [classes.contentShift]: layoutState.isSidebarOpened,
@@ -47,10 +50,11 @@ function Layout(props) {
         >
           <div className={classes.fakeToolbar} />
           <Switch>
-            <Route path="/app/dashboard" component={Dashboard} />
-            <Route path="/app/typography" component={Typography} />
-            <Route path="/app/tables" component={Tables} />
-            <Route path="/app/notifications" component={Notifications} />
+            <PrivateRoute path="/app/dashboard" component={Dashboard} userRole={role} allowedRole={ROLES_ENUM.ADMINISTRATOR} />
+            <PrivateRoute path="/app/administrator" component={Typography} userRole={role} allowedRole={ROLES_ENUM.ADMINISTRATOR} />
+            <PrivateRoute path="/app/owner" component={Tables} userRole={role} allowedRole={ROLES_ENUM.OWNER} />
+            <PrivateRoute path="/app/dealer" component={Notifications} userRole={role} allowedRole={ROLES_ENUM.DEALER} />
+            <PrivateRoute path="/app/insurance" component={Notifications} userRole={role} allowedRole={ROLES_ENUM.INSURANCE} />
             <Route
               exact
               path="/app/ui"
@@ -116,6 +120,30 @@ function Layout(props) {
         </div>
       </>
     </div>
+  );
+}
+
+const PrivateRoute = ({ component, userRole, allowedRole, ...rest }) => {
+  const isAuthenticated = userRole === allowedRole;
+  const rolePath = userRole.split(' ')[0].toLowerCase();
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        isAuthenticated ? (
+          React.createElement(component, {...props, role: userRole})
+        ) : (
+          <Redirect
+            to={{
+              pathname: `/app/${rolePath}`,
+              state: {
+                from: props.location,
+              },
+            }}
+          />
+        )
+      }
+    />
   );
 }
 
