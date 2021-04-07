@@ -1,7 +1,8 @@
 import VehicleRegistry from "./contracts/VehicleRegistry.json";
+import Vehicle from "./contracts/Vehicle.json";
 
 const drizzleOptions = {
-  contracts: [VehicleRegistry],
+  contracts: [VehicleRegistry, Vehicle],
   web3: {
     fallback: {
       type: "ws",

@@ -31,41 +31,53 @@ import {
 import { ROLES_ENUM } from "../../constants";
 
 const structure = [
-  { id: 0, label: "Dashboard", link: "/app/dashboard", icon: <HomeIcon />, allowedRole: ROLES_ENUM.ADMINISTRATOR},
+  {
+    id: 0,
+    label: "Dashboard",
+    link: "/app/dashboard",
+    icon: <HomeIcon />,
+    allowedRole: ROLES_ENUM.ADMINISTRATOR,
+  },
   {
     id: 1,
     label: "Administrator",
     link: "/app/administrator",
     icon: <TypographyIcon />,
-    allowedRole: ROLES_ENUM.ADMINISTRATOR
+    allowedRole: ROLES_ENUM.ADMINISTRATOR,
   },
   {
     id: 2,
     label: "Owner",
     link: "/app/owner",
     icon: <NotificationsIcon />,
-    allowedRole: ROLES_ENUM.OWNER
+    allowedRole: ROLES_ENUM.OWNER,
   },
   {
     id: 3,
     label: "Dealer",
     link: "/app/dealer",
     icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.DEALER
+    allowedRole: ROLES_ENUM.DEALER,
   },
   {
     id: 4,
     label: "Workshop",
     link: "/app/workshop",
     icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.WORKSHOP
+    allowedRole: ROLES_ENUM.WORKSHOP,
   },
   {
     id: 5,
     label: "Insurance",
     link: "/app/insurance",
     icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.INSURANCE
+    allowedRole: ROLES_ENUM.INSURANCE,
+  },
+  {
+    id: 6,
+    label: "Misc (to be deleted)",
+    link: "/app/misc",
+    icon: <UIElementsIcon />,
   },
 ];
 
@@ -80,7 +92,7 @@ const Sidebar = ({ location, role }) => {
   // local
   var [isPermanent, setPermanent] = useState(true);
 
-  useEffect(function() {
+  useEffect(function () {
     window.addEventListener("resize", handleWindowWidthChange);
     handleWindowWidthChange();
     return function cleanup() {
@@ -114,8 +126,8 @@ const Sidebar = ({ location, role }) => {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
-        {structure.map(link => {
-          if(link.allowedRole === role) {
+        {structure.map((link) => {
+          if (!link.allowedRole || link.allowedRole === role) {
             return (
               <SidebarLink
                 key={link.id}
@@ -123,7 +135,7 @@ const Sidebar = ({ location, role }) => {
                 isSidebarOpened={isSidebarOpened}
                 {...link}
               />
-            )
+            );
           }
         })}
       </List>
@@ -142,6 +154,6 @@ const Sidebar = ({ location, role }) => {
       setPermanent(true);
     }
   }
-}
+};
 
 export default withRouter(Sidebar);

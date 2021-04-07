@@ -22,7 +22,7 @@
 .eslintcache
 
 # contracts
-/contracts
+/src/contracts
 
 npm-debug.log*
 yarn-debug.log*
