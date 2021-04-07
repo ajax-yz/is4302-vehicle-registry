@@ -25,12 +25,14 @@ import Notifications from "../../pages/notifications";
 import Tables from "../../pages/tables";
 import Icons from "../../pages/icons";
 import Charts from "../../pages/charts";
+import AdminPage from "../../pages/admin";
 
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
 // constants
-import { ROLES_ENUM } from '../../constants';
+import { ROLES_ENUM } from "../../constants";
+import MiscPage from "../../pages/misc";
 
 function Layout(props) {
   var classes = useStyles();
@@ -42,7 +44,7 @@ function Layout(props) {
     <div className={classes.root}>
       <>
         <Header history={props.history} />
-        <Sidebar role={role}/>
+        <Sidebar role={role} />
         <div
           className={classnames(classes.content, {
             [classes.contentShift]: layoutState.isSidebarOpened,
@@ -50,16 +52,42 @@ function Layout(props) {
         >
           <div className={classes.fakeToolbar} />
           <Switch>
-            <PrivateRoute path="/app/dashboard" component={Dashboard} userRole={role} allowedRole={ROLES_ENUM.ADMINISTRATOR} />
-            <PrivateRoute path="/app/administrator" component={Typography} userRole={role} allowedRole={ROLES_ENUM.ADMINISTRATOR} />
-            <PrivateRoute path="/app/owner" component={Tables} userRole={role} allowedRole={ROLES_ENUM.OWNER} />
-            <PrivateRoute path="/app/dealer" component={Notifications} userRole={role} allowedRole={ROLES_ENUM.DEALER} />
-            <PrivateRoute path="/app/insurance" component={Notifications} userRole={role} allowedRole={ROLES_ENUM.INSURANCE} />
+            <PrivateRoute
+              path="/app/dashboard"
+              component={Dashboard}
+              userRole={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/administrator"
+              component={AdminPage}
+              userRole={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/owner"
+              component={Tables}
+              userRole={role}
+              allowedRole={ROLES_ENUM.OWNER}
+            />
+            <PrivateRoute
+              path="/app/dealer"
+              component={Notifications}
+              userRole={role}
+              allowedRole={ROLES_ENUM.DEALER}
+            />
+            <PrivateRoute
+              path="/app/insurance"
+              component={Notifications}
+              userRole={role}
+              allowedRole={ROLES_ENUM.INSURANCE}
+            />
             <Route
               exact
               path="/app/ui"
               render={() => <Redirect to="/app/ui/icons" />}
             />
+            <Route exact path="/app/misc" component={MiscPage} />
             <Route path="/app/ui/icons" component={Icons} />
             <Route path="/app/ui/charts" component={Charts} />
           </Switch>
@@ -125,13 +153,13 @@ function Layout(props) {
 
 const PrivateRoute = ({ component, userRole, allowedRole, ...rest }) => {
   const isAuthenticated = userRole === allowedRole;
-  const rolePath = userRole.split(' ')[0].toLowerCase();
+  const rolePath = userRole.split(" ")[0].toLowerCase();
   return (
     <Route
       {...rest}
       render={(props) =>
         isAuthenticated ? (
-          React.createElement(component, {...props, role: userRole})
+          React.createElement(component, { ...props, role: userRole })
         ) : (
           <Redirect
             to={{
@@ -145,6 +173,6 @@ const PrivateRoute = ({ component, userRole, allowedRole, ...rest }) => {
       }
     />
   );
-}
+};
 
 export default withRouter(Layout);
