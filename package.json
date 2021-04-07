@@ -22,8 +22,6 @@
   },
   "dependencies": {
     "@openzeppelin/contracts": "^2.5.0",
-    "react-redux": "^7.2.3",
-    "react-router-redux": "^4.0.8",
     "truffle-assertions": "^0.9.2"
   }
 }
