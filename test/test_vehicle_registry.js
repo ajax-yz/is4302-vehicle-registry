@@ -5,7 +5,7 @@ const Vehicle = artifacts.require('./Vehicle.sol');
 const VehicleRegistry = artifacts.require('./VehicleRegistry.sol');
 
 contract('VehicleRegistry', function (accounts) {
-    
+
     let vehicleInstance;
     let vehicleRegistryInstance;
 
@@ -27,12 +27,23 @@ contract('VehicleRegistry', function (accounts) {
     const ownerContact = 92224302;
     const ownerCompanyRegNo = web3.utils.utf8ToHex(""); // Company Reg No. = Empty (Not a dealer)
     const ownerPhysicalAddress = web3.utils.utf8ToHex("95A Henderson Rd, S151095");
+    const ownerDateOfReg = web3.utils.utf8ToHex("1 March 2021");
 
     // Workshop
     const workshop = accounts[3];
+    const workshopName = web3.utils.utf8ToHex("Precise Auto Service");
+    const workshopRegNo = web3.utils.utf8ToHex("35766600C");
+    const workshopPhysicalAddress = web3.utils.utf8ToHex("1 Kaki Bukit Ave 6, S417883");
+    const workshopContact = 67457367;
+    const workshopDateOfReg = web3.utils.utf8ToHex("3 April 1986");
 
     // Insurance Company
     const insuranceCo = accounts[4];
+    const insuranceCoName = web3.utils.utf8ToHex("NTUC Income Insurance");
+    const insuranceCoRegNo = web3.utils.utf8ToHex("S97CS0162D");
+    const insuranceCoPhysicalAddress = web3.utils.utf8ToHex("75 Bras Basah Rd, S189557");
+    const insuranceCoContact = 67881777;
+    const insuranceCoDateOfReg = web3.utils.utf8ToHex("1 January 1990");
 
     // Vehicle variables
 
@@ -47,7 +58,7 @@ contract('VehicleRegistry', function (accounts) {
 
     // Test 1: Test whether the vehicle registry owner is admin
     it('Test 1: Vehicle Registry Owner is registered as administrator', async () => {
-    
+
         const role = await vehicleRegistryInstance.roleOfAddress(vehicleRegistryOwner);
         const noOfAdmins = await vehicleRegistryInstance.getNoOfAdmins();
         // console.log(`Role is: ${role}`);
@@ -123,14 +134,14 @@ contract('VehicleRegistry', function (accounts) {
             web3.utils.utf8ToHex("Account To Test Deletion"),
             web3.utils.utf8ToHex("1 March 2021"),
             90000000, {
-                from: vehicleRegistryOwner
+            from: vehicleRegistryOwner
         });
 
         assert.ok(adminToDelete, "Admin registration failed");
 
         let adminRemoval = await vehicleRegistryInstance.removeAdmin(
             accounts[5], {
-                from: vehicleRegistryOwner
+            from: vehicleRegistryOwner
         });
 
         assert.ok(adminRemoval, "Admin removal failed");
@@ -149,7 +160,8 @@ contract('VehicleRegistry', function (accounts) {
             web3.utils.utf8ToHex("Name to be updated"),
             80000000,
             web3.utils.utf8ToHex(""), // Company Reg No. = Empty
-            web3.utils.utf8ToHex("Address to be updated"), // Physical address "95A Henderson Rd, Singapore 151095"
+            web3.utils.utf8ToHex("Address to be updated"),
+            web3.utils.utf8ToHex("1 January 2000"),
             false
         );
 
@@ -173,14 +185,14 @@ contract('VehicleRegistry', function (accounts) {
         const _ownerName = web3.utils.hexToUtf8(result[0]);
         const _contact = result[1].toNumber();
         const _physicalAddress = web3.utils.hexToUtf8(result[3]);
-        const _isDealer = result[4];
-        const _noOfVehiclesOwn = result[5].toNumber();
+        const _dateOfReg = web3.utils.hexToUtf8(result[4]);
+        const _isDealer = result[5];
 
         assert.equal(_ownerName, "Name to be updated", "Owner name does not tally");
         assert.equal(_contact, 80000000, "Contact number does not tally");
         assert.equal(_physicalAddress, "Address to be updated", "Physical address does not tally");
+        assert.equal(_dateOfReg, "1 January 2000", "Date of registration does not tally");
         assert.equal(_isDealer, false, "Dealer boolean does not tally");
-        assert.equal(_noOfVehiclesOwn, 0, "Number of vehicles own does not tally");
 
         let updateOwner = await vehicleRegistryInstance.updateOwnerDealerInfo(
             owner,
@@ -188,11 +200,13 @@ contract('VehicleRegistry', function (accounts) {
             ownerContact,
             ownerCompanyRegNo, // Company Reg No. = Empty
             ownerPhysicalAddress, // Physical address "95A Henderson Rd, Singapore 151095" 
-            { from: vehicleRegistryOwner        
-        });
-        
+            ownerDateOfReg,
+            {
+                from: vehicleRegistryOwner
+            });
+
         assert.ok(updateOwner);
-    
+
         truffleAssert.eventEmitted(updateOwner, 'ownerDealerInfoUpdated', ev => {
             return ev.ownerDealerAddress === owner;
         }, 'Owner address does not tally with the address to update');
@@ -208,15 +222,16 @@ contract('VehicleRegistry', function (accounts) {
             11111111,
             web3.utils.utf8ToHex("Reg no"),
             web3.utils.utf8ToHex("Address"),
+            web3.utils.utf8ToHex("1 January 2000"),
             true, {
-                from: vehicleRegistryOwner
+            from: vehicleRegistryOwner
         });
 
         assert.ok(dealerToDelete, "Dealer registration failed");
 
         let dealerRemoval = await vehicleRegistryInstance.removeDealer(
             accounts[5], {
-                from: vehicleRegistryOwner
+            from: vehicleRegistryOwner
         });
 
         assert.ok(dealerRemoval, "Dealer removal failed");
@@ -226,5 +241,192 @@ contract('VehicleRegistry', function (accounts) {
         assert.notEqual(web3.utils.hexToUtf8(role), "Dealer", "Address should not be a dealer");
 
     });
+
+    // Test 8: Register workshop
+    it('Test 8: Register workshop', async () => {
+
+        let registerNewWorkshop = await vehicleRegistryInstance.registerWorkshop(
+            workshop,
+            web3.utils.utf8ToHex("Workshop name to be updated"),
+            web3.utils.utf8ToHex(""), // Workshop Reg No. = Empty
+            web3.utils.utf8ToHex("Address to be updated"),
+            70000000,
+            web3.utils.utf8ToHex("1 March 2021"),
+            {
+                from: vehicleRegistryOwner
+            }
+        );
+
+        assert.ok(registerNewWorkshop);
+
+        truffleAssert.eventEmitted(registerNewWorkshop, 'workshopRegistered', ev => {
+            return ev.workshopAddress === workshop;
+        }, 'Workshop address does not tally with the registered address');
+
+    });
+
+    // Test 9: Retrieve and update workshop info
+    it('Test 9: Retrieve and update workshop info', async () => {
+
+        let result = await vehicleRegistryInstance.retrieveWorkshopInfo.call(
+            workshop, {
+            from: vehicleRegistryOwner
+        });
+
+        // Converted to string variables
+        const _workshopName = web3.utils.hexToUtf8(result[0]);
+        const _workshopRegNo = web3.utils.hexToUtf8(result[1]);
+        const _physicalAddress = web3.utils.hexToUtf8(result[2]);
+        const _contact = result[3].toNumber();
+        const _dateOfReg = web3.utils.hexToUtf8(result[4]);
+
+        assert.equal(_workshopName, "Workshop name to be updated", "Workshop name does not tally");
+        assert.equal(_workshopRegNo, "", "Workshop registration number does not tally");
+        assert.equal(_physicalAddress, "Address to be updated", "Physical address does not tally");
+        assert.equal(_contact, 70000000, "Contact number does not tally");
+        assert.equal(_dateOfReg, "1 March 2021", "Date of registration does not tally");
+
+        let updateWorkshop = await vehicleRegistryInstance.updateWorkshopInfo(
+            workshop,
+            workshopName,
+            workshopRegNo,
+            workshopPhysicalAddress,
+            workshopContact,
+            workshopDateOfReg,
+            {
+                from: vehicleRegistryOwner
+            });
+
+        assert.ok(updateWorkshop);
+
+        truffleAssert.eventEmitted(updateWorkshop, 'workshopInfoUpdated', ev => {
+            return ev.workshopAddress === workshop;
+        }, 'Workshop address does not tally with the address to update');
+
+    });
+
+    // Test 10: Workshop removal
+    it('Test 10: Remove a workshop', async () => {
+
+        let workshopToDelete = await vehicleRegistryInstance.registerWorkshop(
+            accounts[5],
+            web3.utils.utf8ToHex("Workshop name to be deleted"),
+            web3.utils.utf8ToHex(""), // Workshop Reg No. = Empty
+            web3.utils.utf8ToHex("Address to be deleted"),
+            70000000,
+            web3.utils.utf8ToHex("1 January 2000"),
+            {
+                from: vehicleRegistryOwner
+            }
+        );
+
+        assert.ok(workshopToDelete, "Workshop registration failed");
+
+        let workshopRemoval = await vehicleRegistryInstance.removeWorkshop(
+            accounts[5], {
+            from: vehicleRegistryOwner
+        });
+
+        assert.ok(workshopRemoval, "Workshop removal failed");
+
+        const role = await vehicleRegistryInstance.roleOfAddress(accounts[5]);
+        // console.log(web3.utils.hexToUtf8(role)); // Should returns empty string
+        assert.notEqual(web3.utils.hexToUtf8(role), "Workshop", "Address should not be a workshop");
+
+    });
+
+    // Test 11: Register insurance company
+    it('Test 11: Register insurance company', async () => {
+
+        let registerNewInsuranceCo = await vehicleRegistryInstance.registerInsuranceCo(
+            insuranceCo,
+            web3.utils.utf8ToHex("Insurance company to be updated"),
+            web3.utils.utf8ToHex(""), // Insurance Reg No. = Empty
+            web3.utils.utf8ToHex("Address to be updated"),
+            20000000,
+            web3.utils.utf8ToHex("1 January 2000"),
+            {
+                from: vehicleRegistryOwner
+            }
+        );
+
+        assert.ok(registerNewInsuranceCo);
+
+        truffleAssert.eventEmitted(registerNewInsuranceCo, 'insuranceCoRegistered', ev => {
+            return ev.insuranceCoAddress === insuranceCo;
+        }, 'Insurance company address does not tally with the registered address');
+
+    });
+
+    // Test 12: Retrieve and update insurance company info
+    it('Test 12: Retrieve and update insurance company info', async () => {
+
+        let result = await vehicleRegistryInstance.retrieveInsuranceCoInfo.call(
+            insuranceCo, {
+            from: vehicleRegistryOwner
+        });
+
+        // Converted to string variables
+        const _insuranceCoName = web3.utils.hexToUtf8(result[0]);
+        const _insuranceCoRegNo = web3.utils.hexToUtf8(result[1]);
+        const _physicalAddress = web3.utils.hexToUtf8(result[2]);
+        const _contact = result[3].toNumber();
+        const _dateOfReg = web3.utils.hexToUtf8(result[4]);
+
+        assert.equal(_insuranceCoName, "Insurance company to be updated", "Workshop name does not tally");
+        assert.equal(_insuranceCoRegNo, "", "Workshop registration number does not tally");
+        assert.equal(_physicalAddress, "Address to be updated", "Physical address does not tally");
+        assert.equal(_contact, 20000000, "Contact number does not tally");
+        assert.equal(_dateOfReg, "1 January 2000", "Date of registration does not tally");
+
+        let updateInsuranceCo = await vehicleRegistryInstance.updateInsuranceCoInfo(
+            insuranceCo,
+            insuranceCoName,
+            insuranceCoRegNo,
+            insuranceCoPhysicalAddress,
+            insuranceCoContact,
+            insuranceCoDateOfReg,
+            {
+                from: vehicleRegistryOwner
+            });
+
+        assert.ok(updateInsuranceCo);
+
+        truffleAssert.eventEmitted(updateInsuranceCo, 'insuranceCoInfoUpdated', ev => {
+            return ev.insuranceCoAddress === insuranceCo;
+        }, 'Insurance company address does not tally with the address to update');
+
+    });
+
+    // Test 13: Insurance company removal
+    it('Test 13: Remove a insurance company', async () => {
+
+        let insuranceCoToDelete = await vehicleRegistryInstance.registerInsuranceCo(
+            accounts[5],
+            web3.utils.utf8ToHex("Insurance company to be deleted"),
+            web3.utils.utf8ToHex(""), // Insurance Reg No. = Empty
+            web3.utils.utf8ToHex("Address to be deleted"),
+            00000000,
+            web3.utils.utf8ToHex("1 January 2000"),
+            {
+                from: vehicleRegistryOwner
+            }
+        );
+
+        assert.ok(insuranceCoToDelete, "Insurance company registration failed");
+
+        let insuranceCoRemoval = await vehicleRegistryInstance.removeInsuranceCo(
+            accounts[5], {
+            from: vehicleRegistryOwner
+        });
+
+        assert.ok(insuranceCoRemoval, "Insurance company removal failed");
+
+        const role = await vehicleRegistryInstance.roleOfAddress(accounts[5]);
+        // console.log(web3.utils.hexToUtf8(role)); // Should returns empty string
+        assert.notEqual(web3.utils.hexToUtf8(role), "Insurance Company", "Address should not be a insurance company");
+
+    });
+
 
 });

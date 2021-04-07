@@ -52,6 +52,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256[] vehicleIdsToTransfer; // Array of vehicle IDs to transfer: vehicleIdsToTransfer.push(Vehicle ID)
         mapping(uint256 => uint256) vehicleIdToAcceptIndex; // Keeps track of vehicle ids to accept index
         uint256[] vehicleIdsToAccept; // Array of vehicle IDs to accept: vehicleIdsToAccept.push(Vehicle ID)
+        bytes32 dateOfReg; // 3 April 1986
         bool exists; // To check whether exists
     }
 
@@ -75,6 +76,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 contact; // 67881777
         uint256[] vehicleIdsHandled; // Array of vehicle IDs handled (E.g. 1, 5, 10, ...)
         mapping(uint256 => uint256[]) vehAccidentIdsHandled; // vehAccidentIdsHandled[Vehicle ID] => uint256[] accident ids
+        bytes32 dateOfReg; // 3 April 1986
         address insuranceCoAddress; // Insurance company owner address
         bool exists; // To check whether exists
     }
@@ -109,11 +111,12 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     // Owner / Dealer events
     event ownerDealerRegistered(address ownerDealerAddress, 
-    bytes32 name, uint256 contact, bytes32 companyRegNo, bytes32 physicalAddress, bool isDealer);
+    bytes32 name, uint256 contact, bytes32 companyRegNo, bytes32 physicalAddress, bytes32 dateOfReg, bool isDealer);
     // event ownerDealerRegistered (address ownerDealerAddress);
     event ownerDealerInfoRetrieved (address ownerDealerAddress);
     event ownerDealerInfoUpdated (address ownerDealerAddress);
     event ownerDealerRemoved (address ownerDealerAddress);
+    event noOfVehiclesOwnRetrieved(uint256 noOfVehiclesOwn);
 
     // Workshop events
     event workshopRegistered (address workshopAddress);
@@ -258,6 +261,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 _contact,
         bytes32 _companyRegNo,
         bytes32 _physicalAddress,
+        bytes32 _dateOfReg,
         bool _isDealer) public onlyAdmin returns (bool) {
 
             require(!_ownerDealer.has(_ownerDealerAddress), 'Address already registered as owner or dealer');
@@ -284,6 +288,7 @@ contract VehicleRegistry is Ownable, Vehicle {
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsToTransfer[]
                 // vehicleIdToAcceptIndex[Vehicle ID] = Accept array index
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsToAccept[]
+                _dateOfReg,
                 true
             );
 
@@ -297,6 +302,7 @@ contract VehicleRegistry is Ownable, Vehicle {
                 newOwnerDealer.contact, 
                 newOwnerDealer.companyRegNo, 
                 newOwnerDealer.physicalAddress, 
+                newOwnerDealer.dateOfReg,
                 newOwnerDealer.isDealer);
 
             return true;
@@ -305,29 +311,24 @@ contract VehicleRegistry is Ownable, Vehicle {
     /**
      * Function 2: Retrieve owner or dealer information
      * Comments: Separate 'authorized parties' and 'vehicles owned' retrieval function
+     * Roles: 
      */
     function retrieveOwnerDealerInfo (address _ownerDealerAddress) 
         public ownerDealerExists(_ownerDealerAddress) 
-            returns (bytes32, uint256, bytes32, bytes32, bool, uint256) {
+            returns (bytes32, uint256, bytes32, bytes32, bytes32, bool) {
 
-                // Declare variables
-                bytes32 _ownerDealerName = ownersDealers[_ownerDealerAddress].name;
-                uint256 _ownerDealerContact = ownersDealers[_ownerDealerAddress].contact;
-                bytes32 _ownerDealerCompanyRegNo = ownersDealers[_ownerDealerAddress].companyRegNo;
-                bytes32 _ownerDealerPhysicalAddress = ownersDealers[_ownerDealerAddress].physicalAddress;
-                bool _isDealer = ownersDealers[_ownerDealerAddress].isDealer;
-                uint256 _noOfVehiclesOwn = ownersDealers[_ownerDealerAddress].noOfVehiclesOwn;
+                // uint256 _noOfVehiclesOwn = ownersDealers[_ownerDealerAddress].noOfVehiclesOwn;
 
                 // emit event
                 emit ownerDealerInfoRetrieved(_ownerDealerAddress);
 
                 return (
-                    _ownerDealerName,
-                    _ownerDealerContact,
-                    _ownerDealerCompanyRegNo,
-                    _ownerDealerPhysicalAddress,
-                    _isDealer,
-                    _noOfVehiclesOwn
+                    ownersDealers[_ownerDealerAddress].name,
+                    ownersDealers[_ownerDealerAddress].contact,
+                    ownersDealers[_ownerDealerAddress].companyRegNo,
+                    ownersDealers[_ownerDealerAddress].physicalAddress,
+                    ownersDealers[_ownerDealerAddress].dateOfReg,
+                    ownersDealers[_ownerDealerAddress].isDealer
                 );
     }
 
@@ -340,7 +341,8 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _name, 
         uint256 _contact, 
         bytes32 _companyRegNo, 
-        bytes32 _physicalAddress) 
+        bytes32 _physicalAddress,
+        bytes32 _dateOfReg) 
         public ownerDealerExists(_ownerDealerAddress) returns (bool) { 
             
             require (msg.sender == _ownerDealerAddress || _administrator.has(msg.sender), 
@@ -351,6 +353,7 @@ contract VehicleRegistry is Ownable, Vehicle {
             ownersDealers[_ownerDealerAddress].contact = _contact;
             ownersDealers[_ownerDealerAddress].companyRegNo = _companyRegNo;
             ownersDealers[_ownerDealerAddress].physicalAddress = _physicalAddress;
+            ownersDealers[_ownerDealerAddress].dateOfReg = _dateOfReg;
 
             bool updated = updateAllVehOwnersInfo(_ownerDealerAddress, _name, _contact, _physicalAddress);
 
@@ -497,7 +500,8 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _companyName,
         bytes32 _regNo,
         bytes32 _physicalAddress,
-        uint256 _contact) public onlyAdmin returns (bool) {
+        uint256 _contact,
+        bytes32 _dateOfReg) public onlyAdmin returns (bool) {
             require(!_insuranceCo.has(_insuranceCoAddress), 'Address already registered as insurance company');
 
             // Register address
@@ -509,6 +513,7 @@ contract VehicleRegistry is Ownable, Vehicle {
                 _physicalAddress,
                 _contact,
                 new uint256[](0), // [Empty array of 0 length] -Handled[]
+                _dateOfReg,
                 _insuranceCoAddress,
                 // vehAccidentIdsHandled[Vehicle ID] => uint256[] servicing ids [Mapping not declared]
                 true
@@ -530,7 +535,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveInsuranceCoInfo (address _insuranceCoAddress) 
         public insuranceCoExists(_insuranceCoAddress)
-            returns (bytes32, bytes32, bytes32, uint256) { 
+            returns (bytes32, bytes32, bytes32, uint256, bytes32) { 
 
                 // emit event
                 emit insuranceCoInfoRetrieved(_insuranceCoAddress);
@@ -539,7 +544,8 @@ contract VehicleRegistry is Ownable, Vehicle {
                     insuranceCos[_insuranceCoAddress].companyName,
                     insuranceCos[_insuranceCoAddress].regNo,
                     insuranceCos[_insuranceCoAddress].physicalAddress,
-                    insuranceCos[_insuranceCoAddress].contact
+                    insuranceCos[_insuranceCoAddress].contact,
+                    insuranceCos[_insuranceCoAddress].dateOfReg
                 );
     }    
 
@@ -552,10 +558,11 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _companyName, 
         bytes32 _regNo, 
         bytes32 _physicalAddress,
-        uint256 _contact) 
+        uint256 _contact,
+        bytes32 _dateOfReg) 
         public insuranceCoExists(_insuranceCoAddress) returns (bool) { 
             
-            require (msg.sender == _insuranceCoAddress || _insuranceCo.has(msg.sender), 
+            require (msg.sender == _insuranceCoAddress || _administrator.has(msg.sender), 
                 'Only the insurance company or admin can update the information');
 
             // Update fields
@@ -563,6 +570,7 @@ contract VehicleRegistry is Ownable, Vehicle {
             insuranceCos[_insuranceCoAddress].regNo = _regNo;
             insuranceCos[_insuranceCoAddress].physicalAddress = _physicalAddress;
             insuranceCos[_insuranceCoAddress].contact = _contact;
+            insuranceCos[_insuranceCoAddress].dateOfReg = _dateOfReg;
 
             // emit event
             emit insuranceCoInfoUpdated(_insuranceCoAddress);
@@ -984,6 +992,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 _newOwnerContact,
         bytes32 _newOwnerCompanyRegNo, 
         bytes32 _newOwnerPhysicalAddress,
+        bytes32 _newOwnerDateOfReg,
         bool _isDealer) public vehicleExists(_vehicleId) returns (bool) {
 
             // Only owner and approved party can transfer the vehicle OR vehicleContract._isApprovedOrOwner(spender, tokenId);
@@ -1006,6 +1015,7 @@ contract VehicleRegistry is Ownable, Vehicle {
                     new uint256[](0),
                     new uint256[](0),
                     new uint256[](0),
+                    _newOwnerDateOfReg,
                     true
                 );
 
@@ -1597,6 +1607,26 @@ contract VehicleRegistry is Ownable, Vehicle {
             );
     }
 
+    /**
+     * Function 50: Retrieve number of vehicles own by owner
+     * Comments: To facilitate the next function: retrieveServicingHistory
+     * Allowed Roles: Admin, Owner
+     */
+    function retrieveNoOfVehiclesOwnBy(address _ownerDealerAddress) 
+        public returns (uint256 _noOfVehiclesOwn) {
+
+        require(_administrator.has(msg.sender) || _ownerDealerAddress == msg.sender,
+                'Only the owner or administrator can access this function');
+
+        // Retrieve from Vehicle.sol
+        _noOfVehiclesOwn = ownersDealers[_ownerDealerAddress].noOfVehiclesOwn;
+
+        // Emit event
+        emit noOfVehiclesOwnRetrieved(_noOfVehiclesOwn);
+        
+        return _noOfVehiclesOwn;
+
+    } 
 
     // ---------------------------- Helper Functions ---------------------------- //
 
