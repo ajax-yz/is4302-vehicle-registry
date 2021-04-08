@@ -48,9 +48,10 @@ contract('VehicleRegistry', function (accounts) {
     // Authorized party
     const authorizedParty = accounts[6]; // accounts[5] was used for testing
 
-    // Vehicle variables
+    // First vehicle variables
     let vehicleId;
     const vehicleNo = web3.utils.utf8ToHex("SOC4302S");
+    const vehicleUpdatedLicensePlate = web3.utils.utf8ToHex("SOC8888C");
     const vehicleMakeModel = web3.utils.utf8ToHex("Toyota Corolla Altis");
     const vehicleManufacturingYear = 2020;
     const vehicleEngineNo = web3.utils.utf8ToHex("1NZX395892");
@@ -63,6 +64,22 @@ contract('VehicleRegistry', function (accounts) {
     const vehicleCoeCat = web3.utils.utf8ToHex("Category A");
     const vehicleQuotaPrem = 33520;
     const vehicleOwnerName = ownerName; // "Takumi Fujiwara"
+
+    // Second vehicle variables
+    let secondVehicleId;
+    const secondLicensePlate = web3.utils.utf8ToHex("SOC5555C");
+    const secondVehMakeModel = web3.utils.utf8ToHex("Honda Civic");
+    const secondVehManufacturingYear = 2020;
+    const secondVehEngineNo = web3.utils.utf8ToHex("ABC123");
+    const secondVehChassisNo = web3.utils.utf8ToHex("123ABC");
+    const secondVehOmv = 20000;
+    const secondVehOrgRegDate = web3.utils.utf8ToHex("1 Jan 2020");
+    const secondVehEffRegDate = web3.utils.utf8ToHex("1 Jan 2020");
+    const secondVehNoOfTransfers = 0;
+    const secondVehEngineCap = web3.utils.utf8ToHex("1,600 cc");
+    const secondVehCoeCat = web3.utils.utf8ToHex("Category A");
+    const secondVehQuotaPrem = 35000;
+    const secondVehOwnerName = web3.utils.utf8ToHex("Samuel Wong");
 
     // Servicing variables
 
@@ -462,8 +479,6 @@ contract('VehicleRegistry', function (accounts) {
             { from: vehicleRegistryOwner }
         );
 
-        assert.ok(registerVehicleToOwner1);
-
         truffleAssert.eventEmitted(registerVehicleToOwner1, 'vehicleRegistration1Completed', ev => {
             return ev.newVehId.toNumber() === 1 && ev.ownerDealerAddress === owner;
         }, 'Vehicle ID or Owner addess does not match');
@@ -478,8 +493,6 @@ contract('VehicleRegistry', function (accounts) {
             vehicleOwnerName,
             { from: vehicleRegistryOwner }
         );
-
-        assert.ok(registerVehicleToOwner2);
 
         // First vehicle in the system so vehicle ID should be = 1
         truffleAssert.eventEmitted(registerVehicleToOwner2, 'vehicleRegistration2Completed', ev => {
@@ -686,8 +699,8 @@ contract('VehicleRegistry', function (accounts) {
 
         truffleAssert.eventEmitted(authorizationRemoval, 'authorizationRemoved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
-            && ev.authorizer === owner
-            && ev.authorizedAddress === authorizedParty;
+                && ev.authorizer === owner
+                && ev.authorizedAddress === authorizedParty;
         }, 'Vehicle ID or authorizer or authorized address does not match');
 
     });
@@ -695,27 +708,126 @@ contract('VehicleRegistry', function (accounts) {
     // Test 20: Update vehicle COE registration
     it('Test 20: Update vehicle COE registration', async () => {
 
-        let 
+        const newEffRegDate = web3.utils.utf8ToHex("20 Oct 2030");
+        const newQuotaPrem = 50000;
+
+        let updateVehCOE = await vehicleRegistryInstance.updateVehCOEReg(
+            vehicleId,
+            newEffRegDate,
+            newQuotaPrem,
+            { from: newAdmin }
+        );
+
+        assert.ok(updateVehCOE, "Update COE registration failed");
+
+        truffleAssert.eventEmitted(updateVehCOE, 'vehicleCOERegUpdated', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && web3.utils.hexToUtf8(ev.effectiveRegDate) === web3.utils.hexToUtf8(newEffRegDate)
+                && ev.quotaPrem.toNumber() === newQuotaPrem;
+        }, 'Vehicle ID or effective registration date or quota premium does not match');
 
     });
 
     // Test 21: Update vehicle license plate
     it('Test 21: Update vehicle license plate', async () => {
 
+        let updateLicensePlate = await vehicleRegistryInstance.updateVehLicensePlate(
+            vehicleId,
+            vehicleUpdatedLicensePlate,
+            { from: newAdmin }
+        );
+
+        assert.ok(updateLicensePlate);
+
+        truffleAssert.eventEmitted(updateLicensePlate, 'licensePlateChanged', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && web3.utils.hexToUtf8(ev.newLicensePlate) === web3.utils.hexToUtf8(vehicleUpdatedLicensePlate);
+        }, 'Vehicle ID or new license plate does not match');
+
     });
 
     // Test 22: Swap vehicle license plate 
     it('Test 22: Swap vehicle license plate', async () => {
+
+        // Registering another vehicle to swap plate:
+        let registerVehicleToOwner1 = await vehicleRegistryInstance.registerVehicleToOwner1(
+            owner,
+            secondLicensePlate,
+            secondVehMakeModel,
+            secondVehManufacturingYear,
+            secondVehEngineNo,
+            secondVehChassisNo,
+            secondVehOmv,
+            secondVehOrgRegDate,
+            secondVehEffRegDate,
+            { from: newAdmin }
+        );
+
+        let registerVehicleToOwner2 = await vehicleRegistryInstance.registerVehicleToOwner2(
+            owner,
+            secondVehNoOfTransfers,
+            secondVehEngineCap,
+            secondVehCoeCat,
+            secondVehOmv,
+            secondVehOwnerName,
+            { from: newAdmin }
+        );
+
+        // console.log(registerVehicleToOwner2.logs[0].args['0'].toNumber());
+        secondVehicleId = registerVehicleToOwner2.logs[0].args['0'].toNumber();
+
+        let swapLicensePlate = await vehicleRegistryInstance.swapVehLicensePlate(
+            vehicleId,
+            secondVehicleId,
+            { from: newAdmin }
+        );
+
+        assert.ok(swapLicensePlate);
+
+        truffleAssert.eventEmitted(swapLicensePlate, 'licensePlateSwapped', ev => {
+            return web3.utils.hexToUtf8(ev.myNewLicensePlate) === web3.utils.hexToUtf8(secondLicensePlate)
+                && web3.utils.hexToUtf8(ev.myOldLicensePlate) === web3.utils.hexToUtf8(vehicleUpdatedLicensePlate);
+        }, 'New vehicle license plate does not match');
 
     });
 
     // Test 23: Deregister vehicle
     it('Test 23: Deregister vehicle', async () => {
 
+        let deregisterVehicle = await vehicleRegistryInstance.deregisterVehicle(
+            secondVehicleId,
+            owner,
+            { from: newAdmin }
+        );
+
+        assert.ok(deregisterVehicle, "Vehicle deregistration failed");
+
+        truffleAssert.eventEmitted(deregisterVehicle, 'vehicleDeregistered', ev => {
+            return ev.vehicleId.toNumber() === secondVehicleId;
+        }, 'Vehicle de-registration was unsuccessful as vehicle id does not match');
+
+        // Test if ERC721 token still exists (Successfully burnt)
+        // let token1Exists = await vehicleRegistryInstance.doesTokenExists(vehicleId);
+        // let token2Exists = await vehicleRegistryInstance.doesTokenExists(secondVehicleId);
+        // console.log(token1Exists);
+        // console.log(token2Exists);
+
+    });
+
+    // Test 29: 
+    it('Test 29: Initiate transfer of vehicle by owner', async () => {
+
+    });
+    
+    // Test 30: 
+    it('Test 30: Accept transfer of vehicle by buyer', async () => {
+    
     });
 
     // Test 24: Retrieve number of transfers for vehicle
     it('Test 24: Retrieve number of transfer for vehicle', async () => {
+
+        
 
     });
 
@@ -724,30 +836,9 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 26: 
-    it('Test 26: Approve consignment to other party', async () => {
 
-    });
 
-    // Test 27: 
-    it('Test 27: Retrieve consignment party information', async () => {
 
-    });
-
-    // Test 28: 
-    it('Test 28: Remove consignment rights', async () => {
-
-    });
-
-    // Test 29: 
-    it('Test 29: Initiate transfer of vehicle by owner', async () => {
-
-    });
-
-    // Test 30: 
-    it('Test 30: Accept transfer of vehicle by buyer', async () => {
-
-    });
 
     // Test 31: 
     it('Test 31: Add servicing record to vehicle', async () => {
@@ -838,5 +929,20 @@ contract('VehicleRegistry', function (accounts) {
     it('Test : ', async () => {
 
     });
+
+    // // Test 26: Archived 
+    // it('Test 26: Approve consignment to other party', async () => {
+
+    // });
+
+    // // Test 27: Archived
+    // it('Test 27: Retrieve consignment party information', async () => {
+
+    // });
+
+    // // Test 28: Archived
+    // it('Test 28: Remove consignment rights', async () => {
+
+    // });
 
 });

@@ -301,7 +301,7 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     modifier vehicleExists(uint256 _vehicleId) {
         require(
-            vehicleContract.doesVehicleExist(_vehicleId),
+            vehicleContract.doesVehicleExists(_vehicleId),
             "Vehicle ID Invalid: Vehicle does not exists"
         );
         _;
@@ -949,9 +949,8 @@ contract VehicleRegistry is Ownable, Vehicle {
                 _vehicleId,
                 _authorizedAddress
             );
-        ownersDealers[_authorizer].isAuthorized[_vehicleId][
-            _authorizedAddress
-        ] = false;
+
+        ownersDealers[_authorizer].isAuthorized[_vehicleId][_authorizedAddress] = false;
         ownersDealers[_authorizer].noOfAuthorizedParties[_vehicleId]--;
 
         // emit event
@@ -1397,7 +1396,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 _omv,
         bytes32 _originalRegDate,
         bytes32 _effectiveRegDate
-    ) public onlyAdmin returns (bool) {
+    ) public onlyAdmin returns (uint256) {
         // Only can register the vehicle to a registered address
         require(
             _ownerDealer.has(_ownerDealerAddress),
@@ -1428,7 +1427,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Emit event
         emit vehicleRegistration1Completed(_newVehId, _ownerDealerAddress);
 
-        return true;
+        return _newVehId;
     }
 
     /**
@@ -1443,7 +1442,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _coeCat,
         uint256 _quotaPrem,
         bytes32 _ownerName
-    ) public onlyAdmin returns (bool) {
+    ) public onlyAdmin returns (uint256) {
         // Only can register the vehicle to a registered address
         require(
             _ownerDealer.has(_ownerDealerAddress),
@@ -1463,7 +1462,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Emit event
         emit vehicleRegistration2Completed(_newVehId, _ownerDealerAddress);
 
-        return true;
+        return _newVehId;
     }
 
     /**
@@ -2010,12 +2009,14 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 vehicleIdsLength = ownersDealers[ownerDealer].vehicleIds.length;
 
         // if (index >= ownersDealers[ownerDealer].vehicleIds.length) return false;
-        require(index >= vehicleIdsLength, "Index does not exists");
+        require(index < vehicleIdsLength, "Index does not exists");
 
         // Loop and move items behind index to the front by 1 index
         for (uint256 i = index; i < vehicleIdsLength - 1; i++) {
             // Update vehicleIdIndex after current index to point 1 index ahead
-            ownersDealers[ownerDealer].vehicleIdIndex[i + 1] = i;
+            ownersDealers[ownerDealer].vehicleIdIndex[
+                ownersDealers[ownerDealer].vehicleIds[i + 1]
+            ] = i;
 
             // Update array pointing the current index to the next index
             ownersDealers[ownerDealer].vehicleIds[i] = ownersDealers[
@@ -2024,8 +2025,8 @@ contract VehicleRegistry is Ownable, Vehicle {
                 .vehicleIds[i + 1];
         }
 
-        // delete ownersDealers[ownerDealer].vehicleIds[vehicleIdsLength - 1];
         // Decreasing the length of the array
+        delete ownersDealers[ownerDealer].vehicleIds[vehicleIdsLength - 1];
         ownersDealers[ownerDealer].vehicleIds.length--;
 
         return true;
@@ -2190,34 +2191,6 @@ contract VehicleRegistry is Ownable, Vehicle {
         return true;
     }
 
-    // Testing array removal function (TO BE DELETED)
-    function returnIndexLength(
-        address ownerDealer,
-        uint256 vehicleId,
-        address authorizedParty
-    ) public view returns (uint256, uint256) {
-        uint256 index =
-            ownersDealers[ownerDealer].authorizedPartyIndex[vehicleId][
-                authorizedParty
-            ];
-        uint256 authorizedPartyLength =
-            ownersDealers[ownerDealer].authorizedParties[vehicleId].length;
-
-        return (index, authorizedPartyLength);
-    }
-
-    // Testing array removal function (TO BE DELETED)
-    function returnArray(address ownerDealer, uint256 vehicleId)
-        public
-        view
-        returns (address[] memory)
-    {
-        address[] memory authorizedParties =
-            ownersDealers[ownerDealer].authorizedParties[vehicleId];
-
-        return (authorizedParties);
-    }
-
     // Check that the vehicle belongs to owner / dealer
     function isVehicleOwnedBy(uint256 _vehicleId, address _ownerDealerAddress)
         public
@@ -2368,6 +2341,11 @@ contract VehicleRegistry is Ownable, Vehicle {
         assembly {
             result := mload(add(source, 32))
         }
+    }
+
+    // Check whether ERC721 token exists
+    function doesTokenExists(uint256 tokenId) public view returns (bool) {
+        return vehicleContract.doesERC721TokenExists(tokenId);
     }
 
     // Testing methods

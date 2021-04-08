@@ -929,8 +929,13 @@ contract Vehicle is ERC721Full {
     }
 
     // Function to test whether vehicle exists
-    function doesVehicleExist(uint256 vehicleId) external view returns (bool) {
+    function doesVehicleExists(uint256 vehicleId) external view returns (bool) {
         return vehRegRecords2[vehicleId].registered;
+    }
+
+    // Function to test whether ERC721 token exists
+    function doesERC721TokenExists(uint256 tokenId) external view returns (bool) {
+        return _exists(tokenId);
     }
 
 }
