@@ -25,7 +25,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         registerAdmin(
             vehicleRegistryOwner,
             stringToBytes32("Genesis Admin"),
-            stringToBytes32("1 Jan 2021"),
+            stringToBytes32("1 Jan 2020"),
             90000000
         );
     }
@@ -47,8 +47,6 @@ contract VehicleRegistry is Ownable, Vehicle {
         mapping(uint256 => mapping(address => uint256)) authorizedPartyIndex; // authorizedPartyIndex[VehicleID][Authorized Party's Address] => Index
         mapping(uint256 => address[]) authorizedParties; // authorizedParties[vehicle id] = address[]
         mapping(uint256 => mapping(address => bool)) isAuthorized; // isAuthorized[vehicle ID][address] = true (means the address is authorized to access the info)
-        mapping(uint256 => mapping(uint256 => uint256)) unacknowledgedServicingIdIndex; // unacknowledgedServicingIdIndex[Vehicle ID][Servicing ID] => Servicing Index
-        mapping(uint256 => uint256[]) unacknowledgedServicingIds; // unacknowledgedServicingIds[Vehicle ID] = [3, 5] (Array of unacknowledged servicing ids)
         mapping(uint256 => uint256) vehicleIdToTransferIndex; // Keeps track of vehicle ids to transfer index
         uint256[] vehicleIdsToTransfer; // Array of vehicle IDs to transfer: vehicleIdsToTransfer.push(Vehicle ID)
         mapping(uint256 => uint256) vehicleIdToAcceptIndex; // Keeps track of vehicle ids to accept index
@@ -94,10 +92,6 @@ contract VehicleRegistry is Ownable, Vehicle {
     mapping(address => Workshop) workshops;
     mapping(address => InsuranceCo) insuranceCos;
     mapping(address => Administrator) admins;
-
-    // *** Moved to Vehicle.sol *** //
-    // mapping(uint256 => uint256[]) vehServicingIds; // vehServicingIds[Vehicle ID] = uint256[] array of servicing ids;
-    // mapping(uint256 => uint256[]) vehAccidentIds; // vehAccidentIds[Vehicle ID] = uint256[] array of accident ids;
 
     // ----------------------- OpenZeppelin Counters ----------------------- //
 
@@ -184,7 +178,6 @@ contract VehicleRegistry is Ownable, Vehicle {
     // Vehicle-related events
     event allVehiclesOwnedRetrieved(address ownerDealerAddress);
     event servicingRecordsForVehicleRetrieved(uint256 vehicleId);
-    event unacknowledgedServicingRecordsForVehicleRetrieved(uint256 vehicleId);
     event accidentRecordsForVehicleRetrieved(uint256 vehicleId);
 
     event vehicleTransferInitiated(
@@ -392,8 +385,6 @@ contract VehicleRegistry is Ownable, Vehicle {
                 // noOfAuthorizedParties[Vehicle ID] = 0 [No need to declare mapping here]
                 // authorizedParties[Vehicle ID] = address[] [No need to declare mapping here]
                 // isAuthorized[Vehicle ID][address(0x0)] = false; [No need to declare mapping here]
-                // unacknowledgedServicingIdIndex[Vehicle ID][ServicingID] = Servicing Index
-                // unacknowledgedServicingIds[Vehicle ID] = Array [Servicing Ids]
                 // vehicleIdToTransferIndex[Vehicle ID] = Transfer array index
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsToTransfer[]
                 // vehicleIdToAcceptIndex[Vehicle ID] = Accept array index
@@ -1102,30 +1093,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         // emit event
         emit servicingRecordsForVehicleRetrieved(_vehicleId);
 
+        uint256[] memory servicingRecords = vehicleContract.getAllVehServicingRecords(_vehicleId);
+
         // Vehicle.sol: Return all servicing records for vehicle id
-        return vehicleContract.getAllVehServicingRecords(_vehicleId);
-    }
-
-    /**
-     * Function 21: Retrieve all unacknowledged servicing records on vehicle id
-     * Comments:
-     */
-    function retrieveAllUnacknowledgedServicingRecordsOn(uint256 _vehicleId)
-        public
-        vehicleExists(_vehicleId)
-        returns (uint256[] memory)
-    {
-        // Only owner addresses
-        require(
-            isVehicleOwnedBy(_vehicleId, msg.sender),
-            "Only the vehicle owner can retrieve the unacknowledged servicing records"
-        );
-
-        // emit event
-        emit unacknowledgedServicingRecordsForVehicleRetrieved(_vehicleId);
-
-        // Return all unacknowledged servicing records for vehicle id
-        return ownersDealers[msg.sender].unacknowledgedServicingIds[_vehicleId];
+        return servicingRecords;
     }
 
     /**
@@ -1156,8 +1127,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Emit event
         emit accidentRecordsForVehicleRetrieved(_vehicleId);
 
+        uint256[] memory accidentRecords = vehicleContract.getAllVehAccidentRecords(_vehicleId);
+
         // Return all accident records for vehicle id
-        return vehicleContract.getAllVehAccidentRecords(_vehicleId);
+        return accidentRecords;
     }
 
     /**
@@ -1695,7 +1668,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _currentMileage,
         bytes32 _workDone,
         bytes32 _totalCharges
-    ) public onlyWorkshop returns (bool) {
+    ) public onlyWorkshop returns (uint256) {
         // ------- Vehicle.sol ------ //
 
         uint256 _newServicingId =
@@ -1712,23 +1685,8 @@ contract VehicleRegistry is Ownable, Vehicle {
 
         // ------- VehicleRegistry.sol ------ //
 
-        // Add to owner's unacknowledgedServicingIds
-        address _ownerDealerAddress =
-            vehicleContract.getCurrentVehOwnerAddress(_vehicleId);
-        ownersDealers[_ownerDealerAddress].unacknowledgedServicingIds[
-            _vehicleId
-        ]
-            .push(_newServicingId);
-
-        // Update unacknowledged servicing id index
-        uint256 unacknowledgeServicingIdsLength =
-            ownersDealers[_ownerDealerAddress].unacknowledgedServicingIds[
-                _vehicleId
-            ]
-                .length;
-        ownersDealers[_ownerDealerAddress].unacknowledgedServicingIdIndex[
-            _vehicleId
-        ][_newServicingId] = unacknowledgeServicingIdsLength - 1;
+        // Add to owner's servicingIds (archived)
+        // address _ownerDealerAddress = vehicleContract.getCurrentVehOwnerAddress(_vehicleId);
 
         // Add to workshop's vehicleIdsWorkedOn & vehServicingIdsCompleted
         address _workshopAddress = msg.sender;
@@ -1742,31 +1700,7 @@ contract VehicleRegistry is Ownable, Vehicle {
             _newServicingId
         );
 
-        // vehServicingIds[_vehicleId].push(_newServicingId);
-
-        return true;
-    }
-
-    /**
-     * Function 41: Acknowledge servicing record
-     * Comments: Only owner of the vehicle can acknowledge
-     * Allowed Roles: Owner
-     */
-    function acknowledgeServicingRecord(
-        uint256 _vehicleId,
-        uint256 _servicingId
-    ) public onlyOwnerDealer returns (bool) {
-        require(
-            isVehicleOwnedBy(_vehicleId, msg.sender),
-            "Sender Invalid: Only the owner of the vehicle can acknowledge the servicing record"
-        );
-
-        // Emit event omitted since vehicleContract already has event emitted
-
-        // Remove from unacknowledgedServicingIds[]
-        removeServicingIdFromArray(msg.sender, _vehicleId, _servicingId);
-
-        return vehicleContract.acknowledgeServicing(_vehicleId, _servicingId);
+        return _newServicingId;
     }
 
     /**
@@ -1822,12 +1756,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         onlyAllAuthorizedRoles(_vehicleId, msg.sender)
         returns (
             bytes32 typeOfWorkDone,
-            bytes32 totalCharges,
-            bool acknowledgedByOwner
+            bytes32 totalCharges
         )
     {
         // Emit event omitted since vehicleContract already has event emitted
-
         return vehicleContract.retrieveServHistory2(_vehicleId, _servicingId);
     }
 
@@ -1963,7 +1895,6 @@ contract VehicleRegistry is Ownable, Vehicle {
     {
         // Emit event omitted since vehicleContract already has event emitted
 
-        // Vehicle.sol's retrieveServicingHistory2
         (
             _appointedWorkshopNo,
             _servicingId,
@@ -2106,47 +2037,6 @@ contract VehicleRegistry is Ownable, Vehicle {
 
         // Decreasing the length of the array
         ownersDealers[ownerDealer].vehicleIdsToAccept.length--;
-
-        return true;
-    }
-
-    // Helper function to remove a servicing id from array
-    function removeServicingIdFromArray(
-        address ownerDealer,
-        uint256 vehicleId,
-        uint256 servicingId
-    ) internal returns (bool) {
-        // ownersDealers[address] => vehicleIdIndex[Vehicle ID] => array index
-        uint256 index =
-            ownersDealers[ownerDealer].unacknowledgedServicingIdIndex[
-                vehicleId
-            ][servicingId];
-        uint256 unacknowledgeServicingIdsLength =
-            ownersDealers[ownerDealer].unacknowledgedServicingIds[vehicleId]
-                .length;
-
-        // if (index >= ownersDealers[ownerDealer].vehicleIds.length) return false;
-        require(
-            index >= unacknowledgeServicingIdsLength,
-            "Index does not exists"
-        );
-
-        // Loop and move items behind index to the front by 1 index
-        for (uint256 i = index; i < unacknowledgeServicingIdsLength - 1; i++) {
-            // Update unacknowledgedServicingIdIndex after current index to point 1 index ahead
-            ownersDealers[ownerDealer].unacknowledgedServicingIdIndex[
-                vehicleId
-            ][i + 1] = i;
-
-            // Update array pointing the current index to the next index
-            ownersDealers[ownerDealer].unacknowledgedServicingIds[
-                i
-            ] = ownersDealers[ownerDealer].unacknowledgedServicingIds[i + 1];
-        }
-
-        // Decreasing the length of the array
-        ownersDealers[ownerDealer].unacknowledgedServicingIds[vehicleId]
-            .length--;
 
         return true;
     }

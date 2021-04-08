@@ -12,13 +12,13 @@ contract('VehicleRegistry', function (accounts) {
     // Vehicle Registry Owner
     const vehicleRegistryOwner = accounts[0];
     const vehicleRegistryOwnerName = web3.utils.utf8ToHex("John Tan");
-    const vehicleRegistryOwnerDateJoined = web3.utils.utf8ToHex("1 Feb 2021");
+    const vehicleRegistryOwnerDateJoined = web3.utils.utf8ToHex("1 Feb 2020");
     const vehicleRegistryOwnerContact = 90004302;
 
     // Admin
     const newAdmin = accounts[1];
     const newAdminName = web3.utils.utf8ToHex("Rachel Tan");
-    const newAdminDateJoined = web3.utils.utf8ToHex("2 Feb 2021");
+    const newAdminDateJoined = web3.utils.utf8ToHex("2 Feb 2020");
     const newAdminContact = 91114302;
 
     // Owner
@@ -27,7 +27,7 @@ contract('VehicleRegistry', function (accounts) {
     const ownerContact = 92224302;
     const ownerCompanyRegNo = web3.utils.utf8ToHex(""); // Company Reg No. = Empty (Not a dealer)
     const ownerPhysicalAddress = web3.utils.utf8ToHex("95A Henderson Rd, S151095");
-    const ownerDateOfReg = web3.utils.utf8ToHex("1 Mar 2021");
+    const ownerDateOfReg = web3.utils.utf8ToHex("1 Mar 2020");
 
     // Workshop
     const workshop = accounts[3];
@@ -50,6 +50,7 @@ contract('VehicleRegistry', function (accounts) {
 
     // First vehicle variables
     let vehicleId;
+    let noOfServicingRecordsOnVeh1;
     const vehicleNo = web3.utils.utf8ToHex("SOC4302S");
     const vehicleUpdatedLicensePlate = web3.utils.utf8ToHex("SOC8888C");
     const vehicleMakeModel = web3.utils.utf8ToHex("Toyota Corolla Altis");
@@ -82,6 +83,21 @@ contract('VehicleRegistry', function (accounts) {
     const secondVehOwnerName = web3.utils.utf8ToHex("Samuel Wong");
 
     // Servicing variables
+    let servicingId;
+    const dateCompleted = web3.utils.utf8ToHex("1 June 2020");
+    const typeOfWorkDone = web3.utils.utf8ToHex("Maintenance"); // Modification/Maintenance/Repair
+    const appointedMechanic = web3.utils.utf8ToHex("Dominic Toretto");
+    const currentMileage = web3.utils.utf8ToHex("20,000km");
+    const workDone = web3.utils.utf8ToHex("Engine oil, oil filter");
+    const totalCharges = web3.utils.utf8ToHex("$189.43");
+
+    // Add another servicing to test the history function
+    const dateCompleted2 = web3.utils.utf8ToHex("1 July 2020");
+    const typeOfWorkDone2 = web3.utils.utf8ToHex("Modification");
+    const appointedMechanic2 = web3.utils.utf8ToHex("Dominic Toretto");
+    const currentMileage2 = web3.utils.utf8ToHex("40,000km");
+    const workDone2 = web3.utils.utf8ToHex("Installed turbocharger");
+    const totalCharges2 = web3.utils.utf8ToHex("$588.88");
 
     // Accident variables
 
@@ -126,7 +142,7 @@ contract('VehicleRegistry', function (accounts) {
         const contact = result.logs[0].args['3'].toNumber();
 
         assert.equal(adminName, "Genesis Admin", "Admin name does not match");
-        assert.equal(dateJoined, "1 Jan 2021", "Date joined does not match");
+        assert.equal(dateJoined, "1 Jan 2020", "Date joined does not match");
         assert.equal(contact, 90000000, "Contact number does not match");
 
         let updateAdmin = await vehicleRegistryInstance.updateAdminInfo(
@@ -166,7 +182,7 @@ contract('VehicleRegistry', function (accounts) {
         let adminToDelete = await vehicleRegistryInstance.registerAdmin(
             accounts[5],
             web3.utils.utf8ToHex("Account To Test Deletion"),
-            web3.utils.utf8ToHex("1 Mar 2021"),
+            web3.utils.utf8ToHex("1 Mar 2020"),
             90000000, {
             from: vehicleRegistryOwner
         });
@@ -285,7 +301,7 @@ contract('VehicleRegistry', function (accounts) {
             web3.utils.utf8ToHex(""), // Workshop Reg No. = Empty
             web3.utils.utf8ToHex("Address to be updated"),
             70000000,
-            web3.utils.utf8ToHex("1 Mar 2021"),
+            web3.utils.utf8ToHex("1 Mar 2020"),
             {
                 from: vehicleRegistryOwner
             }
@@ -318,7 +334,7 @@ contract('VehicleRegistry', function (accounts) {
         assert.equal(_workshopRegNo, "", "Workshop registration number does not match");
         assert.equal(_physicalAddress, "Address to be updated", "Physical address does not match");
         assert.equal(_contact, 70000000, "Contact number does not match");
-        assert.equal(_dateOfReg, "1 Mar 2021", "Date of registration does not match");
+        assert.equal(_dateOfReg, "1 Mar 2020", "Date of registration does not match");
 
         let updateWorkshop = await vehicleRegistryInstance.updateWorkshopInfo(
             workshop,
@@ -607,80 +623,24 @@ contract('VehicleRegistry', function (accounts) {
     // Test 19:
     it('Test 19: Remove authorization', async () => {
 
-        // // Testing: Index & length
-        // let retrieveIndexLength = await vehicleRegistryInstance.returnIndexLength.call(
-        //     owner,
-        //     vehicleId,
-        //     authorizedParty,
-        //     { from: newAdmin }
-        // );
-        // // console.log(`Array fields are: ${Object.entries(retrieveIndexLength)}`);
-        // console.log(`Authorized party index is: ${retrieveIndexLength[0]}`);
-        // console.log(`Authorized party length is: ${retrieveIndexLength[1]}`);
+        // Testing: Create another authorized party to remove
+        const authorizedParty2 = accounts[7];
+        let authorizeAccess2 = await vehicleRegistryInstance.authorizeAccess(
+            vehicleId,
+            owner,
+            authorizedParty2,
+            { from: owner }
+        );
+        assert.ok(authorizeAccess2);
 
-        // // Testing: Create another authorized party to test
-        // const authorizedParty2 = accounts[7];
-        // let authorizeAccess2 = await vehicleRegistryInstance.authorizeAccess(
-        //     vehicleId,
-        //     owner,
-        //     authorizedParty2,
-        //     { from: owner }
-        // );
-        // assert.ok(authorizeAccess2);
-
-
-        // // Testing: Index & length
-        // let retrieveIndexLength2 = await vehicleRegistryInstance.returnIndexLength.call(
-        //     owner,
-        //     vehicleId,
-        //     authorizedParty2,
-        //     { from: newAdmin }
-        // );
-        // console.log(`After 2nd authorization: Authorized party index is: ${retrieveIndexLength2[0]}`);
-        // console.log(`After 2nd authorization: Authorized party length is: ${retrieveIndexLength2[1]}`);
-
-
-        // // Testing: Index & length
-        // let retrieveArray = await vehicleRegistryInstance.returnArray.call(
-        //     owner,
-        //     vehicleId,
-        //     { from: newAdmin }
-        // );
-
-        // console.log(`After 2nd authorization: Array fields are: ${Object.entries(retrieveArray)}`);
-
-        // ************ CONTINUE HERE ************** //
         let authorizationRemoval = await vehicleRegistryInstance.removeAuthorization(
             vehicleId,
             owner,
-            authorizedParty,
+            authorizedParty2,
             { from: owner }
         );
 
         assert.ok(authorizationRemoval, "authorization removal failed"); // Failed
-
-
-        // // // Testing: Index & length
-        // let retrieveIndexLength3 = await vehicleRegistryInstance.returnIndexLength.call(
-        //     owner,
-        //     vehicleId,
-        //     authorizedParty,
-        //     { from: newAdmin }
-        // );
-        // // // console.log(`Array fields are: ${Object.entries(retrieveIndexLength)}`);
-        // console.log(`After deletion: Authorized party index is: ${retrieveIndexLength3[0]}`);
-        // console.log(`After deletion: Authorized party length is: ${retrieveIndexLength3[1]}`);
-
-        // // // Testing: Index & length
-        // let retrieveArray2 = await vehicleRegistryInstance.returnArray.call(
-        //     owner,
-        //     vehicleId,
-        //     { from: newAdmin }
-        // );
-
-        // console.log(`After deletion: Array fields are: ${Object.entries(retrieveArray2)}`);
-
-        // ************ CONTINUE LATER ************** //
 
         // Notice the .call()
         let retrieveAuthorizedAddresses = await vehicleRegistryInstance.retrieveAuthorizedAddresses.call(
@@ -694,13 +654,13 @@ contract('VehicleRegistry', function (accounts) {
         const _noOfAuthorizedParties = retrieveAuthorizedAddresses[0].toNumber();
         const _authorizedAddress = retrieveAuthorizedAddresses[1][0]; // Second parameter, first in the array
 
-        assert.strictEqual(_noOfAuthorizedParties, 0, "Number of authorized addresses does not match");
-        assert.strictEqual(_authorizedAddress, undefined, "Authorized address does not match");
+        assert.strictEqual(_noOfAuthorizedParties, 1, "Number of authorized addresses does not match");
+        assert.strictEqual(_authorizedAddress, authorizedParty, "Authorized address does not match");
 
         truffleAssert.eventEmitted(authorizationRemoval, 'authorizationRemoved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
                 && ev.authorizer === owner
-                && ev.authorizedAddress === authorizedParty;
+                && ev.authorizedAddress === authorizedParty2;
         }, 'Vehicle ID or authorizer or authorized address does not match');
 
     });
@@ -814,134 +774,279 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 29: 
-    it('Test 29: Initiate transfer of vehicle by owner', async () => {
+    // Test 24: Add servicing record
+    it('Test 24: Add servicing record to vehicle', async () => {
+
+        let addServicingRecord = await vehicleRegistryInstance.addServicingRecord(
+            vehicleId,
+            dateCompleted,
+            workshopRegNo,
+            typeOfWorkDone,
+            appointedMechanic,
+            currentMileage,
+            workDone,
+            totalCharges,
+            { from: workshop }
+        );
+
+        // console.log(addServicingRecord.logs[0].args['1'].toNumber()); // = 1
+
+        truffleAssert.eventEmitted(addServicingRecord, 'vehServicingDetailsRecorded', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.newServicingId.toNumber() === 1; // First servicing id for the vehicle will = 1
+        }, 'Vehicle id or servicing id does not match');
+
+        // Create a 2nd servicing record to test the servicing history function:
+        let addServicingRecord2 = await vehicleRegistryInstance.addServicingRecord(
+            vehicleId,
+            dateCompleted2,
+            workshopRegNo,
+            typeOfWorkDone2,
+            appointedMechanic2,
+            currentMileage2,
+            workDone2,
+            totalCharges2,
+            { from: workshop }
+        );
+
+        truffleAssert.eventEmitted(addServicingRecord2, 'vehServicingDetailsRecorded', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.newServicingId.toNumber() === 2; // Second servicing id for the vehicle will = 2
+        }, 'Vehicle id or servicing id does not match');
 
     });
-    
-    // Test 30: 
-    it('Test 30: Accept transfer of vehicle by buyer', async () => {
-    
+
+    // Test 25: Retrieve all servicing records on vehicle
+    it('Test 25: Retrieve all servicing records on vehicle', async () => {
+
+        // End of additional servicing record
+
+        let allServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllServicingRecordsOn(
+            vehicleId,
+            { from: authorizedParty }
+        );
+
+        // console.log(allServicingRecordsOnVehicle.logs[0].args['0'].toNumber()); // servicing IDs = [ 1 ] 
+        // console.log(Object.entries(allServicingRecordsOnVehicle.logs[0].args['0']));
+
+        servicingId = allServicingRecordsOnVehicle.logs[0].args['0'].words[0];
+        const noOfServicingRecords = allServicingRecordsOnVehicle.logs[0].args['0'].length;
+        assert.strictEqual(noOfServicingRecords, 1, "Number of servicing records for vehicle does not match");
+
+        truffleAssert.eventEmitted(allServicingRecordsOnVehicle, 'servicingRecordsForVehicleRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId;
+        }, 'Vehicle id does not match');
+
     });
 
-    // Test 24: Retrieve number of transfers for vehicle
-    it('Test 24: Retrieve number of transfer for vehicle', async () => {
 
-        
+    // Test 26: functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
+    it('Test 26: Retrieve service record on vehicle', async () => {
+
+        let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingHistory1(
+            vehicleId,
+            servicingId,
+            { from: owner }
+        );
+
+        // console.log(retrieveServicingRecord1);
+        // console.log(web3.utils.hexToUtf8(retrieveServicingRecord1[0])); // 1 June 2020
+        // console.log(web3.utils.hexToUtf8(retrieveServicingRecord1.dateCompleted)); // 1 June 2020
+
+        truffleAssert.eventEmitted(retrieveServicingRecord1, 'vehServicingHistoryRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.servicingId.toNumber() === servicingId;
+        }, 'Vehicle id or servicing id does not match');
+
+        // Retrieving with authorized party instead to test access control
+        let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingHistory2(
+            vehicleId,
+            servicingId,
+            { from: owner }
+        );
+
+        // console.log(retrieveServicingRecord2);
+        // console.log(web3.utils.hexToUtf8(retrieveServicingRecord2[0])); // Maintenance
+        // console.log(web3.utils.hexToUtf8(retrieveServicingRecord2.typeOfWorkDone)); // Maintenance
+
+        truffleAssert.eventEmitted(retrieveServicingRecord2, 'vehServicingHistory2Retrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.servicingId.toNumber() === servicingId;
+        }, 'Vehicle id or servicing id does not match');
 
     });
 
-    // Test 25: Retrieve ownership history for vehicle 
-    it('Test 25: Retrieve ownership history for vehicle', async () => {
+    // Test 27: Retrieve all vehicles serviced by workshop
+    it('Test 27: Retrieve all vehicles serviced by workshop', async () => {
+
+        let allVehiclesServicedByWorkshop = await vehicleRegistryInstance.retrieveAllVehIdsServicedBy.call(
+            workshop,
+            { from: workshop }
+        );
+
+        const vehicleIdServiced = allVehiclesServicedByWorkshop[0].toNumber();
+        assert.strictEqual(vehicleIdServiced, 1, "Vehicle ID does not match");
 
     });
 
+    // Test 28: Retrieve vehicle servicing records by workshop
+    it('Test 28: Retrieve vehicle servicing records by workshop', async () => {
 
+        let vehServicingRecordsByWorkshop = await vehicleRegistryInstance.retrieveVehServicingRecordsBy.call(
+            workshop,
+            vehicleId,
+            { from: workshop }
+        );
 
+        const vehServicingIdDone = vehServicingRecordsByWorkshop[0].toNumber();
+        assert.strictEqual(vehServicingIdDone, 1, "Vehicle ID does not match");
 
+    });
+
+    // Test 29: Retrieve number of servicing records on vehicle
+    it('Test 29: Retrieve number of servicing records on vehicle', async () => {
+
+        let noOfServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfServicingRecords(
+            vehicleId,
+            { from: workshop }
+        );
+
+        noOfServicingRecordsOnVeh1 = noOfServicingRecordsOnVehicle.logs[0].args['noOfServicingRecords'].words[0];
+
+        truffleAssert.eventEmitted(noOfServicingRecordsOnVehicle, 'noOfServicingRecordsRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.noOfServicingRecords.toNumber() === 2;
+        }, 'Vehicle id or number of servicing records does not match');
+
+    });
+
+    // Test 30: Loop & use functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
+    it('Test 30: Retrieve servicing history', async () => {
+
+        let servDateCompleted1;
+        let servDateCompleted2;
+        let servTypeOfWorkDone;
+        let servTypeOfWorkDone2;
+
+        // Loop and retrieve servicing record (No of servicing records = 2)
+        for (let i = 1; i <= noOfServicingRecordsOnVeh1; i++) {
+
+            let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingHistory1.call(
+                vehicleId,
+                i, // servicing id
+                { from: workshop }
+            );
+
+            // console.log(Object.entries(retrieveServicingRecord1));
+
+            if (i == 1) {
+                servDateCompleted1 = retrieveServicingRecord1.dateCompleted;
+            } else {
+                servDateCompleted2 = retrieveServicingRecord1.dateCompleted;
+            }
+
+            let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingHistory2.call(
+                vehicleId,
+                i, // servicing id
+                { from: workshop }
+            );
+
+            // console.log(Object.entries(retrieveServicingRecord2));
+
+            if (i == 1) {
+                servTypeOfWorkDone = retrieveServicingRecord2.typeOfWorkDone;
+            } else {
+                servTypeOfWorkDone2 = retrieveServicingRecord2.typeOfWorkDone;
+            }
+
+        }
+
+        assert.strictEqual(web3.utils.hexToUtf8(servDateCompleted1), web3.utils.hexToUtf8(dateCompleted), "First servicing date completed does not match");
+        assert.strictEqual(web3.utils.hexToUtf8(servDateCompleted2), web3.utils.hexToUtf8(dateCompleted2), "Second servicing date completed does not match");
+        assert.strictEqual(web3.utils.hexToUtf8(servTypeOfWorkDone), web3.utils.hexToUtf8(typeOfWorkDone), "First servicing type of work does not match");
+        assert.strictEqual(web3.utils.hexToUtf8(servTypeOfWorkDone2), web3.utils.hexToUtf8(typeOfWorkDone2), "Second servicing type of work does not match");
+
+    });
 
     // Test 31: 
-    it('Test 31: Add servicing record to vehicle', async () => {
+    it('Test 31: Add accident record to vehicle', async () => {
 
     });
 
     // Test 32: 
-    it('Test 32: Retrieve all servicing records on vehicle', async () => {
+    it('Test 32: Retrieve all accident records on vehicle', async () => {
 
     });
 
-    // Test 33: 
-    it('Test 33: Retrieve all unacknowledged servicing records on vehicle', async () => {
+    // Test 33: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
+    it('Test 33: Retrieve accident record on vehicle', async () => {
 
     });
 
-    // Test 34: functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
-    it('Test 34: Retrieve service record on vehicle', async () => {
+    // Test 34: 
+    it('Test 34: Retrieve number of accident records on vehicle', async () => {
 
     });
 
-    // Test 35: 
-    it('Test 35: Acknowledge servicing record', async () => {
+    // Test 35: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
+    it('Test 35: Retrieve accident history', async () => {
 
     });
 
     // Test 36: 
-    it('Test 36: Retrieve all vehicles serviced by workshop', async () => {
+    it('Test 36: Transfer vehicle to new owner', async () => {
 
     });
 
-    // Test 37: 
-    it('Test 37: Retrieve vehicle servicing records by workshop', async () => {
+    // Test 37: Retrieve number of transfers for vehicle
+    it('Test 37: Retrieve number of transfer for vehicle', async () => {
+
 
     });
 
-    // Test 38: 
-    it('Test 38: Retrieve number of servicing records on vehicle', async () => {
+    // Test 38: Retrieve ownership history for vehicle 
+    it('Test 38: Retrieve ownership history for vehicle', async () => {
 
     });
 
-    // Test 39: functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
-    it('Test 39: Retrieve servicing history', async () => {
-
-    });
-
-    // Test 40: 
-    it('Test 40: Add accident record to vehicle', async () => {
-
-    });
-
-    // Test 41: 
-    it('Test 41: Retrieve all accident records on vehicle', async () => {
-
-    });
-
-    // Test 42: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
-    it('Test 42: Retrieve accident record on vehicle', async () => {
-
-    });
-
-    // Test 43: 
-    it('Test 43: Update accident claim status on vehicle', async () => {
-
-    });
-
-    // Test 44: 
-    it('Test 44: Retrieve number of accident records on vehicle', async () => {
-
-    });
-
-    // Test 45: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
-    it('Test 45: Retrieve accident history', async () => {
-
-    });
-
-    // Test 46: 
-    it('Test 46: Retrieve all vehicles insured by insurance company', async () => {
-
-    });
-
-    // Test 47: 
-    it('Test 47: Retrieve accident records on vehicle by insurance company', async () => {
-
-    });
-
-    // Test : 
-    it('Test : ', async () => {
-
-    });
-
-    // // Test 26: Archived 
-    // it('Test 26: Approve consignment to other party', async () => {
+    // // Test XX: Archived
+    // it('Test XX: Retrieve all vehicles insured by insurance company', async () => {
 
     // });
 
-    // // Test 27: Archived
-    // it('Test 27: Retrieve consignment party information', async () => {
+    // // Test XX: Archived
+    // it('Test XX: Retrieve accident records on vehicle by insurance company', async () => {
 
     // });
 
-    // // Test 28: Archived
-    // it('Test 28: Remove consignment rights', async () => {
+    // // Test XX: Archived 
+    // it('Test XX: Approve consignment to other party', async () => {
+
+    // });
+
+    // // Test XX: Archived
+    // it('Test XX: Retrieve consignment party information', async () => {
+
+    // });
+
+    // // Test XX: Archived
+    // it('Test XX: Remove consignment rights', async () => {
+
+    // });
+
+
+    // // Test XX: Archived
+    // it('Test XX: Retrieve all unacknowledged servicing records on vehicle', async () => {
+
+    // });
+
+    // // Test XX: Archived
+    // it('Test XX: Acknowledge servicing record', async () => {
+
+    // });
+
+    // // Test XX: Archived
+    // it('Test XX: Update accident claim status on vehicle', async () => {
 
     // });
 

@@ -61,7 +61,6 @@ contract Vehicle is ERC721Full {
         bytes32 currentMileage; // 20,000 km
         bytes32 workDone; // Engine oil, oil filter, brake fluid, washer fluid, wheel alignment and balancing. Regular maintenance, recommended to change tyres for the next servicing
         bytes32 totalCharges; // $189.43 (Solidity uint does not accept decimals)
-        bool acknowledgedByOwner; // To check whether owner acknowledged the servicing
         // bytes32 remarks; // Combined with work done: Regular maintenance, recommended to change tyres for the next servicing
     }
 
@@ -131,9 +130,8 @@ contract Vehicle is ERC721Full {
     event vehOwnershipHistoryRetrieved(uint256 vehicleId, bytes32 owner, uint256 contact, bytes32 ownerPhysicalAddress, address ownerAddress);
     event vehOwnerDetailsUpdated(uint256 vehicleId, uint256 ownerId);
 
-    event vehServicingDetailsRecorded(uint256 vehicleId, uint256 servicingId);
+    event vehServicingDetailsRecorded(uint256 vehicleId, uint256 newServicingId);
     event vehServicingRecordsRetrieved(uint256 vehicleId);
-    event vehServicingDetailsAcknowledged(uint256 vehicleId, uint256 servicingId);
     event vehServicingHistoryRetrieved(uint256 vehicleId, uint256 servicingId);
     event vehServicingHistory2Retrieved(uint256 vehicleId, uint256 servicingId);
 
@@ -169,12 +167,12 @@ contract Vehicle is ERC721Full {
     }
 
     modifier vehicleServicingIdExists(uint256 vehicleId, uint256 servicingId) {
-        require(servicingId < noOfServicingRecords[vehicleId], 'Invalid Servicing ID: Servicing ID does not exists');
+        require(servicingId <= noOfServicingRecords[vehicleId], 'Invalid Servicing ID: Servicing ID does not exists');
         _;
     }
 
     modifier vehicleAccidentIdExists(uint256 vehicleId, uint256 accidentId) {
-        require(accidentId < noOfAccidentRecords[vehicleId], 'Invalid Accident ID: Accident ID does not exists');
+        require(accidentId <= noOfAccidentRecords[vehicleId], 'Invalid Accident ID: Accident ID does not exists');
         _;
     }
 
@@ -614,8 +612,7 @@ contract Vehicle is ERC721Full {
                 appointedMechanic,
                 currentMileage,
                 workDone,
-                totalCharges,
-                false
+                totalCharges
             );
 
         vehServicingRecords[vehicleId][newServicingId] = newServicingDetails;
@@ -629,24 +626,7 @@ contract Vehicle is ERC721Full {
     }
 
     /**
-     * Function 16: Acknowledge servicing record
-     * Comments: For owner to acknowledge the servicing record
-     */
-    function acknowledgeServicing(uint256 vehicleId, uint256 servicingId) 
-        external vehicleRegDetails2Exists(vehicleId) 
-        vehicleServicingIdExists(vehicleId, servicingId) returns (bool) {
-
-            // Update acknowledged boolean
-            vehServicingRecords[vehicleId][servicingId].acknowledgedByOwner = true;
-            
-            // emit event
-            emit vehServicingDetailsAcknowledged(vehicleId, servicingId);
-
-            return true;
-    }
-
-    /**
-     * Function 17: Retrieve servicing history
+     * Function XX: Retrieve servicing history
      * Commments: Loop from the front end to get the full servicing history
      */
     function retrieveServHistory1(uint256 vehicleId, uint256 servicingId) 
@@ -679,15 +659,14 @@ contract Vehicle is ERC721Full {
     function retrieveServHistory2(uint256 vehicleId, uint256 servicingId) external
         vehicleRegDetails2Exists(vehicleId) 
         vehicleServicingIdExists(vehicleId, servicingId)
-        returns (bytes32, bytes32, bool) {
+        returns (bytes32, bytes32) {
 
             // emit event
             emit vehServicingHistory2Retrieved(vehicleId, servicingId);
 
             return (
                 getBytes32FromEnum(vehServicingRecords[vehicleId][servicingId].typeOfWorkDone),
-                vehServicingRecords[vehicleId][servicingId].totalCharges,
-                vehServicingRecords[vehicleId][servicingId].acknowledgedByOwner
+                vehServicingRecords[vehicleId][servicingId].totalCharges
             );
 
     }
@@ -868,9 +847,9 @@ contract Vehicle is ERC721Full {
         typeOfServicing _typeOfServicing;
 
         // (compareStrings(bytes32ToString(typeOfWorkDone), "modification"))
-        if (typeOfWorkDone == bytes32("modification")) {
+        if (typeOfWorkDone == bytes32("Modification")) {
             _typeOfServicing = typeOfServicing.modification;
-        } else if (typeOfWorkDone == bytes32("maintenance")) {
+        } else if (typeOfWorkDone == bytes32("Maintenance")) {
             _typeOfServicing = typeOfServicing.maintenance;
         } else {
             _typeOfServicing = typeOfServicing.repair;
@@ -890,11 +869,11 @@ contract Vehicle is ERC721Full {
 
         // (compareStrings(bytes32ToString(typeOfWorkDone), "modification"))
         if (typeOfWorkDone == typeOfServicing.modification) {
-            _typeOfServicing = "modification";
+            _typeOfServicing = "Modification";
         } else if (typeOfWorkDone == typeOfServicing.maintenance) {
-            _typeOfServicing = "maintenance";
+            _typeOfServicing = "Maintenance";
         } else {
-            _typeOfServicing = "repair";
+            _typeOfServicing = "Repair";
         }
 
         return _typeOfServicing;
