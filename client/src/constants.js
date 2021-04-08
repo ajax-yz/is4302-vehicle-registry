@@ -13,3 +13,38 @@ export const ROLES_ENUM = {
   WORKSHOP: "Workshop",
   INSURANCE: "Insurance Company",
 };
+
+export const vehicleColumns = {
+  details1: [
+    "vehicleNo",
+    "makeModel",
+    "manufacturingYear",
+    "engineNo",
+    "chassisNo",
+  ],
+  details1p2: ["omv", "originalRegDate", "effectiveRegDate"],
+  details2: ["noOfTransfers", "engineCap", "coeCat", "quotaPrem", "ownerName"],
+  ownerAddress: ["ownerAddress"],
+};
+
+export const accidentColumns = {
+  accident1: [
+    "accidentDateLocation",
+    "driverName",
+    "timeOfAccident",
+    "descriptionOfAccident",
+    "insuranceCoName",
+  ],
+  accident2: ["appointedWorkshopNo", "servicingId", "remarks", "claimIssued"],
+};
+
+export const servicingColumns = {
+  history1: [
+    "dateCompleted",
+    "workshopRegNo",
+    "appointedMechanic",
+    "currentMileage",
+    "workDone",
+  ],
+  history2: ["typeOfWorkDone", "totalCharges", "acknowledgedByOwner"],
+};

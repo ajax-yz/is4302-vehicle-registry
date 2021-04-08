@@ -32,10 +32,12 @@ const App = () => {
     const roleBytes = await drizzle.contracts.VehicleRegistry.methods
       .roleOfAddress(account)
       .call();
-    const role = drizzle.web3.utils.toUtf8(roleBytes);
-    setUserRole(role);
-    console.log("accountt =", account);
-    console.log("role =", role);
+    if (roleBytes) {
+      const role = drizzle.web3.utils.toUtf8(roleBytes);
+      setUserRole(role);
+      console.log("accountt =", account);
+      console.log("role =", role);
+    }
   };
 
   useEffect(() => {
