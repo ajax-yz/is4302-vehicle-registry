@@ -1,5 +1,4 @@
 import React from "react";
-import { ContractData, ContractForm } from "drizzle-react-components";
 import {
   Grid,
   LinearProgress,
@@ -8,6 +7,7 @@ import {
   MenuItem,
   Button,
 } from "@material-ui/core";
+
 import PageTitle from "../../components/PageTitle/PageTitle";
 
 const AdminPage = () => {

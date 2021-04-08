@@ -26,7 +26,7 @@ import Tables from "../../pages/tables";
 import Icons from "../../pages/icons";
 import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
-
+import OwnerPage from "../../pages/owner";
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
@@ -66,7 +66,7 @@ function Layout(props) {
             />
             <PrivateRoute
               path="/app/owner"
-              component={Tables}
+              component={OwnerPage}
               userRole={role}
               allowedRole={ROLES_ENUM.OWNER}
             />
