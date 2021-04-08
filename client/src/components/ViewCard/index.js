@@ -11,7 +11,7 @@ import {
   Card,
   CardContent,
 } from "@material-ui/core";
-const UserInfo = ({ userData, title }) => {
+const ViewCard = ({ userData, title }) => {
   const keys = Object.keys(userData);
   return (
     <Card title={"Welcome back"} style={{ width: "100%" }}>
@@ -51,4 +51,4 @@ const UserInfo = ({ userData, title }) => {
   );
 };
 
-export default UserInfo;
+export default ViewCard;
