@@ -115,12 +115,12 @@ contract Vehicle is ERC721Full {
     // ---------------------------- Events ---------------------------- //
 
     event vehRegDetails1Added(uint256 vehicleId);
-    event vehRegDetails1Returned(uint256 vehicleId);
-    event vehRegDetails1Part2Returned(uint256 vehicleId);
+    event vehRegDetails1Returned(uint256 vehicleId, bytes32 vehicleNo, bytes32 makeModel);
+    event vehRegDetails1Part2Returned(uint256 vehicleId, uint256 omv, bytes32 originalRegDate, bytes32 effectiveRegDate);
     event vehRegDetails1Updated(uint256 vehicleId, bytes32 newEffectiveDate);
 
     event vehRegDetails2Added(uint256 vehicleId);
-    event vehRegDetails2Returned(uint256 vehicleId);
+    event vehRegDetails2Returned(uint256 vehicleId, bytes32 ownerName, bytes32 engineCap);
     event vehRegDetails2Updated(uint256 vehicleId, uint256 quotaPrem);
 
     event licensePlateChanged(uint256 vehicleId, bytes32 newLicensePlate);
@@ -271,15 +271,21 @@ contract Vehicle is ERC721Full {
         )
     {
 
+        bytes32 vehicleNo = vehRegRecords1[vehicleId].vehicleNo;
+        bytes32 makeModel = vehRegRecords1[vehicleId].makeModel;
+        uint256 manufacturingYear = vehRegRecords1[vehicleId].manufacturingYear;
+        bytes32 engineNo = vehRegRecords1[vehicleId].engineNo;
+        bytes32 chassisNo = vehRegRecords1[vehicleId].chassisNo;
+
         // Emit event for testing purpose
-        emit vehRegDetails1Returned(vehicleId);
+        emit vehRegDetails1Returned(vehicleId, vehicleNo, makeModel);
 
         return (
-            vehRegRecords1[vehicleId].vehicleNo,
-            vehRegRecords1[vehicleId].makeModel,
-            vehRegRecords1[vehicleId].manufacturingYear,
-            vehRegRecords1[vehicleId].engineNo,
-            vehRegRecords1[vehicleId].chassisNo
+            vehicleNo,
+            makeModel,
+            manufacturingYear,
+            engineNo,
+            chassisNo
         );
     }
 
@@ -295,13 +301,16 @@ contract Vehicle is ERC721Full {
         )
     {
 
+        uint256 omv = vehRegRecords1[vehicleId].omv;
+        bytes32 originalRegDate = vehRegRecords1[vehicleId].originalRegDate;
+        bytes32 effectiveRegDate = vehRegRecords1[vehicleId].effectiveRegDate;
         // Emit event for testing purpose
-        emit vehRegDetails1Part2Returned(vehicleId);
+        emit vehRegDetails1Part2Returned(vehicleId, omv, originalRegDate, effectiveRegDate);
 
         return (
-            vehRegRecords1[vehicleId].omv,
-            vehRegRecords1[vehicleId].originalRegDate,
-            vehRegRecords1[vehicleId].effectiveRegDate
+            omv,
+            originalRegDate,
+            effectiveRegDate
         );
     }
 
@@ -318,15 +327,22 @@ contract Vehicle is ERC721Full {
             bytes32
         )
     {
+
+        uint256 noOfTransfers = vehRegRecords2[vehicleId].noOfTransfers;
+        bytes32 engineCap = vehRegRecords2[vehicleId].engineCap;
+        bytes32 coeCat = vehRegRecords2[vehicleId].coeCat;
+        uint256 quotaPrem = vehRegRecords2[vehicleId].quotaPrem;
+        bytes32 ownerName = vehRegRecords2[vehicleId].owner;
+
         // Emit event for testing purpose
-        emit vehRegDetails2Returned(vehicleId);
+        emit vehRegDetails2Returned(vehicleId, ownerName, engineCap);
 
         return (
-            vehRegRecords2[vehicleId].noOfTransfers,
-            vehRegRecords2[vehicleId].engineCap,
-            vehRegRecords2[vehicleId].coeCat,
-            vehRegRecords2[vehicleId].quotaPrem,
-            vehRegRecords2[vehicleId].owner
+            noOfTransfers,
+            engineCap,
+            coeCat,
+            quotaPrem,
+            ownerName
         );
     }
 
