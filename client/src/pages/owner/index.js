@@ -17,7 +17,7 @@ import { newContextComponents } from "@drizzle/react-components";
 
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import PageTitle from "../../components/PageTitle/PageTitle";
-import UserInfo from "../../components/ViewCard";
+import ViewCard from "../../components/ViewCard";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 const { ContractData } = newContextComponents; // AccountData, ContractData
@@ -40,7 +40,7 @@ const OwnerPage = () => {
   }, []);
   return (
     <Grid container>
-      <UserInfo userData={userInfo} title={"User Details"} />
+      <ViewCard userData={userInfo} title={"User Details"} />
     </Grid>
   );
 };
