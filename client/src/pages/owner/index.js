@@ -17,7 +17,7 @@ import { newContextComponents } from "@drizzle/react-components";
 
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import PageTitle from "../../components/PageTitle/PageTitle";
-import UserInfo from "../../components/User/info";
+import UserInfo from "../../components/ViewCard";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 const { ContractData } = newContextComponents; // AccountData, ContractData
