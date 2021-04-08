@@ -4,12 +4,15 @@ import {
   CircularProgress,
   Typography,
   Button,
+  Modal,
   Tabs,
   Tab,
   TextField,
   Fade,
 } from "@material-ui/core";
 import VehicleRegistryService from "../../services/VehicleRegistry";
+import { vehicleColumns } from "../../constants";
+import ModalForm from "../../components/Modal/form";
 
 // drizzle
 import { drizzleReactHooks } from "@drizzle/react-plugin";
@@ -19,6 +22,7 @@ const MiscPage = () => {
   return (
     <Grid container>
       <AddOwnerCard />
+      <AddVehicleCom />
     </Grid>
   );
 };
@@ -102,4 +106,64 @@ const AddOwnerCard = () => {
   );
 };
 
+const AddVehicleCom = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const addVehicle = async (data) => {
+    console.log("data =", data);
+    const body1 = {};
+    const body2 = {};
+    const bodyKeys1 = [
+      ...vehicleColumns.details1,
+      ...vehicleColumns.details1p2,
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    vehicleColumns.details2.map((key) => {
+      body2[key] = data[key];
+    });
+    const ownerAddress = data.ownerAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.registerVehicleToOwner1(
+        drizzle,
+        body1,
+        ownerAddress,
+      ),
+      VehicleRegistryService.registerVehicleToOwner2(
+        drizzle,
+        body2,
+        ownerAddress,
+      ),
+    ]);
+    console.log("resp =", resp);
+  };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setVisible(!visible)}
+      >
+        Add Vehicle
+      </Button>
+
+      <ModalForm
+        title={"Add Vehicle"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={addVehicle}
+        keys={[
+          ...vehicleColumns.details1,
+          ...vehicleColumns.details1p2,
+          ...vehicleColumns.details2,
+          ...vehicleColumns.ownerAddress,
+        ]}
+      />
+    </div>
+  );
+};
 export default MiscPage;
