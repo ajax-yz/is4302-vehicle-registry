@@ -8,7 +8,11 @@
   },
   "scripts": {
     "dev": "lite-server",
-    "test": "echo \"Error: no test specified\" && sexit 1"
+    "test": "echo \"Error: no test specified\" && sexit 1",
+    "install": "cd client && npm install",
+    "migrate": "truffle compile && truffle migrate",
+    "start:blockchain": "ganache-cli -l 80000000 --allowUnlimitedContractSize",
+    "start:frontend": "cd client && npm start"
   },
   "author": "c.yizhao7@gmail.com",
   "license": "MIT",
