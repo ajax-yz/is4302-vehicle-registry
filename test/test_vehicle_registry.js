@@ -886,7 +886,7 @@ contract('VehicleRegistry', function (accounts) {
         // console.log(web3.utils.hexToUtf8(retrieveServicingRecord1[0])); // 1 June 2020
         // console.log(web3.utils.hexToUtf8(retrieveServicingRecord1.dateCompleted)); // 1 June 2020
 
-        truffleAssert.eventEmitted(retrieveServicingRecord1, 'vehServicingHistoryRetrieved', ev => {
+        truffleAssert.eventEmitted(retrieveServicingRecord1, 'vehServicingRecordRetrieved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
                 && ev.servicingId.toNumber() === servicingId;
         }, 'Vehicle id or servicing id does not match');
@@ -902,7 +902,7 @@ contract('VehicleRegistry', function (accounts) {
         // console.log(web3.utils.hexToUtf8(retrieveServicingRecord2[0])); // Maintenance
         // console.log(web3.utils.hexToUtf8(retrieveServicingRecord2.typeOfWorkDone)); // Maintenance
 
-        truffleAssert.eventEmitted(retrieveServicingRecord2, 'vehServicingHistory2Retrieved', ev => {
+        truffleAssert.eventEmitted(retrieveServicingRecord2, 'vehServicingRecord2Retrieved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
                 && ev.servicingId.toNumber() === servicingId;
         }, 'Vehicle id or servicing id does not match');
@@ -1097,7 +1097,7 @@ contract('VehicleRegistry', function (accounts) {
         // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord1[0]));
         // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord1.accidentDateLocation));
 
-        truffleAssert.eventEmitted(retrieveAccidentRecord1, 'vehAccidentHistoryRetrieved', ev => {
+        truffleAssert.eventEmitted(retrieveAccidentRecord1, 'vehAccidentRecordRetrieved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
                 && ev.accidentId.toNumber() === accidentId;
         }, 'Vehicle id or accident id does not match');
@@ -1114,7 +1114,7 @@ contract('VehicleRegistry', function (accounts) {
         // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord2.appointedWorkshopNo));
         // console.log(retrieveAccidentRecord2.servicingId.toNumber());
 
-        truffleAssert.eventEmitted(retrieveAccidentRecord2, 'vehAccidentHistory2Retrieved', ev => {
+        truffleAssert.eventEmitted(retrieveAccidentRecord2, 'vehAccidentRecord2Retrieved', ev => {
             return ev.vehicleId.toNumber() === vehicleId
                 && ev.accidentId.toNumber() === accidentId;
         }, 'Vehicle id or accident id does not match');
