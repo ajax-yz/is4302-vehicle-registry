@@ -29,6 +29,12 @@ contract('VehicleRegistry', function (accounts) {
     const ownerPhysicalAddress = web3.utils.utf8ToHex("95A Henderson Rd, S151095");
     const ownerDateOfReg = web3.utils.utf8ToHex("1 Mar 2020");
 
+    const newOwner = accounts[8];
+    const newOwnerName = web3.utils.utf8ToHex("Lewis Hamilton");
+    const newOwnerContact = 88884302;
+    const newOwnerPhysicalAddress = web3.utils.utf8ToHex("50 Ocean Drive, S098433");
+    const newOwnerDateOfReg = web3.utils.utf8ToHex("1 Nov 2020");
+
     // Workshop
     const workshop = accounts[3];
     const workshopName = web3.utils.utf8ToHex("Precise Auto Service");
@@ -51,6 +57,7 @@ contract('VehicleRegistry', function (accounts) {
     // First vehicle variables
     let vehicleId;
     let noOfServicingRecordsOnVeh1;
+    let noOfTransfersOnVeh1
     const vehicleNo = web3.utils.utf8ToHex("SOC4302S");
     const vehicleUpdatedLicensePlate = web3.utils.utf8ToHex("SOC8888C");
     const vehicleMakeModel = web3.utils.utf8ToHex("Toyota Corolla Altis");
@@ -85,21 +92,43 @@ contract('VehicleRegistry', function (accounts) {
     // Servicing variables
     let servicingId;
     const dateCompleted = web3.utils.utf8ToHex("1 June 2020");
-    const typeOfWorkDone = web3.utils.utf8ToHex("Maintenance"); // Modification/Maintenance/Repair
+    const typeOfWorkDone = web3.utils.utf8ToHex("Maintenance"); // Modification/Maintenance/Repair/Accident
     const appointedMechanic = web3.utils.utf8ToHex("Dominic Toretto");
     const currentMileage = web3.utils.utf8ToHex("20,000km");
     const workDone = web3.utils.utf8ToHex("Engine oil, oil filter");
     const totalCharges = web3.utils.utf8ToHex("$189.43");
 
     // Add another servicing to test the history function
+    let servicingId2;
     const dateCompleted2 = web3.utils.utf8ToHex("1 July 2020");
-    const typeOfWorkDone2 = web3.utils.utf8ToHex("Modification");
+    const typeOfWorkDone2 = web3.utils.utf8ToHex("Modification"); // Accident-related servicing work
     const appointedMechanic2 = web3.utils.utf8ToHex("Dominic Toretto");
     const currentMileage2 = web3.utils.utf8ToHex("40,000km");
-    const workDone2 = web3.utils.utf8ToHex("Installed turbocharger");
-    const totalCharges2 = web3.utils.utf8ToHex("$588.88");
+    const workDone2 = web3.utils.utf8ToHex("Installed exhaust system");
+    const totalCharges2 = web3.utils.utf8ToHex("$1888.88");
+
+    // Add another servicing to test the linkage to accident record
+    let servicingId3;
+    const dateCompleted3 = web3.utils.utf8ToHex("1 Aug 2020");
+    const typeOfWorkDone3 = web3.utils.utf8ToHex("Accident"); // Accident-related servicing work
+    const appointedMechanic3 = web3.utils.utf8ToHex("Dominic Toretto");
+    const currentMileage3 = web3.utils.utf8ToHex("50,000km");
+    const workDone3 = web3.utils.utf8ToHex("Panel damages caused by accident");
+    const totalCharges3 = web3.utils.utf8ToHex("$888.88");
 
     // Accident variables
+    let accidentId;
+    let noOfAccidentRecordsOnVeh1;
+    const accidentDateLocation = web3.utils.utf8ToHex("1 Sept 2020, Orchard Rd");
+    const driverName = web3.utils.utf8ToHex("Jonathan Tan");
+    const timeOfAccident = web3.utils.utf8ToHex("11:59 PM");
+    const descriptionOfAccident = web3.utils.utf8ToHex("Lost control and crashed");
+
+    let accidentId2;
+    const accidentDateLocation2 = web3.utils.utf8ToHex("1 Oct 2020, PIE");
+    const driverName2 = web3.utils.utf8ToHex("Takumi Fujiwara");
+    const timeOfAccident2 = web3.utils.utf8ToHex("11:11 PM");
+    const descriptionOfAccident2 = web3.utils.utf8ToHex("Highway chain collison");
 
     before(async () => {
         vehicleInstance = await Vehicle.deployed();
@@ -786,10 +815,12 @@ contract('VehicleRegistry', function (accounts) {
             currentMileage,
             workDone,
             totalCharges,
+            0, // No accident id related to this servicing record
             { from: workshop }
         );
 
         // console.log(addServicingRecord.logs[0].args['1'].toNumber()); // = 1
+        servicingId = addServicingRecord.logs[0].args.newServicingId.toNumber();
 
         truffleAssert.eventEmitted(addServicingRecord, 'vehServicingDetailsRecorded', ev => {
             return ev.vehicleId.toNumber() === vehicleId
@@ -806,8 +837,15 @@ contract('VehicleRegistry', function (accounts) {
             currentMileage2,
             workDone2,
             totalCharges2,
+            0, // No accident id related to this servicing record
             { from: workshop }
         );
+
+        // console.log(Object.entries(addServicingRecord2.logs[0].args.newServicingId));
+        // console.log(addServicingRecord2.logs[0].args.newServicingId.toNumber());
+        // console.log(addServicingRecord2.logs[0].args.newServicingId.words[0]);
+
+        servicingId2 = addServicingRecord2.logs[0].args.newServicingId.toNumber();
 
         truffleAssert.eventEmitted(addServicingRecord2, 'vehServicingDetailsRecorded', ev => {
             return ev.vehicleId.toNumber() === vehicleId
@@ -819,23 +857,18 @@ contract('VehicleRegistry', function (accounts) {
     // Test 25: Retrieve all servicing records on vehicle
     it('Test 25: Retrieve all servicing records on vehicle', async () => {
 
-        // End of additional servicing record
-
         let allServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllServicingRecordsOn(
             vehicleId,
             { from: authorizedParty }
         );
 
-        // console.log(allServicingRecordsOnVehicle.logs[0].args['0'].toNumber()); // servicing IDs = [ 1 ] 
-        // console.log(Object.entries(allServicingRecordsOnVehicle.logs[0].args['0']));
-
-        servicingId = allServicingRecordsOnVehicle.logs[0].args['0'].words[0];
-        const noOfServicingRecords = allServicingRecordsOnVehicle.logs[0].args['0'].length;
-        assert.strictEqual(noOfServicingRecords, 1, "Number of servicing records for vehicle does not match");
+        const noOfServicingRecords = allServicingRecordsOnVehicle.logs[1].args.noOfServicingRecords.toNumber();
+        assert.strictEqual(noOfServicingRecords, 2, "Number of servicing records on vehicle does not match");
 
         truffleAssert.eventEmitted(allServicingRecordsOnVehicle, 'servicingRecordsForVehicleRetrieved', ev => {
-            return ev.vehicleId.toNumber() === vehicleId;
-        }, 'Vehicle id does not match');
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.noOfServicingRecords.toNumber() == 2;
+        }, 'Vehicle id or number of servicing records does not match');
 
     });
 
@@ -969,85 +1002,315 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 31: 
-    it('Test 31: Add accident record to vehicle', async () => {
+    it('Test 31: Add accident record to vehicle and link a servicing record to accident record', async () => {
+
+        let addAccidentRecord = await vehicleRegistryInstance.addAccidentRecord(
+            vehicleId,
+            accidentDateLocation,
+            driverName,
+            timeOfAccident,
+            descriptionOfAccident,
+            { from: newAdmin }
+        );
+
+        accidentId = addAccidentRecord.logs[0].args.newAccidentId.toNumber();
+
+        truffleAssert.eventEmitted(addAccidentRecord, 'vehAccidentDetailsRecorded', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.newAccidentId.toNumber() === 1; // First accident id for the vehicle will = 1
+        }, 'Vehicle id or accident id does not match');
+
+        // Create a 2nd accident record to test the accident history function:
+        let addAccidentRecord2 = await vehicleRegistryInstance.addAccidentRecord(
+            vehicleId,
+            accidentDateLocation2,
+            driverName2,
+            timeOfAccident2,
+            descriptionOfAccident2,
+            { from: newAdmin }
+        );
+
+        accidentId2 = addAccidentRecord2.logs[0].args.newAccidentId.toNumber();
+
+        truffleAssert.eventEmitted(addAccidentRecord2, 'vehAccidentDetailsRecorded', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.newAccidentId.toNumber() === 2; // Second accident id for the vehicle will = 2
+        }, 'Vehicle id or accident id does not match');
+
+        // **************** Link servicing record to accident record ****************
+
+        // Create 3rd servicing record to link to accident record:
+        let addServicingRecord3 = await vehicleRegistryInstance.addServicingRecord(
+            vehicleId,
+            dateCompleted3,
+            workshopRegNo,
+            typeOfWorkDone3,
+            appointedMechanic3,
+            currentMileage3,
+            workDone3,
+            totalCharges3,
+            accidentId, // accident id = 1
+            { from: workshop }
+        );
+
+        servicingId3 = addServicingRecord3.logs[0].args.newServicingId.toNumber(); // = 3
+
+        truffleAssert.eventEmitted(addServicingRecord3, 'vehServicingDetailsRecorded', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.newServicingId.toNumber() === 3; // third servicing id for the vehicle will = 3
+        }, 'Vehicle id or servicing id does not match');
 
     });
 
     // Test 32: 
     it('Test 32: Retrieve all accident records on vehicle', async () => {
 
+        let allAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllAccidentRecordsOn(
+            vehicleId,
+            { from: authorizedParty }
+        );
+
+        // console.log(Object.entries(allAccidentRecordsOnVehicle.logs));
+        // console.log(Object.entries(allAccidentRecordsOnVehicle.logs[1].args.noOfAccidentRecords));
+        // console.log(allAccidentRecordsOnVehicle.logs[1].args.noOfAccidentRecords.toNumber());
+
+        const noOfAccidentsRecords = allAccidentRecordsOnVehicle.logs[1].args.noOfAccidentRecords.toNumber();
+        assert.strictEqual(noOfAccidentsRecords, 2, "Number of accident records on vehicle does not match");
+
+        truffleAssert.eventEmitted(allAccidentRecordsOnVehicle, 'accidentRecordsForVehicleRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.noOfAccidentRecords.toNumber() === 2;
+        }, 'Vehicle id or number of accident records does not match');
+
     });
 
     // Test 33: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
-    it('Test 33: Retrieve accident record on vehicle', async () => {
+    it('Test 33: Retrieve accident record on vehicle by workshop', async () => {
+
+        let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentHistory1(
+            vehicleId,
+            accidentId,
+            { from: workshop }
+        );
+
+        // console.log(retrieveAccidentRecord1);
+        // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord1[0]));
+        // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord1.accidentDateLocation));
+
+        truffleAssert.eventEmitted(retrieveAccidentRecord1, 'vehAccidentHistoryRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.accidentId.toNumber() === accidentId;
+        }, 'Vehicle id or accident id does not match');
+
+        // Retrieving with authorized party instead to test access control
+        let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentHistory2(
+            vehicleId,
+            accidentId,
+            { from: workshop }
+        );
+
+        // console.log(retrieveAccidentRecord2);
+        // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord2[0]));
+        // console.log(web3.utils.hexToUtf8(retrieveAccidentRecord2.appointedWorkshopNo));
+        // console.log(retrieveAccidentRecord2.servicingId.toNumber());
+
+        truffleAssert.eventEmitted(retrieveAccidentRecord2, 'vehAccidentHistory2Retrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.accidentId.toNumber() === accidentId;
+        }, 'Vehicle id or accident id does not match');
 
     });
 
     // Test 34: 
     it('Test 34: Retrieve number of accident records on vehicle', async () => {
 
+        let noOfAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfAccidentRecords(
+            vehicleId,
+            { from: workshop }
+        );
+
+        // console.log(Object.entries(noOfAccidentRecordsOnVehicle.logs[0]));
+        // console.log(noOfAccidentRecordsOnVehicle.logs[0].args['noOfAccidentRecords'].words[0]); // 2
+        // console.log(noOfAccidentRecordsOnVehicle.logs[0].args.noOfAccidentRecords.toNumber()); // 2
+
+        noOfAccidentRecordsOnVeh1 = noOfAccidentRecordsOnVehicle.logs[0].args.noOfAccidentRecords.toNumber();
+
+        truffleAssert.eventEmitted(noOfAccidentRecordsOnVehicle, 'noOfAccidentRecordsRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.noOfAccidentRecords.toNumber() === 2;
+        }, 'Vehicle id or number of accident records does not match');
+
     });
 
     // Test 35: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
     it('Test 35: Retrieve accident history', async () => {
+
+        let _accidentDateLocation1;
+        let _accidentDateLocation2;
+        let _servicingId1;
+        let _servicingId2;
+
+        // Loop and retrieve servicing record (No of servicing records = 2)
+        for (let i = 1; i <= noOfAccidentRecordsOnVeh1; i++) {
+
+            let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentHistory1.call(
+                vehicleId,
+                i, // accident id
+                { from: workshop }
+            );
+
+            // console.log(Object.entries(retrieveAccidentRecord1));
+
+            if (i == 1) {
+                _accidentDateLocation1 = retrieveAccidentRecord1.accidentDateLocation;
+            } else {
+                _accidentDateLocation2 = retrieveAccidentRecord1.accidentDateLocation;
+            }
+
+            let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentHistory2.call(
+                vehicleId,
+                i, // accident id
+                { from: workshop }
+            );
+
+            // console.log(Object.entries(retrieveAccidentRecord2));
+
+            if (i == 1) {
+                _servicingId1 = retrieveAccidentRecord2.servicingId;
+            } else {
+                _servicingId2 = retrieveAccidentRecord2.servicingId;
+            }
+
+        }
+
+        assert.strictEqual(web3.utils.hexToUtf8(_accidentDateLocation1), web3.utils.hexToUtf8(accidentDateLocation), "First accident date and location does not match");
+        assert.strictEqual(web3.utils.hexToUtf8(_accidentDateLocation2), web3.utils.hexToUtf8(accidentDateLocation2), "Second accident date and location does not match");
+        // Accident id = 1 <-- Linked to --> Servicing id = 3
+        assert.strictEqual(_servicingId1.toNumber(), servicingId3, "First accident's servicing id does not match");
+        // No servicing done to the vehicle after accident record yet
+        assert.strictEqual(_servicingId2.toNumber(), 0, "Second accident's servicing id does not match");
 
     });
 
     // Test 36: 
     it('Test 36: Transfer vehicle to new owner', async () => {
 
+        // Check if new owner is registered first
+        let isNewOwnerRegistered = await vehicleRegistryInstance.isAddressRegisteredOwner.call(
+            newOwner,
+            { from: owner }
+        );
+
+        // Change to "if (isNewOwnerRegistered == true)" to test if registered case
+        if (isNewOwnerRegistered == false) {
+
+            let transferVehicleToNewOwner = await vehicleRegistryInstance.transferVehicle(
+                vehicleId,
+                newOwner,
+                newOwnerName,
+                newOwnerContact,
+                newOwnerPhysicalAddress,
+                newOwnerDateOfReg,
+                { from: owner }
+            );
+
+            truffleAssert.eventEmitted(transferVehicleToNewOwner, 'vehicleTransferCompleted', ev => {
+                return ev.vehicleId.toNumber() === vehicleId
+                    && ev.currentOwnerAddress === owner
+                    && ev.newOwnerAddress === newOwner;
+            }, 'Vehicle id or current or new owner address does not match');
+
+        } else {
+
+            // Register new owner (To simulate the new owner already registered)
+            let registerNewOwner = await vehicleRegistryInstance.registerOwnerDealer(
+                newOwner,
+                newOwnerName,
+                newOwnerContact,
+                web3.utils.utf8ToHex(""), // Company Reg No. = Empty
+                newOwnerPhysicalAddress,
+                newOwnerDateOfReg,
+                false // isDealer = false
+            );
+    
+            assert.ok(registerNewOwner);
+    
+            truffleAssert.eventEmitted(registerNewOwner, 'ownerDealerRegistered', ev => {
+                return ev.ownerDealerAddress === newOwner;
+            }, 'Owner address does not match with the registered address');
+
+            // Transfer (Registered owner: other fields are retrieved on the backend)
+
+            let transferVehicleToNewOwner = await vehicleRegistryInstance.transferVehicle(
+                vehicleId,
+                newOwner, // Only need the address if buyer already registered
+                web3.utils.utf8ToHex(""), // name
+                0, // contact
+                web3.utils.utf8ToHex(""), // physical address
+                web3.utils.utf8ToHex(""), // date of registration
+                { from: owner }
+            );
+
+            truffleAssert.eventEmitted(transferVehicleToNewOwner, 'vehicleTransferCompleted', ev => {
+                return ev.vehicleId.toNumber() === vehicleId
+                    && ev.currentOwnerAddress === owner
+                    && ev.newOwnerAddress === newOwner;
+            }, 'Vehicle id or current or new owner address does not match');
+
+        }
+
     });
 
     // Test 37: Retrieve number of transfers for vehicle
     it('Test 37: Retrieve number of transfer for vehicle', async () => {
 
+        let noOfTransfersOnVehicle = await vehicleRegistryInstance.retrieveNoOfTransfers(
+            vehicleId,
+            { from: newOwner }
+        );
+
+        // console.log(Object.entries(noOfTransfersOnVehicle.logs[0].args));
+        noOfTransfersOnVeh1 = noOfTransfersOnVehicle.logs[0].args.noOfTransfers.toNumber();
+
+        truffleAssert.eventEmitted(noOfTransfersOnVehicle, 'noOfTransferRetrieved', ev => {
+            return ev.vehicleId.toNumber() === vehicleId
+                && ev.noOfTransfers.toNumber() === 1;
+        }, 'Vehicle id or number of transfers on vehicle does not match');
 
     });
 
     // Test 38: Retrieve ownership history for vehicle 
     it('Test 38: Retrieve ownership history for vehicle', async () => {
 
+        let _ownerName1;
+        let _ownerName2;
+
+        // Loop and retrieve ownership records (No of transfers = 1)
+        // First ownerid = 0 (Starts from 0)
+        for (let i = 0; i <= noOfTransfersOnVeh1; i++) {
+
+            let retrieveOwnershipDetails = await vehicleRegistryInstance.retrieveOwnershipHistory.call(
+                vehicleId,
+                i, // owner id
+                { from: newAdmin }
+            );
+
+            // console.log(Object.entries(retrieveOwnershipDetails));
+
+            if (i == 0) {
+                _ownerName1 = retrieveOwnershipDetails.ownerName;
+            } else {
+                _ownerName2 = retrieveOwnershipDetails.ownerName;
+            }
+
+        }
+
+        // console.log(web3.utils.hexToUtf8(_ownerName1));
+        // console.log(web3.utils.hexToUtf8(_ownerName2));
+
+        assert.strictEqual(web3.utils.hexToUtf8(_ownerName1), web3.utils.hexToUtf8(ownerName), "First owner name does not match");
+        assert.strictEqual(web3.utils.hexToUtf8(_ownerName2), web3.utils.hexToUtf8(newOwnerName), "Second owner name does not match");
+
     });
-
-    // // Test XX: Archived
-    // it('Test XX: Retrieve all vehicles insured by insurance company', async () => {
-
-    // });
-
-    // // Test XX: Archived
-    // it('Test XX: Retrieve accident records on vehicle by insurance company', async () => {
-
-    // });
-
-    // // Test XX: Archived 
-    // it('Test XX: Approve consignment to other party', async () => {
-
-    // });
-
-    // // Test XX: Archived
-    // it('Test XX: Retrieve consignment party information', async () => {
-
-    // });
-
-    // // Test XX: Archived
-    // it('Test XX: Remove consignment rights', async () => {
-
-    // });
-
-
-    // // Test XX: Archived
-    // it('Test XX: Retrieve all unacknowledged servicing records on vehicle', async () => {
-
-    // });
-
-    // // Test XX: Archived
-    // it('Test XX: Acknowledge servicing record', async () => {
-
-    // });
-
-    // // Test XX: Archived
-    // it('Test XX: Update accident claim status on vehicle', async () => {
-
-    // });
 
 });

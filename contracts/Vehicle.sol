@@ -12,7 +12,7 @@ contract Vehicle is ERC721Full {
 
     address _owner = msg.sender;
 
-    enum typeOfServicing {modification, maintenance, repair}
+    enum typeOfServicing {modification, maintenance, repair, accident}
 
     // ---------------------------- Structs ---------------------------- //
 
@@ -55,12 +55,13 @@ contract Vehicle is ERC721Full {
         bytes32 dateCompleted; // 11 December 2020
         bytes32 workshopRegNo; // 35766600C
         // uint256 invoiceNo; // 5445445 (Removed to avoid stack too deep)
-        typeOfServicing typeOfWorkDone; // Modification/Maintenance/Repair
+        typeOfServicing typeOfWorkDone; // Modification/Maintenance/Repair/Accident
         bytes32 appointedMechanic; // Dominic Toretto
         // uint256 contactNo; // 93334302 (Removed to avoid stack too deep)
         bytes32 currentMileage; // 20,000 km
         bytes32 workDone; // Engine oil, oil filter, brake fluid, washer fluid, wheel alignment and balancing. Regular maintenance, recommended to change tyres for the next servicing
         bytes32 totalCharges; // $189.43 (Solidity uint does not accept decimals)
+        uint256 accidentId; // Related to which accident record
         // bytes32 remarks; // Combined with work done: Regular maintenance, recommended to change tyres for the next servicing
     }
 
@@ -71,12 +72,13 @@ contract Vehicle is ERC721Full {
         bytes32 timeOfAccident; // 11:59 PM
         // bytes32 location; // Combined with date (Stack too deep)
         bytes32 descriptionOfAccident; // Driver lost control of the vehicle and crashed against the tree. Front bumper, headlights, hood, radiator badly damaged
-        bytes32 insuranceCoName; // NTUC Income
+        // bytes32 insuranceCoName; // NTUC Income (Archived)
         // bytes32 descriptionOfDamages; // Combined wwith description of accident: Front bumper, headlights, hood, radiator badly damaged
         bytes32 appointedWorkshopNo; // 35766600C
         uint256 servicingId; // 2 [Invoice No (removed) changed to servicing id]
         bytes32 remarks; // Accident reported to the police, and filed insurance claim
-        bool claimIssued; // Check whether claim has been issued
+        bool repaired; // Check whether repair work has been done
+        // bool claimIssued; // Check whether claim has been issued (Archived)
     }
     
     // ---------------------------- Mappings ---------------------------- //
@@ -135,12 +137,13 @@ contract Vehicle is ERC721Full {
     event vehServicingHistoryRetrieved(uint256 vehicleId, uint256 servicingId);
     event vehServicingHistory2Retrieved(uint256 vehicleId, uint256 servicingId);
 
-    event vehAccidentDetailsRecorded(uint256 vehicleId, uint256 accidentId);
+    event vehAccidentDetailsRecorded(uint256 vehicleId, uint256 newAccidentId);
     event vehAccidentRecordsRetrieved(uint256 vehicleId);
-    event vehInsuranceClaimIssued(uint256 vehicleId, uint256 accidentId);
+    // event vehInsuranceClaimIssued(uint256 vehicleId, uint256 accidentId);
     event vehAccidentHistoryRetrieved(uint256 vehicleId, uint256 accidentId);
     event vehAccidentHistory2Retrieved(uint256 vehicleId, uint256 accidentId);
 
+    event servicingToAccidentLinked(uint256 vehicleId, uint256 accidentId, uint256 newServicingId);
     event vehTransferInfoUpdated(uint256 vehicleId, address currentOwnerAddress, address newOwnerAddress);
 
     
@@ -219,7 +222,6 @@ contract Vehicle is ERC721Full {
      * Function 2: 2nd part of add reg veh details
      * Comments:
      */
-
     function addRegisteredVeh2(
         uint256 noOfTransfers,
         bytes32 engineCap,
@@ -246,6 +248,9 @@ contract Vehicle is ERC721Full {
         uint256 currentVehId = _vehicleIds.current();
 
         vehRegRecords2[currentVehId] = newVehRegDetails2;
+
+        // Update that the vehicle exists under this owner id
+        vehOwnerRecords[currentVehId][noOfTransfers].exists = true; // noOfTransfers = ownerId
 
         emit vehRegDetails2Added(currentVehId);
 
@@ -466,6 +471,9 @@ contract Vehicle is ERC721Full {
         // Set no. of transfers as owner id (No. of transfers = 0 = first owner)
         uint256 newOwnerId = vehRegRecords2[vehicleId].noOfTransfers;
 
+        // Update exists boolean under new owner
+        vehOwnerRecords[vehicleId][newOwnerId].exists = true;
+
         // Update the mapping using the function below
         registerNewOwnerDetails(vehicleId, newOwnerId, newOwner, newOwnerContact, newOwnerPhysicalAddress, newOwnerAddress);
 
@@ -503,6 +511,7 @@ contract Vehicle is ERC721Full {
     /**
      * Function 12: Register new owner of vehicle
      * Commments: For adding new owner during ownership transfer (Input no. of transfer as owner ID)
+     * Comments 2: Can shift to being a helper function
      */
     function registerNewOwnerDetails(
         uint256 vehicleId,
@@ -594,7 +603,8 @@ contract Vehicle is ERC721Full {
         bytes32 appointedMechanic,
         bytes32 currentMileage,
         bytes32 workDone,
-        bytes32 totalCharges
+        bytes32 totalCharges,
+        uint256 accidentId // Omitted unless typeOfWorkDone = "Accident" (Frontend hide this field unless accident is selected)
     ) external vehicleRegDetails2Exists(vehicleId) returns (uint256) {
 
         // Increment the number of servicing record for this vehicle
@@ -612,8 +622,14 @@ contract Vehicle is ERC721Full {
                 appointedMechanic,
                 currentMileage,
                 workDone,
-                totalCharges
+                totalCharges,
+                accidentId // Default: accident id = 0 (Link to no record)
             );
+
+        // Link to accident record if its accident-related servicing:
+        if (typeOfWorkDone == bytes32("Accident")) {
+            linkToAccidentRecord(vehicleId, accidentId, newServicingId, workshopRegNo, workDone);
+        }
 
         vehServicingRecords[vehicleId][newServicingId] = newServicingDetails;
 
@@ -680,11 +696,11 @@ contract Vehicle is ERC721Full {
         bytes32 accidentDateLocation,
         bytes32 driverName,
         bytes32 timeOfAccident,
-        bytes32 descriptionOfAccident,
-        bytes32 insuranceCoName,
-        bytes32 appointedWorkshopNo,
-        uint256 servicingId,
-        bytes32 remarks
+        bytes32 descriptionOfAccident
+        // bytes32 insuranceCoName, // Archived
+        // bytes32 appointedWorkshopNo, // Completed by linkToAccidentRecord
+        // uint256 servicingId, // Completed by linkToAccidentRecord
+        // bytes32 remarks // Completed by linkToAccidentRecord
     ) external vehicleRegDetails2Exists(vehicleId) returns (uint256) {
 
         // Increment the number of accident record for this vehicle
@@ -700,11 +716,12 @@ contract Vehicle is ERC721Full {
                 driverName,
                 timeOfAccident,
                 descriptionOfAccident,
-                insuranceCoName,
-                appointedWorkshopNo,
-                servicingId,
-                remarks,
-                false
+                // insuranceCoName, // Archived
+                bytes32(""), // appointedWorkshopRegNo = undefined
+                0, // Default servicing id = 0 (no servicing id recorded yet)
+                bytes32(""), // remarks = undefined
+                false // repaired boolean
+                // false // Archived
             );
 
         vehAccidentRecords[vehicleId][newAccidentId] = newAccidentDetails;
@@ -721,18 +738,18 @@ contract Vehicle is ERC721Full {
      * Function 20: Update accident claim status
      * Comments: For insurance company to update the accident claim status
      */
-    function updateClaimStatus(uint256 vehicleId, uint256 accidentId) 
-        external vehicleRegDetails2Exists(vehicleId) 
-        vehicleAccidentIdExists(vehicleId, accidentId) returns (bool) {
+    // function updateClaimStatus(uint256 vehicleId, uint256 accidentId) 
+    //     external vehicleRegDetails2Exists(vehicleId) 
+    //     vehicleAccidentIdExists(vehicleId, accidentId) returns (bool) {
 
-            // Update claim status boolean
-            vehAccidentRecords[vehicleId][accidentId].claimIssued = true;
+    //         // Update claim status boolean
+    //         vehAccidentRecords[vehicleId][accidentId].claimIssued = true;
             
-            // emit event
-            emit vehInsuranceClaimIssued(vehicleId, accidentId);
+    //         // emit event
+    //         emit vehInsuranceClaimIssued(vehicleId, accidentId);
 
-            return true;
-    }
+    //         return true;
+    // }
 
     /**
      * Function 21: Retrieve accident history
@@ -746,7 +763,6 @@ contract Vehicle is ERC721Full {
                 bytes32,
                 bytes32, 
                 bytes32,
-                bytes32,
                 bytes32) {
 
                     // Emit event
@@ -756,8 +772,8 @@ contract Vehicle is ERC721Full {
                         vehAccidentRecords[vehicleId][accidentId].accidentDateLocation,
                         vehAccidentRecords[vehicleId][accidentId].driverName,
                         vehAccidentRecords[vehicleId][accidentId].timeOfAccident,
-                        vehAccidentRecords[vehicleId][accidentId].descriptionOfAccident,
-                        vehAccidentRecords[vehicleId][accidentId].insuranceCoName
+                        vehAccidentRecords[vehicleId][accidentId].descriptionOfAccident
+                        // vehAccidentRecords[vehicleId][accidentId].insuranceCoName // Archived
                     );
     }
 
@@ -772,8 +788,7 @@ contract Vehicle is ERC721Full {
             returns (
                 bytes32,
                 uint256,
-                bytes32,
-                bool) {
+                bytes32) {
                 
                 // Emit event
                 emit vehAccidentHistory2Retrieved(vehicleId, accidentId);
@@ -781,8 +796,8 @@ contract Vehicle is ERC721Full {
                 return (
                     vehAccidentRecords[vehicleId][accidentId].appointedWorkshopNo,
                     vehAccidentRecords[vehicleId][accidentId].servicingId,
-                    vehAccidentRecords[vehicleId][accidentId].remarks,
-                    vehAccidentRecords[vehicleId][accidentId].claimIssued
+                    vehAccidentRecords[vehicleId][accidentId].remarks
+                    // vehAccidentRecords[vehicleId][accidentId].claimIssued
                 );
 
     }
@@ -816,7 +831,6 @@ contract Vehicle is ERC721Full {
     }
 
     // ---------------------------- Helper functions ---------------------------- //
-    
     function getOwnerOfContract() public view returns (address) {
         return _owner;
     }
@@ -851,6 +865,8 @@ contract Vehicle is ERC721Full {
             _typeOfServicing = typeOfServicing.modification;
         } else if (typeOfWorkDone == bytes32("Maintenance")) {
             _typeOfServicing = typeOfServicing.maintenance;
+        } else if (typeOfWorkDone == bytes32("Accident")) {
+            _typeOfServicing = typeOfServicing.accident;
         } else {
             _typeOfServicing = typeOfServicing.repair;
         }
@@ -872,6 +888,8 @@ contract Vehicle is ERC721Full {
             _typeOfServicing = "Modification";
         } else if (typeOfWorkDone == typeOfServicing.maintenance) {
             _typeOfServicing = "Maintenance";
+        } else if (typeOfWorkDone == typeOfServicing.accident){
+            _typeOfServicing = "Accident Repair";
         } else {
             _typeOfServicing = "Repair";
         }
@@ -915,6 +933,27 @@ contract Vehicle is ERC721Full {
     // Function to test whether ERC721 token exists
     function doesERC721TokenExists(uint256 tokenId) external view returns (bool) {
         return _exists(tokenId);
+    }
+
+    // Helper function to link servicing record to accident record if it is an accident-related servicing
+    function linkToAccidentRecord(
+        uint256 vehicleId, 
+        uint256 accidentId, 
+        uint256 newServicingId, 
+        bytes32 workshopRegNo, 
+        bytes32 workDone) internal vehicleAccidentIdExists(vehicleId, accidentId) returns (bool) {
+
+            vehAccidentRecords[vehicleId][accidentId].appointedWorkshopNo = workshopRegNo;
+            vehAccidentRecords[vehicleId][accidentId].servicingId = newServicingId;
+            vehAccidentRecords[vehicleId][accidentId].remarks = workDone; // remarks = workdone
+            vehAccidentRecords[vehicleId][accidentId].repaired = true;
+            vehServicingRecords[vehicleId][newServicingId].accidentId = accidentId;
+
+            // emit event
+            emit servicingToAccidentLinked(vehicleId, accidentId, newServicingId);
+
+            return true;
+
     }
 
 }
