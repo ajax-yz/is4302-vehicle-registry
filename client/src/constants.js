@@ -51,9 +51,9 @@ export const servicingColumns = {
 
 export const adminColumns = {
   admin1: [
+    "adminAddress",
     "adminName",
     "dateJoined",
     "contact",
-    "exists"
   ],
-}
+};

@@ -14,15 +14,19 @@ const AdminInfoPage = () => {
   const state = useDrizzleState((state) => state);
   const account = state.accounts[0];
   const { drizzle } = useDrizzle();
-  const [userInfo, setUserInfo] = useState({});
   const [adminInfo, setAdminInfo] = useState([]);
+  console.log("account admininfo = ", account);
 
   const retrieveAdminInfo = async () => {
-    const admininfo = await VehicleRegistry.retrieveAdmininfo(
+    const info = await VehicleRegistry.retrieveAdminInfo(
       drizzle,
       account,
     );
-    setAdminInfo(admininfo);
+    console.log("retrieved admin info", info);
+    const infoarray = Object.values(info);
+    console.log("infoarray = ", infoarray);
+    console.log("type of info", typeof info);
+    setAdminInfo(infoarray);
   };
 
   useEffect(() => {
@@ -30,12 +34,12 @@ const AdminInfoPage = () => {
   }, []);
   return (
     <Grid container direction={"column"} spacing={4}>
-      <ViewCard userData={userInfo} title={"User Details"} />
+      <ViewCard userData={adminInfo} title={"Admin Details"} />
       <TableCard
         data={adminInfo}
-        title={"Vehicles Data"}
+        title={"Admin Data"}
         columns={[
-          "vehicleId",
+          "AdminId",
           ...adminColumns.admin1,
         ]}
         cardWidth={"100%"}

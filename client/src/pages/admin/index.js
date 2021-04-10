@@ -21,6 +21,10 @@ import {
   YAxis,
   XAxis,
 } from "recharts";
+import { 
+  Link,
+  useHistory,
+ } from 'react-router-dom';
 
 // styles
 import useStyles from "./styles";
@@ -76,25 +80,25 @@ const AdminPage = () => {
               justify="space-between"
               alignItems="center"
             >*/}
-              <Grid item xs={16}>
+              <Grid item xs={12}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Register Admin
                 </Typography>
                 <AddAdminCom />
               </Grid>
-              <Grid item xs={16}>
+              <Grid item xs={12}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Retrieve Admin Info
                 </Typography>
                 <ViewAdminCom />
               </Grid>
-              <Grid item xs={16}>
+              <Grid item xs={12}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Update Admin Info
                 </Typography>
                 <Typography size="md">32</Typography>
               </Grid>
-              <Grid item xs={16}>
+              <Grid item xs={12}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Remove Admin
                 </Typography>
@@ -220,21 +224,14 @@ const AddAdminCom = () => {
     bodyKeys1.map((key) => {
       body1[key] = data[key];
     });
-    /*const ownerAddress = data.ownerAddress;
 
     const resp = await Promise.all([
-      VehicleRegistryService.registerVehicleToOwner1(
+      VehicleRegistryService.registerAdmin(
         drizzle,
         body1,
-        ownerAddress,
-      ),
-      VehicleRegistryService.registerVehicleToOwner2(
-        drizzle,
-        body2,
-        ownerAddress,
       ),
     ]);
-    console.log("resp =", resp);*/
+    console.log("resp =", resp);
   };
 
   return (
@@ -319,17 +316,17 @@ const AddVehicleCom = () => {
 };
 
 const ViewAdminCom = () => {
+  const history = useHistory();
   return (
     <div>
       <Button
         variant="contained"
         color="primary"
-        onClick={() => {
-          window.location.href=
-          "http://localhost:3000/app/administrator/admininfo/";}}
+        onClick={() => history.push("/app/administrator/admin-info")}
       >
         View Admin Info
-      </Button>
+        </Button>
+      
     </div>
   );
 };
