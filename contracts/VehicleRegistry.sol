@@ -14,7 +14,6 @@ contract VehicleRegistry is Ownable, Vehicle {
     using Roles for Roles.Role;
     Roles.Role private _ownerDealer;
     Roles.Role private _workshop;
-    Roles.Role private _insuranceCo;
     Roles.Role private _administrator;
 
     constructor(Vehicle vehicleAddress) public {
@@ -1595,8 +1594,6 @@ contract VehicleRegistry is Ownable, Vehicle {
             }
         } else if (_workshop.has(_address)) {
             roleName = "Workshop";
-        } else if (_insuranceCo.has(_address)) {
-            roleName = "Insurance Company";
         } else if (_administrator.has(_address)) {
             roleName = "Administrator";
         }
