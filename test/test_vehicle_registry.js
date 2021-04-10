@@ -166,7 +166,7 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 3: Register new admin and remove admin
+    // Test 3: Register new admin
     it('Test 3: Register new admin', async () => {
 
         let registerAdmin = await vehicleRegistryInstance.registerAdmin(
@@ -187,6 +187,7 @@ contract('VehicleRegistry', function (accounts) {
     // Test 4: Admin removal
     it('Test 4: Remove an admin', async () => {
 
+        // Register a new admin to test removal
         let adminToDelete = await vehicleRegistryInstance.registerAdmin(
             accounts[5],
             web3.utils.utf8ToHex("Account To Test Deletion"),
@@ -274,6 +275,7 @@ contract('VehicleRegistry', function (accounts) {
     // Test 7: Dealer removal
     it('Test 7: Remove a dealer', async () => {
 
+        // Register a new dealer to test removal
         let dealerToDelete = await vehicleRegistryInstance.registerOwnerDealer(
             accounts[5],
             web3.utils.utf8ToHex("Name to be deleted"),
@@ -366,6 +368,7 @@ contract('VehicleRegistry', function (accounts) {
     // Test 10: Workshop removal
     it('Test 10: Remove a workshop', async () => {
 
+        // Register a new workshop to test removal
         let workshopToDelete = await vehicleRegistryInstance.registerWorkshop(
             accounts[5],
             web3.utils.utf8ToHex("Workshop name to be deleted"),
@@ -393,8 +396,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 11: Register vehicle to owner
-    it('Test 11: Register vehicle to owner', async () => {
+    // Test 11: Register first vehicle to owner
+    it('Test 11: Register first vehicle to owner', async () => {
 
         // Register vehicle part 1
         let registerVehicleToOwner1 = await vehicleRegistryInstance.registerVehicleToOwner1(
@@ -448,7 +451,7 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 13: Authorize acess to other party
+    // Test 13: Authorize acess to other party (Accounts[6])
     it('Test 13: Authorize access to other party', async () => {
 
         let authorizeAccess = await vehicleRegistryInstance.authorizeAccess(
@@ -483,17 +486,12 @@ contract('VehicleRegistry', function (accounts) {
 
         assert.strictEqual(_noOfAuthorizedParties, 1, "Number of authorized parties does not match");
         assert.strictEqual(_authorizedAddress, authorizedParty, "Authorized party does not match");
-
-        // truffleAssert.eventEmitted(retrieveAuthorizedAddresses, 'authorizedAddressesRetrieved', ev => {
-        //     return ev.vehicleId.toNumber() === vehicleId
-        //         && ev.ownerDealerAddress === owner;
-        // }, 'Vehicle ID or authorizer or authorized address does not match');
-
-    });
+   });
 
     // Test 15: Retrieve vehicle details by authorized party
     it('Test 15: Retrieve vehicle details by authorized party', async () => {
 
+        // Split into 3 to prevent stack too deep
         let result = await vehicleRegistryInstance.retrieveVehicleDetails1(
             vehicleId, {
             from: authorizedParty
@@ -533,10 +531,10 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 16:
+    // Test 16: Remove authorization
     it('Test 16: Remove authorization', async () => {
 
-        // Testing: Create another authorized party to remove
+        // Create another authorized party to test removal
         const authorizedParty2 = accounts[7];
         let authorizeAccess2 = await vehicleRegistryInstance.authorizeAccess(
             vehicleId,
@@ -575,8 +573,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 17: Update vehicle COE registration
-    it('Test 17: Update vehicle COE registration', async () => {
+    // Test 17: Update first vehicle COE registration
+    it('Test 17: Update first vehicle COE registration', async () => {
 
         const newEffRegDate = web3.utils.utf8ToHex("20 Oct 2030");
         const newQuotaPrem = 50000;
@@ -599,7 +597,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 18: Update vehicle license plate
-    it('Test 18: Update vehicle license plate', async () => {
+    it('Test 18: Update vehicle license plate of first vehicle', async () => {
 
         let updateLicensePlate = await vehicleRegistryInstance.updateVehLicensePlate(
             vehicleId,
@@ -617,7 +615,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 19: Swap vehicle license plate 
-    it('Test 19: Swap vehicle license plate', async () => {
+    it('Test 19: Swap vehicle license plate with second vehicle', async () => {
 
         // Registering another vehicle to swap plate:
         let registerVehicleToOwner1 = await vehicleRegistryInstance.registerVehicleToOwner1(
@@ -661,8 +659,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 20: Deregister vehicle
-    it('Test 20: Deregister vehicle', async () => {
+    // Test 20: Deregister second vehicle
+    it('Test 20: Deregister second vehicle', async () => {
 
         let deregisterVehicle = await vehicleRegistryInstance.deregisterVehicle(
             secondVehicleId,
@@ -676,16 +674,10 @@ contract('VehicleRegistry', function (accounts) {
             return ev.vehicleId.toNumber() === secondVehicleId;
         }, 'Vehicle de-registration was unsuccessful as vehicle id does not match');
 
-        // Test if ERC721 token still exists (Successfully burnt)
-        // let token1Exists = await vehicleRegistryInstance.doesTokenExists(vehicleId);
-        // let token2Exists = await vehicleRegistryInstance.doesTokenExists(secondVehicleId);
-        // console.log(token1Exists);
-        // console.log(token2Exists);
-
     });
 
-    // Test 21: Add servicing record
-    it('Test 21: Add servicing record to vehicle', async () => {
+    // Test 21: Add 2 servicing records
+    it('Test 21: Add 2 servicing records to first vehicle by workshop', async () => {
 
         let addServicingRecord = await vehicleRegistryInstance.addServicingRecord(
             vehicleId,
@@ -735,8 +727,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 22: Retrieve all servicing records on vehicle
-    it('Test 22: Retrieve all servicing records on vehicle', async () => {
+    // Test 22: Retrieve all servicing records on first vehicle
+    it('Test 22: Retrieve all servicing records on first vehicle by authorized party', async () => {
 
         let allServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllServicingRecordsOn(
             vehicleId,
@@ -755,7 +747,7 @@ contract('VehicleRegistry', function (accounts) {
 
 
     // Test 23: functions = (retrieveServicingRecord1 + retrieveServicingRecord2)
-    it('Test 23: Retrieve service record on vehicle', async () => {
+    it('Test 23: Retrieve first servicing record on first vehicle', async () => {
 
         let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingRecord1(
             vehicleId,
@@ -803,8 +795,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 25: Retrieve vehicle servicing records by workshop
-    it('Test 25: Retrieve vehicle servicing records by workshop', async () => {
+    // Test 25: Retrieve all servicing records on first vehicle by workshop
+    it('Test 25: Retrieve all servicing records on first vehicle by workshop', async () => {
 
         let vehServicingRecordsByWorkshop = await vehicleRegistryInstance.retrieveVehServicingRecordsBy.call(
             workshop,
@@ -817,8 +809,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 26: Retrieve number of servicing records on vehicle
-    it('Test 26: Retrieve number of servicing records on vehicle', async () => {
+    // Test 26: Retrieve total number of servicing records on first vehicle
+    it('Test 26: Retrieve total number of servicing records on first vehicle', async () => {
 
         let noOfServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfServicingRecords(
             vehicleId,
@@ -835,7 +827,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 27: Loop & use functions = (retrieveServicingRecord1 + retrieveServicingRecord2)
-    it('Test 27: Retrieve servicing history', async () => {
+    it('Test 27: Retrieve servicing history of first vehicle', async () => {
 
         let servDateCompleted1;
         let servDateCompleted2;
@@ -883,7 +875,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 28: 
-    it('Test 28: Add accident record to vehicle and link a servicing record to accident record', async () => {
+    it('Test 28: Add accident record to first vehicle and link a servicing record to accident record', async () => {
 
         let addAccidentRecord = await vehicleRegistryInstance.addAccidentRecord(
             vehicleId,
@@ -918,7 +910,7 @@ contract('VehicleRegistry', function (accounts) {
                 && ev.newAccidentId.toNumber() === 2; // Second accident id for the vehicle will = 2
         }, 'Vehicle id or accident id does not match');
 
-        // **************** Link servicing record to accident record ****************
+        // **************** Link servicing record to accident record **************** //
 
         // Create 3rd servicing record to link to accident record:
         let addServicingRecord3 = await vehicleRegistryInstance.addServicingRecord(
@@ -943,8 +935,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 29: 
-    it('Test 29: Retrieve all accident records on vehicle', async () => {
+    // Test 29: Retrieve all accident records on first vehicle
+    it('Test 29: Retrieve all accident records on first vehicle', async () => {
 
         let allAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllAccidentRecordsOn(
             vehicleId,
@@ -966,7 +958,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 30: function = (retrieveAccidentRecord1 + retrieveAccidentRecord2)
-    it('Test 30: Retrieve accident record on vehicle by workshop', async () => {
+    it('Test 30: Retrieve first accident record on first vehicle by workshop', async () => {
 
         let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentRecord1(
             vehicleId,
@@ -1002,8 +994,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 31: 
-    it('Test 31: Retrieve number of accident records on vehicle', async () => {
+    // Test 31: Retrieve total number of accident records on vehicle by workshop
+    it('Test 31: Retrieve total number of accident records on first vehicle by workshop', async () => {
 
         let noOfAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfAccidentRecords(
             vehicleId,
@@ -1024,7 +1016,7 @@ contract('VehicleRegistry', function (accounts) {
     });
 
     // Test 32: function = (retrieveAccidentRecord1 + retrieveAccidentRecord2)
-    it('Test 32: Retrieve accident history', async () => {
+    it('Test 32: Retrieve accident history on first vehicle', async () => {
 
         let _accidentDateLocation1;
         let _accidentDateLocation2;
@@ -1073,8 +1065,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 33: 
-    it('Test 33: Transfer vehicle to new owner', async () => {
+    // Test 33: Transfer first vehicle to new owner (can either be registered owner or unregistered owner)
+    it('Test 33: Transfer first vehicle to new owner', async () => {
 
         // Check if new owner is registered first
         let isNewOwnerRegistered = await vehicleRegistryInstance.isAddressRegisteredOwner.call(
@@ -1082,7 +1074,7 @@ contract('VehicleRegistry', function (accounts) {
             { from: owner }
         );
 
-        // Change to "if (isNewOwnerRegistered == true)" to test if registered case
+        // Change to "if (isNewOwnerRegistered == true)" to test if the buyer is registered case
         if (isNewOwnerRegistered == false) {
 
             let transferVehicleToNewOwner = await vehicleRegistryInstance.transferVehicle(
@@ -1142,8 +1134,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 34: Retrieve number of transfers for vehicle
-    it('Test 34: Retrieve number of transfer for vehicle', async () => {
+    // Test 34: Retrieve total number of transfers for first vehicle
+    it('Test 34: Retrieve total number of transfer for first vehicle', async () => {
 
         let noOfTransfersOnVehicle = await vehicleRegistryInstance.retrieveNoOfTransfers(
             vehicleId,
@@ -1160,8 +1152,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 35: Retrieve ownership history for vehicle 
-    it('Test 35: Retrieve ownership history for vehicle', async () => {
+    // Test 35: Retrieve ownership history for first vehicle 
+    it('Test 35: Retrieve ownership history for first vehicle', async () => {
 
         let _ownerName1;
         let _ownerName2;
