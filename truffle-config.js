@@ -47,13 +47,13 @@ module.exports = {
     // You should run a client (like ganache-cli, geth or parity) in a separate terminal
     // tab if you use this network and you must also set the `host`, `port` and `network_id`
     // options below to some value.
-    
+
     development: {
-     host: "127.0.0.1",     // Localhost (default: none)
-     port: 8545,            // Standard Ethereum port (default: none) - 8545 is for ganache-cli
-     network_id: "*",       // Any network (default: none)
-     gas: '80000000',       // Gas limit
-     gasPrice: 0x01,     // Optional
+      host: "127.0.0.1",     // Localhost (default: none)
+      port: 8545,            // Standard Ethereum port (default: none) - 8545 is for ganache-cli
+      network_id: "*",       // Any network (default: none)
+      gas: '80000000',       // Gas limit
+      gasPrice: 0x01,     // Optional
     },
     // Another network with more advanced options...
     // advanced: {
@@ -84,6 +84,8 @@ module.exports = {
 
   // Set default mocha options here, use special reporters etc.
   mocha: {
+    // enableTimeouts: false,
+    // before_timeout: 120000 // Here is 2min but can be whatever timeout is suitable for you.
     // timeout: 100000
   },
 
@@ -93,10 +95,10 @@ module.exports = {
       // version: "0.5.1",    // Fetch exact version from solc-bin (default: truffle's version)
       // docker: true,        // Use "0.5.1" you've installed locally with docker (default: false)
       // settings: {          // See the solidity docs for advice about optimization and evmVersion
-       optimizer: {
-         enabled: true, // *** Default is "false" ***
-         runs: 200
-       },
+      optimizer: {
+        enabled: true, // *** Default is "false" ***
+        runs: 200
+      },
       //  evmVersion: "byzantium"
       // }
     }
