@@ -43,14 +43,6 @@ contract('VehicleRegistry', function (accounts) {
     const workshopContact = 67457367;
     const workshopDateOfReg = web3.utils.utf8ToHex("3 Apr 1986");
 
-    // Insurance Company
-    const insuranceCo = accounts[4];
-    const insuranceCoName = web3.utils.utf8ToHex("NTUC Income Insurance");
-    const insuranceCoRegNo = web3.utils.utf8ToHex("S97CS0162D");
-    const insuranceCoPhysicalAddress = web3.utils.utf8ToHex("75 Bras Basah Rd, S189557");
-    const insuranceCoContact = 67881777;
-    const insuranceCoDateOfReg = web3.utils.utf8ToHex("1 Jan 1990");
-
     // Authorized party
     const authorizedParty = accounts[6]; // accounts[5] was used for testing
 
@@ -140,10 +132,6 @@ contract('VehicleRegistry', function (accounts) {
 
         const role = await vehicleRegistryInstance.roleOfAddress(vehicleRegistryOwner);
         const noOfAdmins = await vehicleRegistryInstance.getNoOfAdmins();
-        // console.log(`Role is: ${role}`);
-        // console.log(`Role is: ${web3.utils.toAscii(role)}`);
-        // console.log(`Object type of role is: ${typeof(role)}`);
-        // console.log(`Number of admins: ${noOfAdmins}`);
         assert.equal(web3.utils.hexToUtf8(role), "Administrator", "Address is not an administrator");
         assert.strictEqual(noOfAdmins.toNumber(), 1);
     });
@@ -151,24 +139,15 @@ contract('VehicleRegistry', function (accounts) {
     // Test 2: Retrieve and update admin info
     it('Test 2: Retrieve and update admin info', async () => {
 
-        let result = await vehicleRegistryInstance.retrieveAdminInfo(
+        let result = await vehicleRegistryInstance.retrieveAdminInfo.call(
             vehicleRegistryOwner, {
             from: vehicleRegistryOwner
         });
 
-        // Testing
-        // console.log(`Result: ${result}`);
-        // console.log(`Result object values: ${Object.values(result)}`);
-        // console.log(`Result keys: ${Object.keys(result)}`);
-        // console.log(`Result entries: ${Object.entries(result)}`)
-
-        // console.log(`Log: ${web3.utils.hexToUtf8(result.logs[0].args['1'])}`);
-        // console.log(`Log: ${web3.utils.hexToUtf8(result.logs[0].args['2'])}`);
-        // console.log(`Log: ${result.logs[0].args['3']}`);
-
-        const adminName = web3.utils.hexToUtf8(result.logs[0].args['1']);
-        const dateJoined = web3.utils.hexToUtf8(result.logs[0].args['2']);
-        const contact = result.logs[0].args['3'].toNumber();
+        // console.log(`Result entries: ${Object.entries(result)}`);
+        const adminName = web3.utils.hexToUtf8(result[0]);
+        const dateJoined = web3.utils.hexToUtf8(result[1]);
+        const contact = result[2].toNumber();
 
         assert.equal(adminName, "Genesis Admin", "Admin name does not match");
         assert.equal(dateJoined, "1 Jan 2020", "Date joined does not match");
@@ -414,101 +393,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 11: Register insurance company
-    it('Test 11: Register insurance company', async () => {
-
-        let registerNewInsuranceCo = await vehicleRegistryInstance.registerInsuranceCo(
-            insuranceCo,
-            web3.utils.utf8ToHex("Insurance company to be updated"),
-            web3.utils.utf8ToHex(""), // Insurance Reg No. = Empty
-            web3.utils.utf8ToHex("Address to be updated"),
-            20000000,
-            web3.utils.utf8ToHex("1 Jan 2000"),
-            {
-                from: vehicleRegistryOwner
-            }
-        );
-
-        assert.ok(registerNewInsuranceCo);
-
-        truffleAssert.eventEmitted(registerNewInsuranceCo, 'insuranceCoRegistered', ev => {
-            return ev.insuranceCoAddress === insuranceCo;
-        }, 'Insurance company address does not match with the registered address');
-
-    });
-
-    // Test 12: Retrieve and update insurance company info
-    it('Test 12: Retrieve and update insurance company info', async () => {
-
-        let result = await vehicleRegistryInstance.retrieveInsuranceCoInfo.call(
-            insuranceCo, {
-            from: vehicleRegistryOwner
-        });
-
-        // Converted to string variables
-        const _insuranceCoName = web3.utils.hexToUtf8(result[0]);
-        const _insuranceCoRegNo = web3.utils.hexToUtf8(result[1]);
-        const _physicalAddress = web3.utils.hexToUtf8(result[2]);
-        const _contact = result[3].toNumber();
-        const _dateOfReg = web3.utils.hexToUtf8(result[4]);
-
-        assert.equal(_insuranceCoName, "Insurance company to be updated", "Workshop name does not match");
-        assert.equal(_insuranceCoRegNo, "", "Workshop registration number does not match");
-        assert.equal(_physicalAddress, "Address to be updated", "Physical address does not match");
-        assert.equal(_contact, 20000000, "Contact number does not match");
-        assert.equal(_dateOfReg, "1 Jan 2000", "Date of registration does not match");
-
-        let updateInsuranceCo = await vehicleRegistryInstance.updateInsuranceCoInfo(
-            insuranceCo,
-            insuranceCoName,
-            insuranceCoRegNo,
-            insuranceCoPhysicalAddress,
-            insuranceCoContact,
-            insuranceCoDateOfReg,
-            {
-                from: vehicleRegistryOwner
-            });
-
-        assert.ok(updateInsuranceCo);
-
-        truffleAssert.eventEmitted(updateInsuranceCo, 'insuranceCoInfoUpdated', ev => {
-            return ev.insuranceCoAddress === insuranceCo;
-        }, 'Insurance company address does not match with the address to update');
-
-    });
-
-    // Test 13: Insurance company removal
-    it('Test 13: Remove a insurance company', async () => {
-
-        let insuranceCoToDelete = await vehicleRegistryInstance.registerInsuranceCo(
-            accounts[5],
-            web3.utils.utf8ToHex("Insurance company to be deleted"),
-            web3.utils.utf8ToHex(""), // Insurance Reg No. = Empty
-            web3.utils.utf8ToHex("Address to be deleted"),
-            00000000,
-            web3.utils.utf8ToHex("1 Jan 2000"),
-            {
-                from: vehicleRegistryOwner
-            }
-        );
-
-        assert.ok(insuranceCoToDelete, "Insurance company registration failed");
-
-        let insuranceCoRemoval = await vehicleRegistryInstance.removeInsuranceCo(
-            accounts[5], {
-            from: vehicleRegistryOwner
-        });
-
-        assert.ok(insuranceCoRemoval, "Insurance company removal failed");
-
-        const role = await vehicleRegistryInstance.roleOfAddress(accounts[5]);
-        // console.log(web3.utils.hexToUtf8(role)); // Should returns empty string
-        assert.notEqual(web3.utils.hexToUtf8(role), "Insurance Company", "Address should not be a insurance company");
-
-    });
-
-    // Test 14: Register vehicle to owner
-    it('Test 14: Register vehicle to owner', async () => {
+    // Test 11: Register vehicle to owner
+    it('Test 11: Register vehicle to owner', async () => {
 
         // Register vehicle part 1
         let registerVehicleToOwner1 = await vehicleRegistryInstance.registerVehicleToOwner1(
@@ -546,8 +432,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 15: Retrieve all vehicles own by owner
-    it('Test 15: Retrieve all vehicles own by owner ', async () => {
+    // Test 12: Retrieve all vehicles own by owner
+    it('Test 12: Retrieve all vehicles own by owner ', async () => {
 
         let retrieveAllVehiclesOwn = await vehicleRegistryInstance.retrieveAllVehiclesOwn.call(
             owner,
@@ -562,12 +448,11 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 16: Authorize acess to other party
-    it('Test 16: Authorize access to other party', async () => {
+    // Test 13: Authorize acess to other party
+    it('Test 13: Authorize access to other party', async () => {
 
         let authorizeAccess = await vehicleRegistryInstance.authorizeAccess(
             vehicleId,
-            owner,
             authorizedParty,
             { from: owner }
         );
@@ -582,13 +467,12 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 17: Retrieve authorized addresses for vehicle 
-    it('Test 17: Retrieve authorized addresses for vehicle', async () => {
+    // Test 14: Retrieve authorized addresses for vehicle 
+    it('Test 14: Retrieve authorized addresses for vehicle', async () => {
 
         // Notice the .call()
         let retrieveAuthorizedAddresses = await vehicleRegistryInstance.retrieveAuthorizedAddresses.call(
             vehicleId,
-            owner,
             { from: owner }
         );
 
@@ -607,8 +491,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 18: Retrieve vehicle details by authorized party
-    it('Test 18: Retrieve vehicle details by authorized party', async () => {
+    // Test 15: Retrieve vehicle details by authorized party
+    it('Test 15: Retrieve vehicle details by authorized party', async () => {
 
         let result = await vehicleRegistryInstance.retrieveVehicleDetails1(
             vehicleId, {
@@ -649,14 +533,13 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 19:
-    it('Test 19: Remove authorization', async () => {
+    // Test 16:
+    it('Test 16: Remove authorization', async () => {
 
         // Testing: Create another authorized party to remove
         const authorizedParty2 = accounts[7];
         let authorizeAccess2 = await vehicleRegistryInstance.authorizeAccess(
             vehicleId,
-            owner,
             authorizedParty2,
             { from: owner }
         );
@@ -664,7 +547,6 @@ contract('VehicleRegistry', function (accounts) {
 
         let authorizationRemoval = await vehicleRegistryInstance.removeAuthorization(
             vehicleId,
-            owner,
             authorizedParty2,
             { from: owner }
         );
@@ -674,7 +556,6 @@ contract('VehicleRegistry', function (accounts) {
         // Notice the .call()
         let retrieveAuthorizedAddresses = await vehicleRegistryInstance.retrieveAuthorizedAddresses.call(
             vehicleId,
-            owner,
             { from: owner }
         );
 
@@ -694,8 +575,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 20: Update vehicle COE registration
-    it('Test 20: Update vehicle COE registration', async () => {
+    // Test 17: Update vehicle COE registration
+    it('Test 17: Update vehicle COE registration', async () => {
 
         const newEffRegDate = web3.utils.utf8ToHex("20 Oct 2030");
         const newQuotaPrem = 50000;
@@ -717,8 +598,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 21: Update vehicle license plate
-    it('Test 21: Update vehicle license plate', async () => {
+    // Test 18: Update vehicle license plate
+    it('Test 18: Update vehicle license plate', async () => {
 
         let updateLicensePlate = await vehicleRegistryInstance.updateVehLicensePlate(
             vehicleId,
@@ -735,8 +616,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 22: Swap vehicle license plate 
-    it('Test 22: Swap vehicle license plate', async () => {
+    // Test 19: Swap vehicle license plate 
+    it('Test 19: Swap vehicle license plate', async () => {
 
         // Registering another vehicle to swap plate:
         let registerVehicleToOwner1 = await vehicleRegistryInstance.registerVehicleToOwner1(
@@ -780,8 +661,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 23: Deregister vehicle
-    it('Test 23: Deregister vehicle', async () => {
+    // Test 20: Deregister vehicle
+    it('Test 20: Deregister vehicle', async () => {
 
         let deregisterVehicle = await vehicleRegistryInstance.deregisterVehicle(
             secondVehicleId,
@@ -803,8 +684,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 24: Add servicing record
-    it('Test 24: Add servicing record to vehicle', async () => {
+    // Test 21: Add servicing record
+    it('Test 21: Add servicing record to vehicle', async () => {
 
         let addServicingRecord = await vehicleRegistryInstance.addServicingRecord(
             vehicleId,
@@ -854,8 +735,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 25: Retrieve all servicing records on vehicle
-    it('Test 25: Retrieve all servicing records on vehicle', async () => {
+    // Test 22: Retrieve all servicing records on vehicle
+    it('Test 22: Retrieve all servicing records on vehicle', async () => {
 
         let allServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllServicingRecordsOn(
             vehicleId,
@@ -873,10 +754,10 @@ contract('VehicleRegistry', function (accounts) {
     });
 
 
-    // Test 26: functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
-    it('Test 26: Retrieve service record on vehicle', async () => {
+    // Test 23: functions = (retrieveServicingRecord1 + retrieveServicingRecord2)
+    it('Test 23: Retrieve service record on vehicle', async () => {
 
-        let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingHistory1(
+        let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingRecord1(
             vehicleId,
             servicingId,
             { from: owner }
@@ -892,7 +773,7 @@ contract('VehicleRegistry', function (accounts) {
         }, 'Vehicle id or servicing id does not match');
 
         // Retrieving with authorized party instead to test access control
-        let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingHistory2(
+        let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingRecord2(
             vehicleId,
             servicingId,
             { from: owner }
@@ -909,8 +790,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 27: Retrieve all vehicles serviced by workshop
-    it('Test 27: Retrieve all vehicles serviced by workshop', async () => {
+    // Test 24: Retrieve all vehicles serviced by workshop
+    it('Test 24: Retrieve all vehicles serviced by workshop', async () => {
 
         let allVehiclesServicedByWorkshop = await vehicleRegistryInstance.retrieveAllVehIdsServicedBy.call(
             workshop,
@@ -922,8 +803,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 28: Retrieve vehicle servicing records by workshop
-    it('Test 28: Retrieve vehicle servicing records by workshop', async () => {
+    // Test 25: Retrieve vehicle servicing records by workshop
+    it('Test 25: Retrieve vehicle servicing records by workshop', async () => {
 
         let vehServicingRecordsByWorkshop = await vehicleRegistryInstance.retrieveVehServicingRecordsBy.call(
             workshop,
@@ -936,8 +817,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 29: Retrieve number of servicing records on vehicle
-    it('Test 29: Retrieve number of servicing records on vehicle', async () => {
+    // Test 26: Retrieve number of servicing records on vehicle
+    it('Test 26: Retrieve number of servicing records on vehicle', async () => {
 
         let noOfServicingRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfServicingRecords(
             vehicleId,
@@ -953,8 +834,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 30: Loop & use functions = (retrieveServicingHistory1 + retrieveServicingHistory2)
-    it('Test 30: Retrieve servicing history', async () => {
+    // Test 27: Loop & use functions = (retrieveServicingRecord1 + retrieveServicingRecord2)
+    it('Test 27: Retrieve servicing history', async () => {
 
         let servDateCompleted1;
         let servDateCompleted2;
@@ -964,7 +845,7 @@ contract('VehicleRegistry', function (accounts) {
         // Loop and retrieve servicing record (No of servicing records = 2)
         for (let i = 1; i <= noOfServicingRecordsOnVeh1; i++) {
 
-            let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingHistory1.call(
+            let retrieveServicingRecord1 = await vehicleRegistryInstance.retrieveServicingRecord1.call(
                 vehicleId,
                 i, // servicing id
                 { from: workshop }
@@ -978,7 +859,7 @@ contract('VehicleRegistry', function (accounts) {
                 servDateCompleted2 = retrieveServicingRecord1.dateCompleted;
             }
 
-            let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingHistory2.call(
+            let retrieveServicingRecord2 = await vehicleRegistryInstance.retrieveServicingRecord2.call(
                 vehicleId,
                 i, // servicing id
                 { from: workshop }
@@ -1001,8 +882,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 31: 
-    it('Test 31: Add accident record to vehicle and link a servicing record to accident record', async () => {
+    // Test 28: 
+    it('Test 28: Add accident record to vehicle and link a servicing record to accident record', async () => {
 
         let addAccidentRecord = await vehicleRegistryInstance.addAccidentRecord(
             vehicleId,
@@ -1062,8 +943,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 32: 
-    it('Test 32: Retrieve all accident records on vehicle', async () => {
+    // Test 29: 
+    it('Test 29: Retrieve all accident records on vehicle', async () => {
 
         let allAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveAllAccidentRecordsOn(
             vehicleId,
@@ -1084,10 +965,10 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 33: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
-    it('Test 33: Retrieve accident record on vehicle by workshop', async () => {
+    // Test 30: function = (retrieveAccidentRecord1 + retrieveAccidentRecord2)
+    it('Test 30: Retrieve accident record on vehicle by workshop', async () => {
 
-        let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentHistory1(
+        let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentRecord1(
             vehicleId,
             accidentId,
             { from: workshop }
@@ -1103,7 +984,7 @@ contract('VehicleRegistry', function (accounts) {
         }, 'Vehicle id or accident id does not match');
 
         // Retrieving with authorized party instead to test access control
-        let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentHistory2(
+        let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentRecord2(
             vehicleId,
             accidentId,
             { from: workshop }
@@ -1121,8 +1002,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 34: 
-    it('Test 34: Retrieve number of accident records on vehicle', async () => {
+    // Test 31: 
+    it('Test 31: Retrieve number of accident records on vehicle', async () => {
 
         let noOfAccidentRecordsOnVehicle = await vehicleRegistryInstance.retrieveNoOfAccidentRecords(
             vehicleId,
@@ -1142,8 +1023,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 35: function = (retrieveAccidentHistory1 + retrieveAccidentHistory2)
-    it('Test 35: Retrieve accident history', async () => {
+    // Test 32: function = (retrieveAccidentRecord1 + retrieveAccidentRecord2)
+    it('Test 32: Retrieve accident history', async () => {
 
         let _accidentDateLocation1;
         let _accidentDateLocation2;
@@ -1153,7 +1034,7 @@ contract('VehicleRegistry', function (accounts) {
         // Loop and retrieve servicing record (No of servicing records = 2)
         for (let i = 1; i <= noOfAccidentRecordsOnVeh1; i++) {
 
-            let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentHistory1.call(
+            let retrieveAccidentRecord1 = await vehicleRegistryInstance.retrieveAccidentRecord1.call(
                 vehicleId,
                 i, // accident id
                 { from: workshop }
@@ -1167,7 +1048,7 @@ contract('VehicleRegistry', function (accounts) {
                 _accidentDateLocation2 = retrieveAccidentRecord1.accidentDateLocation;
             }
 
-            let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentHistory2.call(
+            let retrieveAccidentRecord2 = await vehicleRegistryInstance.retrieveAccidentRecord2.call(
                 vehicleId,
                 i, // accident id
                 { from: workshop }
@@ -1192,8 +1073,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 36: 
-    it('Test 36: Transfer vehicle to new owner', async () => {
+    // Test 33: 
+    it('Test 33: Transfer vehicle to new owner', async () => {
 
         // Check if new owner is registered first
         let isNewOwnerRegistered = await vehicleRegistryInstance.isAddressRegisteredOwner.call(
@@ -1261,8 +1142,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 37: Retrieve number of transfers for vehicle
-    it('Test 37: Retrieve number of transfer for vehicle', async () => {
+    // Test 34: Retrieve number of transfers for vehicle
+    it('Test 34: Retrieve number of transfer for vehicle', async () => {
 
         let noOfTransfersOnVehicle = await vehicleRegistryInstance.retrieveNoOfTransfers(
             vehicleId,
@@ -1279,8 +1160,8 @@ contract('VehicleRegistry', function (accounts) {
 
     });
 
-    // Test 38: Retrieve ownership history for vehicle 
-    it('Test 38: Retrieve ownership history for vehicle', async () => {
+    // Test 35: Retrieve ownership history for vehicle 
+    it('Test 35: Retrieve ownership history for vehicle', async () => {
 
         let _ownerName1;
         let _ownerName2;
