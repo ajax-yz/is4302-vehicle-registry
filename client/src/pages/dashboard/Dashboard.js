@@ -40,7 +40,7 @@ import { newContextComponents } from "@drizzle/react-components";
 // End of Drizzle
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
-const { ContractData } = newContextComponents; // AccountData, ContractData
+const { ContractData } = newContextComponents; // AccountData, ContractData, ContractForm
 
 const mainChartData = getMainChartData();
 const PieChartData = [
@@ -84,7 +84,8 @@ export default function Dashboard(props) {
             <div className={classes.visitsNumberContainer}>
               <Grid container item alignItems={"center"}>
                 <Grid item xs={6}>
-              <Typography size="xl" weight="medium" noWrap>
+                  <Typography size="xl" weight="medium" noWrap>
+                    
                     {/* 12, 678 */}
 
                     {/* Drizzle part */}
@@ -99,9 +100,15 @@ export default function Dashboard(props) {
                       drizzle={drizzle}
                       drizzleState={state}
                       contract="VehicleRegistry"
-                      method="getNoOfAdmins"
+                      method="getNoOfAdmins" // Getter method
                       // methodsArgs={["first arg", 0, 2]}
                     />
+
+                    {/* <ContractForm
+                      drizzle={drizzle}
+                      contract="VehicleRegistry"
+                      method="" // Setter method
+                    /> */}
                     
               </Typography>
                 </Grid>
