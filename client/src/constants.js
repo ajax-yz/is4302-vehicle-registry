@@ -48,3 +48,12 @@ export const servicingColumns = {
   ],
   history2: ["typeOfWorkDone", "totalCharges", "acknowledgedByOwner"],
 };
+
+export const adminColumns = {
+  admin1: [
+    "adminName",
+    "dateJoined",
+    "contact",
+    "exists"
+  ],
+}
