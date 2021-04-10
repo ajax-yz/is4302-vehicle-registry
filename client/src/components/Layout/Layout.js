@@ -27,6 +27,8 @@ import Icons from "../../pages/icons";
 import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
 import OwnerPage from "../../pages/owner";
+import WorkshopPage from "../../pages/workshopInfo";
+import WorkshopSetSR from "../../pages/wSetSR";
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
@@ -76,6 +78,18 @@ function Layout(props) {
               userRole={role}
               allowedRole={ROLES_ENUM.DEALER}
             />
+            <PrivateRoute
+              path="/app/workshop"
+              component={WorkshopPage}
+              userRole={role}
+              allowedRole={ROLES_ENUM.WORKSHOP}
+            />
+            {/* <PrivateRoute
+              path="/app/workshopFn"
+              component={WorkshopSetSR}
+              userRole={role}
+              allowedRole={ROLES_ENUM.WORKSHOP}
+            /> */}
             <PrivateRoute
               path="/app/insurance"
               component={Notifications}
