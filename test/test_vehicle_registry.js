@@ -1097,7 +1097,7 @@ contract('VehicleRegistry', function (accounts) {
 
             // Register new owner (To simulate the new owner already registered)
             let registerNewOwner = await vehicleRegistryInstance.registerOwnerDealer(
-                newOwner,
+                newOwner, 
                 newOwnerName,
                 newOwnerContact,
                 web3.utils.utf8ToHex(""), // Company Reg No. = Empty
