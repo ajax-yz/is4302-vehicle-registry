@@ -11,6 +11,9 @@ module.exports = function (deployer, network, accounts) {
 	deployer.then(async () => {
 		// await deployer.deploy(ERC721Full, { from: vehicleRegistryOwner });
 		await deployer.deploy(Vehicle, { from: vehicleRegistryOwner });
-    	await deployer.deploy(VehicleRegistry, Vehicle.address, { from: vehicleRegistryOwner});
+		await deployer.deploy(
+			VehicleRegistry,
+			Vehicle.address,
+			{ from: vehicleRegistryOwner });
 	});
 }

@@ -32,3 +32,5 @@ IS4302 Project
 
 1. Run `npm start`
 2. There might be a Metamask popup that requires signing the message
+
+> Link to frontend template docs: https://flatlogic.com/templates/react-material-admin
