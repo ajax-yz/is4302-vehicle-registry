@@ -52,6 +52,55 @@ class VehicleRegistryService {
     }
   }
 
+
+  static async registerAdmin(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .registerAdmin(
+          values.adminAddress,
+          strConvert(values.adminName),
+          strConvert(values.dateJoined),
+          values.contact,
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+
+  static async retrieveAdminInfo(drizzle, adminAddress) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAdminInfo(adminAddress)
+        .call();
+      console.log("res =", res);
+      if (res) {
+        const info = {
+          adminAddress: adminAddress,
+          adminName: hexConvert(res[0]),
+          dateJoined: hexConvert(res[1]),
+          contact: res[2],
+        };
+        return info;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  
   static async registerWorkshop(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
@@ -175,7 +224,6 @@ class VehicleRegistryService {
       return false;
     }
   }
-
 
   // ==================================== VEHICLES ====================================
 
