@@ -10,8 +10,8 @@ class VehicleRegistryService {
           values.contact,
           strConvert(values.companyRegNo),
           strConvert(values.physicalAddress),
-          strConvert(values.DOR),
-          false,
+          strConvert(values.dateOfReg),
+          values.isDealer,
         )
         .send();
 
@@ -39,8 +39,8 @@ class VehicleRegistryService {
           contact: res[1],
           companyRegNo: hexConvert(res[2]),
           physicalAddress: hexConvert(res[3]),
-          isDealer: res[4],
-          noOfVehiclesOwn: res[5],
+          dateOfReg: res[4],
+          isDealer: res[5],
         };
         return info;
       } else {
