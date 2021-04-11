@@ -22,7 +22,7 @@ const AccidentInfoPage = () => {
   const [accidentInfo2, setAccidentInfo2] = useState([]);
   console.log("account accidentinfo = ", account);
 
-  const retrieveAccidentInfo = async () => {
+  const retrieveAccidentInfo1 = async () => {
     const info = await VehicleRegistryService.retrieveAccidentHistory1(
       drizzle,
       VehicleID,
@@ -32,9 +32,9 @@ const AccidentInfoPage = () => {
     const infoarray = Object.values(info);
     console.log("infoarray = ", infoarray);
     console.log("type of info", typeof info);
-    setAccidentInfo(infoarray);
+    setAccidentInfo1(infoarray);
   };
-  const retrieveAccidentInfo = async () => {
+  const retrieveAccidentInfo2 = async () => {
     const info2 = await VehicleRegistryService.retrieveAccidentHistory2(
       drizzle,
       VehicleID,
@@ -44,7 +44,7 @@ const AccidentInfoPage = () => {
     const infoarray2 = Object.values(info2);
     console.log("infoarray = ", infoarray2);
     console.log("type of info", typeof info2);
-    setAccidentInfo(infoarray2);
+    setAccidentInfo2(infoarray2);
   };
 
   useEffect(() => {
@@ -53,7 +53,7 @@ const AccidentInfoPage = () => {
   }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
-      <ViewCard userData={accidentInfo} title={"Accident record Details"} />
+      <ViewCard userData={accidentInfo1} title={"Accident record Details"} />
       <TableCard
         data={accidentInfo1}
         title={"Accident Records"}
