@@ -34,6 +34,7 @@ const AccidentInfoPage = () => {
     console.log("type of info", typeof info);
     setAccidentInfo1(infoarray);
   };
+
   const retrieveAccidentInfo2 = async () => {
     const info2 = await VehicleRegistryService.retrieveAccidentHistory2(
       drizzle,
