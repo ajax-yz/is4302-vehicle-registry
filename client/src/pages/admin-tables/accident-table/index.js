@@ -22,7 +22,7 @@ const AccidentInfoPage = () => {
   const [accidentInfo2, setAccidentInfo2] = useState([]);
   console.log("account accidentinfo = ", account);
 
-  const retrieveAccidentInfo = async () => {
+  const retrieveAccidentInfo1 = async () => {
     const info = await VehicleRegistryService.retrieveAccidentHistory1(
       drizzle,
       VehicleID,
@@ -33,18 +33,6 @@ const AccidentInfoPage = () => {
     console.log("infoarray = ", infoarray);
     console.log("type of info", typeof info);
     setAccidentInfo(infoarray);
-  };
-  const retrieveAccidentInfo = async () => {
-    const info2 = await VehicleRegistryService.retrieveAccidentHistory2(
-      drizzle,
-      VehicleID,
-      accidentID,
-    );
-    console.log("retrieved accident records", info2);
-    const infoarray2 = Object.values(info2);
-    console.log("infoarray = ", infoarray2);
-    console.log("type of info", typeof info2);
-    setAccidentInfo(infoarray2);
   };
 
   useEffect(() => {
