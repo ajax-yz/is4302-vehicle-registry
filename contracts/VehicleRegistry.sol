@@ -58,7 +58,6 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256[] vehicleIdsWorkedOn; // Array of vehicle IDs worked on (E.g. 1, 5, 10, ...)
         mapping(uint256 => bool) vehIdsWorkedOnExists; // e.g. vehIdsWorkedOnActive[Vehicle ID] = true;
         mapping(uint256 => uint256[]) vehServicingIdsCompleted; // vehServicingIdsCompleted[Vehicle ID] => uint256[] servicing ids
-        address workshopOwnerAddress; // Workshop owner address
         bool active; // To check whether workshop is active
     }
 
@@ -469,7 +468,6 @@ contract VehicleRegistry is Ownable, Vehicle {
                 _contact,
                 _dateOfReg,
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsWorkedOn[]
-                _workshopAddress,
                 true
             );
 
@@ -1602,7 +1600,7 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     // Helper function to convert string to bytes32
     function stringToBytes32(string memory source)
-        public
+        internal
         pure
         returns (bytes32 result)
     {
@@ -1716,11 +1714,10 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     }
 
-    // Check whether ERC721 token exists
-    function doesTokenExists(uint256 tokenId) public view returns (bool) {
-        return vehicleContract.doesERC721TokenExists(tokenId);
+    function getTotalNoOfVehiclesRegistered() public view returns (uint256) {
+        return vehicleContract.getNoOfVehiclesRegistered();
     }
-
+ 
     function getNoOfOwnersDealers() public view returns (uint256) {
         return _numOfOwnersDealers.current();
     }
