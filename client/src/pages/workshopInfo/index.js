@@ -77,7 +77,7 @@ const UpdateWorkshopCard = () => {
         'workshopRegNo',
         'physicalAddress',
         'contact',
-        'DOR',
+        'dateOfReg',
       ];
       bodyKeys1.map((key) => {
         body1[key] = data[key];
@@ -114,7 +114,7 @@ const UpdateWorkshopCard = () => {
             'workshopRegNo',
             'physicalAddress',
             'contact',
-            'DOR',
+            'dateOfReg',
           ]}
         />
       </div>

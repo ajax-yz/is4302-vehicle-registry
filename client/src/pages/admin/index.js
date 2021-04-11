@@ -90,7 +90,7 @@ const AdminPage = () => {
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Retrieve Admin Info
                 </Typography>
-                <ViewAdminCom />
+                {/* <ViewAdminCom /> */}
               </Grid>
               <Grid item xs={12}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
@@ -157,7 +157,7 @@ const AdminPage = () => {
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Retrieve Vehicle Information
                 </Typography>
-                <ViewAllVehCom />
+                {/* <ViewAllVehCom /> */}
               </Grid>
               <Grid item xs={16}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
@@ -315,36 +315,36 @@ const AddVehicleCom = () => {
   );
 };
 
-const ViewAdminCom = () => {
-  const history = useHistory();
-  return (
-    <div>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => history.push("/app/administrator/admin-info")}
-      >
-        View Admin Info
-        </Button>
+// const ViewAdminCom = () => {
+//   const history = useHistory();
+//   return (
+//     <div>
+//       <Button
+//         variant="contained"
+//         color="primary"
+//         onClick={() => history.push("/app/administrator/admin-info")}
+//       >
+//         View Admin Info
+//         </Button>
       
-    </div>
-  );
-};
+//     </div>
+//   );
+// };
 
-const ViewAllVehCom = () => {
-  const history = useHistory();
-  return (
-    <div>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => history.push("/app/administrator/admin-tables/vehicle-table")}
-      >
-        View all vehicles
-        </Button>
+// const ViewAllVehCom = () => {
+//   const history = useHistory();
+//   return (
+//     <div>
+//       <Button
+//         variant="contained"
+//         color="primary"
+//         onClick={() => history.push("/app/administrator/admin-tables/vehicle-table")}
+//       >
+//         View all vehicles
+//         </Button>
       
-    </div>
-  );
-};
+//     </div>
+//   );
+// };
 
 export default AdminPage;

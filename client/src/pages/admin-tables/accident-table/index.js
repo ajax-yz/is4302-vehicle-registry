@@ -18,31 +18,31 @@ const AccidentInfoPage = () => {
   const VehicleID = 1; //passed when u select a vehicle
   const accidentID = 1; //this one need to loop thru all accidents
   const { drizzle } = useDrizzle();
-  const [accidentInfo1, setAccidentInfo1] = useState([]);
-  const [accidentInfo2, setAccidentInfo2] = useState([]);
+  // const [accidentInfo1, setAccidentInfo1] = useState([]);
+  // const [accidentInfo2, setAccidentInfo2] = useState([]);
   console.log("account accidentinfo = ", account);
 
-  const retrieveAccidentInfo1 = async () => {
-    const info = await VehicleRegistryService.retrieveAccidentHistory1(
-      drizzle,
-      VehicleID,
-      accidentID,
-    );
-    console.log("retrieved accident records", info);
-    const infoarray = Object.values(info);
-    console.log("infoarray = ", infoarray);
-    console.log("type of info", typeof info);
-    setAccidentInfo(infoarray);
-  };
+  // const retrieveAccidentInfo1 = async () => {
+  //   const info = await VehicleRegistryService.retrieveAccidentHistory1(
+  //     drizzle,
+  //     VehicleID,
+  //     accidentID,
+  //   );
+  //   console.log("retrieved accident records", info);
+  //   const infoarray = Object.values(info);
+  //   console.log("infoarray = ", infoarray);
+  //   console.log("type of info", typeof info);
+  //   // setAccidentInfo(infoarray);
+  // };
 
-  useEffect(() => {
-    retrieveAccidentInfo1();
-    retrieveAccidentInfo2();
-  }, []);
+  // useEffect(() => {
+  //   retrieveAccidentInfo1();
+  //   retrieveAccidentInfo2();
+  // }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
-      <ViewCard userData={accidentInfo} title={"Accident record Details"} />
-      <TableCard
+      {/* <ViewCard userData={accidentInfo} title={"Accident record Details"} /> */}
+      {/* <TableCard
         data={accidentInfo1}
         title={"Accident Records"}
         columns={[
@@ -63,7 +63,7 @@ const AccidentInfoPage = () => {
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
-      />
+      /> */}
     </Grid>
   );
 };
