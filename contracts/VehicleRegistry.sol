@@ -773,19 +773,16 @@ contract VehicleRegistry is Ownable, Vehicle {
     /**
      * Function 16: Retrieve all vehicles owned by owner / dealer
      * Comments:
-     * Allowed Roles: Owner, Admin
+     * Allowed Roles: Owner, Admin, Workshop
      */
     function retrieveAllVehiclesOwn(address _ownerDealerAddress)
         public
+        onlyRegisteredUsers(_ownerDealerAddress)
         ownerDealerActive(_ownerDealerAddress)
+
         returns (uint256[] memory)
     {
-        // Only owner or admin can access this function
-        require(
-            _ownerDealer.has(msg.sender) || _administrator.has(msg.sender),
-            "Only owner or admin can retrieve all the vehicles information"
-        );
-
+        
         // emit event
         emit allVehiclesOwnedRetrieved(_ownerDealerAddress);
 
@@ -845,7 +842,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      * Comments: Retrieve all vehicle ids serviced by workshop
      * Allowed Roles: Workshop, Admin
      */
-    function retrieveAllVehIdsServicedBy(address _workshopAddress)
+    function retrieveAllVehIdsServicedByWorkshop(address _workshopAddress)
         public
         workshopActive(_workshopAddress)
         onlyWorkshopAdmin(_workshopAddress)
@@ -863,7 +860,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      * Comments: Retrieve all servicing ids on vehicle id by workshop
      * Roles: Workshop, Admin
      */
-    function retrieveVehServicingRecordsBy(
+    function retrieveVehServicingRecordsByWorkshop(
         address _workshopAddress,
         uint256 _vehicleId
     ) public 
