@@ -22,7 +22,7 @@ const ServicingInfoPage = () => {
   console.log("account servicinginfo = ", account);
 
   const retrieveServicingInfo1 = async () => {
-    const info = await VehicleRegistryService.retriveServicingHistory1(
+    const info = await VehicleRegistryService.retrieveServicingHistory1(
       drizzle,
       VehicleID,
       servicingID,
@@ -35,7 +35,7 @@ const ServicingInfoPage = () => {
   };
 
   const retrieveServicingInfo2 = async () => {
-    const info2 = await VehicleRegistryService.retriveServicingHistory2(
+    const info2 = await VehicleRegistryService.retrieveServicingHistory2(
       drizzle,
       VehicleID,
       servicingID,
