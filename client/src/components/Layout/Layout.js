@@ -28,6 +28,8 @@ import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
 import AdminInfoPage from "../../pages/admin-info";
 import OwnerPage from "../../pages/owner";
+import WorkshopPage from "../../pages/workshopInfo";
+import WorkshopSetSR from "../../pages/wSetSR";
 import AllVehicleInfo from "../../pages/admin-tables/vehicle-table";
 import AccidentInfoPage from "../../pages/admin-tables/accident-table";
 import ServicingInfoPage from "../../pages/admin-tables/servicing-table";
@@ -104,6 +106,18 @@ function Layout(props) {
               component={Notifications}
               userRole={role}
               allowedRole={ROLES_ENUM.DEALER}
+            />
+            <PrivateRoute
+              path="/app/workshop"
+              component={WorkshopPage}
+              userRole={role}
+              allowedRole={ROLES_ENUM.WORKSHOP}
+            />
+            <PrivateRoute
+              path="/app/setSR"
+              component={WorkshopSetSR}
+              userRole={role}
+              allowedRole={ROLES_ENUM.WORKSHOP}
             />
             <PrivateRoute
               path="/app/insurance"

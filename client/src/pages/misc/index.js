@@ -23,6 +23,7 @@ const MiscPage = () => {
     <Grid container>
       <AddOwnerCard />
       <AddVehicleCom />
+      <AddWorkshopCard />
     </Grid>
   );
 };
@@ -33,6 +34,8 @@ const AddOwnerCard = () => {
   const [contact, setContact] = useState("");
   const [companyRegNo, setCompanyRegNo] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
+  const [DOR, setDOR] = useState("");
+
   const submit = async () => {
     const response = await VehicleRegistryService.registerOwnerDealer(drizzle, {
       ownerAddress,
@@ -40,7 +43,9 @@ const AddOwnerCard = () => {
       contact,
       companyRegNo,
       physicalAddress,
+      DOR,
     });
+    console.log(response);
   };
 
   // address = 0x58Ff09a4aFBf3cDD9791Bc603F4630D2c3fb3857
@@ -97,6 +102,15 @@ const AddOwnerCard = () => {
           onChange={(e) => setPhysicalAddress(e.target.value)}
           margin="normal"
           placeholder="Physical Address"
+          type="text"
+          fullWidth
+        />
+        <TextField
+          id="name"
+          value={DOR}
+          onChange={(e) => setDOR(e.target.value)}
+          margin="normal"
+          placeholder="Date of Reg"
           type="text"
           fullWidth
         />
@@ -161,6 +175,63 @@ const AddVehicleCom = () => {
           ...vehicleColumns.details1p2,
           ...vehicleColumns.details2,
           ...vehicleColumns.ownerAddress,
+        ]}
+      />
+    </div>
+  );
+};
+
+const AddWorkshopCard = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const addWorkshop = async (data) => {
+    console.log("data =", data);
+    const body1 = {};
+    const bodyKeys1 = [
+      'workshopAddress',
+      'workshopName',
+      'workshopRegNo',
+      'physicalAddress',
+      'contact',
+      'DOR',
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    // const workshopAddress = data.workshopAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.registerWorkshop(
+        drizzle,
+        body1,
+      ),
+    ]);
+    console.log("resp =", resp);
+  };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setVisible(!visible)}
+      >
+        Add Workshop
+      </Button>
+
+      <ModalForm
+        title={"Add Workshop"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={addWorkshop}
+        keys={[
+          'workshopAddress',
+          'workshopName',
+          'workshopRegNo',
+          'physicalAddress',
+          'contact',
+          'DOR',
         ]}
       />
     </div>

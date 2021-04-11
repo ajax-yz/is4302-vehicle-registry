@@ -10,7 +10,8 @@ class VehicleRegistryService {
           values.contact,
           strConvert(values.companyRegNo),
           strConvert(values.physicalAddress),
-          false,
+          strConvert(values.dateOfReg),
+          values.isDealer,
         )
         .send();
 
@@ -38,8 +39,8 @@ class VehicleRegistryService {
           contact: res[1],
           companyRegNo: hexConvert(res[2]),
           physicalAddress: hexConvert(res[3]),
-          isDealer: res[4],
-          noOfVehiclesOwn: res[5],
+          dateOfReg: res[4],
+          isDealer: res[5],
         };
         return info;
       } else {
@@ -124,11 +125,11 @@ class VehicleRegistryService {
       return false;
     }
   }
-  static async retrieveWorkshopInfo(drizzle, ownerAddress) {
+  static async retrieveWorkshopInfo(drizzle, workshopAddress) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveWorkshopInfo(ownerAddress)
+        .retrieveWorkshopInfo(workshopAddress)
         .call();
       console.log("res =", res);
       if (res) {
@@ -140,6 +141,81 @@ class VehicleRegistryService {
           DOR: hexConvert(res[4]),
         };
         return info;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async updateWorkshopInfo(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .updateWorkshopInfo(
+          values.workshopAddress,
+          strConvert(values.workshopName),
+          strConvert(values.workshopRegNo),
+          strConvert(values.physicalAddress),
+          values.contact,
+          strConvert(values.DOR),
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async addServicingRecord(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .addServicingRecord(
+          values.vehicleId,
+          strConvert(values.dateCompleted),
+          strConvert(values.workshopRegNo),
+          strConvert(values.typeOfWorkDone),
+          strConvert(values.appointedMechanic),
+          strConvert(values.currentMileage),
+          strConvert(values.workDone),
+          strConvert(values.totalCharges),
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveAllVehIdsServicedBy(drizzle, workshopAddress) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllVehIdsServicedBy(workshopAddress)
+        .call();
+      console.log("res =", res);
+      if (res) {
+        // const info = {
+        //   name: hexConvert(res[0]),
+        //   contact: res[1],
+        //   companyRegNo: hexConvert(res[2]),
+        //   physicalAddress: hexConvert(res[3]),
+        //   isDealer: res[4],
+        //   noOfVehiclesOwn: res[5],
+        // };
+        return res;
       } else {
         return false;
       }
@@ -261,6 +337,7 @@ class VehicleRegistryService {
     try {
       const success = await drizzle.contracts.VehicleRegistry.methods
         .registerVehicleToOwner1(
+          ownerAddress,
           strConvert(values.vehicleNo),
           strConvert(values.makeModel),
           values.manufacturingYear,
@@ -269,7 +346,6 @@ class VehicleRegistryService {
           values.omv,
           strConvert(values.originalRegDate),
           strConvert(values.effectiveRegDate),
-          ownerAddress,
         )
         .send();
       if (success) {

@@ -26,7 +26,7 @@ const OwnerPage = () => {
       drizzle,
       account,
     );
-    console.log("resuls", results);
+    console.log("results", results);
     setUserInfo(results);
   };
 
