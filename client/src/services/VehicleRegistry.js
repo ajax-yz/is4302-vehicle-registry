@@ -289,6 +289,7 @@ class VehicleRegistryService {
     try {
       const success = await drizzle.contracts.VehicleRegistry.methods
         .registerVehicleToOwner1(
+          ownerAddress,
           strConvert(values.vehicleNo),
           strConvert(values.makeModel),
           values.manufacturingYear,
@@ -297,7 +298,6 @@ class VehicleRegistryService {
           values.omv,
           strConvert(values.originalRegDate),
           strConvert(values.effectiveRegDate),
-          ownerAddress,
         )
         .send();
       if (success) {
