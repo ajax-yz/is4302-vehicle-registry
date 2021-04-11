@@ -51,6 +51,7 @@ class VehicleRegistryService {
     }
   }
 
+
   static async registerAdmin(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
@@ -74,6 +75,7 @@ class VehicleRegistryService {
     }
   }
 
+
   static async retrieveAdminInfo(drizzle, adminAddress) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
@@ -87,6 +89,55 @@ class VehicleRegistryService {
           adminName: hexConvert(res[0]),
           dateJoined: hexConvert(res[1]),
           contact: res[2],
+        };
+        return info;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  
+  static async registerWorkshop(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .registerWorkshop(
+          values.workshopAddress,
+          strConvert(values.workshopName),
+          strConvert(values.workshopRegNo),
+          strConvert(values.physicalAddress),
+          values.contact,
+          strConvert(values.DOR),
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveWorkshopInfo(drizzle, ownerAddress) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveWorkshopInfo(ownerAddress)
+        .call();
+      console.log("res =", res);
+      if (res) {
+        const info = {
+          workshopName: hexConvert(res[0]),
+          workshopRegNo: hexConvert(res[1]),
+          physicalAddress: hexConvert(res[2]),
+          workshopContact: res[3],
+          DOR: hexConvert(res[4]),
         };
         return info;
       } else {
@@ -358,7 +409,7 @@ class VehicleRegistryService {
     }
   }
 
-  // ==================================== ACCIDENT RECORDS ====================================
+  // ==================================== SERVICING RECORDS ====================================
   static async retrieveAllServicingHistory(drizzle, ownerAddress) {
     try {
       const vehIds = await drizzle.contracts.VehicleRegistry.methods
