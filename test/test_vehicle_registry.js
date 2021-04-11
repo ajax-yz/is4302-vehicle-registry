@@ -785,7 +785,7 @@ contract('VehicleRegistry', function (accounts) {
     // Test 24: Retrieve all vehicles serviced by workshop
     it('Test 24: Retrieve all vehicles serviced by workshop', async () => {
 
-        let allVehiclesServicedByWorkshop = await vehicleRegistryInstance.retrieveAllVehIdsServicedBy.call(
+        let allVehiclesServicedByWorkshop = await vehicleRegistryInstance.retrieveAllVehIdsServicedByWorkshop.call(
             workshop,
             { from: workshop }
         );
@@ -798,7 +798,7 @@ contract('VehicleRegistry', function (accounts) {
     // Test 25: Retrieve all servicing records on first vehicle by workshop
     it('Test 25: Retrieve all servicing records on first vehicle by workshop', async () => {
 
-        let vehServicingRecordsByWorkshop = await vehicleRegistryInstance.retrieveVehServicingRecordsBy.call(
+        let vehServicingRecordsByWorkshop = await vehicleRegistryInstance.retrieveVehServicingRecordsByWorkshop.call(
             workshop,
             vehicleId,
             { from: workshop }

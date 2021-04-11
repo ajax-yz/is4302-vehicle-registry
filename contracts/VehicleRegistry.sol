@@ -842,7 +842,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      * Comments: Retrieve all vehicle ids serviced by workshop
      * Allowed Roles: Workshop, Admin
      */
-    function retrieveAllVehIdsServicedBy(address _workshopAddress)
+    function retrieveAllVehIdsServicedByWorkshop(address _workshopAddress)
         public
         workshopActive(_workshopAddress)
         onlyWorkshopAdmin(_workshopAddress)
@@ -860,7 +860,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      * Comments: Retrieve all servicing ids on vehicle id by workshop
      * Roles: Workshop, Admin
      */
-    function retrieveVehServicingRecordsBy(
+    function retrieveVehServicingRecordsByWorkshop(
         address _workshopAddress,
         uint256 _vehicleId
     ) public 
