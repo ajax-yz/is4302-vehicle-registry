@@ -12,6 +12,9 @@
 /.pnp
 .pnp.js
 
+# build contracts
+/client/src/contracts
+
 # testing
 /coverage
 
@@ -29,3 +32,4 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+client/.eslintcache

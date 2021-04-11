@@ -30,7 +30,6 @@ const ModalForm = ({ visible, toggleVisible, onSubmit, keys, title }) => {
   }, [keys]);
   return (
     <div>
-      test
       <Modal
         style={{
           display: "flex",
