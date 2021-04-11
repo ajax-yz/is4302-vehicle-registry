@@ -636,11 +636,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _adminName,
         bytes32 _dateJoined,
         uint256 _contact
-    ) public adminActive(_adminAddress) returns (bool) {
-        require(
-            msg.sender == _adminAddress || _administrator.has(msg.sender),
-            "Only the admin or owner can update the information"
-        );
+    ) public onlyAdmin adminActive(_adminAddress) returns (bool) {
 
         // Update fields
         admins[_adminAddress].adminName = _adminName;
@@ -889,6 +885,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     ) public 
         vehicleExists(_vehicleId)
         onlyVehOwner(_vehicleId, msg.sender) 
+        onlyOwnerDealer
         returns (bool) {
 
         // Check if buyer is already registered as a owner, if not register buyer
@@ -1428,32 +1425,13 @@ contract VehicleRegistry is Ownable, Vehicle {
     }
 
     /**
-     * Function 41: Retrieve number of vehicles own by owner
-     * Comments: To facilitate the next function: retrieveServicingRecord
-     * Allowed Roles: Admin, Owner
-     */
-    function retrieveNoOfVehiclesOwnBy(address _ownerDealerAddress)
-        public
-        onlyOwnerAdmin(_ownerDealerAddress)
-        returns (uint256 _noOfVehiclesOwn)
-    {
-
-        // Retrieve from Vehicle.sol
-        _noOfVehiclesOwn = ownersDealers[_ownerDealerAddress].noOfVehiclesOwn;
-
-        // Emit event
-        emit noOfVehiclesOwnRetrieved(_noOfVehiclesOwn);
-
-        return _noOfVehiclesOwn;
-    }
-
-    /**
-     * Function 42: Check if address is a registered owner
+     * Function 41: Check if address is a registered owner
      * Comments: To facilitate vehicle transfer
      * Allowed Roles: Admin, Owner
      */
     function isAddressRegisteredOwner(address _address)
         public
+        onlyOwnerAdmin(_address)
         view
         returns (bool)
     {
