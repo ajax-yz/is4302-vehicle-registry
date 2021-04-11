@@ -28,15 +28,12 @@ import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
 import AdminInfoPage from "../../pages/admin-info";
 import OwnerPage from "../../pages/owner";
-<<<<<<< HEAD
 import WorkshopPage from "../../pages/workshopInfo";
 import WorkshopSetSR from "../../pages/wSetSR";
-=======
 import AllVehicleInfo from "../../pages/admin-tables/vehicle-table";
 import AccidentInfoPage from "../../pages/admin-tables/accident-table";
 import ServicingInfoPage from "../../pages/admin-tables/servicing-table";
 
->>>>>>> develop
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
