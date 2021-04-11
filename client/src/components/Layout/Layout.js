@@ -28,6 +28,8 @@ import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
 import AdminInfoPage from "../../pages/admin-info";
 import OwnerPage from "../../pages/owner";
+import AllVehicleInfo from "../../pages/admin-tables/vehicle-table";
+import AccidentInfoPage from "../../pages/admin-tables/accident-table";
 // context
 import { useLayoutState } from "../../context/LayoutContext";
 
@@ -62,6 +64,18 @@ function Layout(props) {
             <PrivateRoute
               path="/app/administrator/admin-info"
               component={AdminInfoPage}
+              userRole={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/administrator/admin-tables/vehicle-table"
+              component={AllVehicleInfo}
+              userRole={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/administrator/admin-tables/accident-table"
+              component={AccidentInfoPage}
               userRole={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />

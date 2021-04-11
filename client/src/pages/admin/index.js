@@ -157,7 +157,7 @@ const AdminPage = () => {
                 <Typography color="text" colorBrightness="secondary" noWrap>
                   Retrieve Vehicle Information
                 </Typography>
-                <Typography size="md">860</Typography>
+                <ViewAllVehCom />
               </Grid>
               <Grid item xs={16}>
                 <Typography color="text" colorBrightness="secondary" noWrap>
@@ -330,4 +330,21 @@ const ViewAdminCom = () => {
     </div>
   );
 };
+
+const ViewAllVehCom = () => {
+  const history = useHistory();
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => history.push("/app/administrator/admin-tables/vehicle-table")}
+      >
+        View all vehicles
+        </Button>
+      
+    </div>
+  );
+};
+
 export default AdminPage;
