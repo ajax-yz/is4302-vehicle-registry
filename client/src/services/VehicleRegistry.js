@@ -10,6 +10,7 @@ class VehicleRegistryService {
           values.contact,
           strConvert(values.companyRegNo),
           strConvert(values.physicalAddress),
+          strConvert(values.DOR),
           false,
         )
         .send();

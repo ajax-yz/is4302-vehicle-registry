@@ -2,6 +2,8 @@ import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Grid, Button } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import ViewCard from "../../components/ViewCard";
+import Widget from "../../components/Widget";
+import PageTitle from "../../components/PageTitle";
 import TableCard from "../../components/ViewCard/table";
 import ModalForm from "../../components/Modal/form";
 
@@ -53,10 +55,13 @@ const WorkshopPage = () => {
 //     // retrieveServicing();
   }, []);
   return (
-    <Grid container direction={"column"} spacing={4}>
-      <ViewCard userData={workshopInfo} title={"Workshop Details"} />
-      <UpdateWorkshopCard />
-    </Grid>
+    <>
+      <PageTitle title="Workshop Info" button={<UpdateWorkshopCard/>} />
+      <Grid container direction={"column"} spacing={4}>
+        <ViewCard userData={workshopInfo} title={"Workshop Details"} />
+        {/* <UpdateWorkshopCard /> */}
+      </Grid>
+    </>
   );
 };
 const UpdateWorkshopCard = () => {

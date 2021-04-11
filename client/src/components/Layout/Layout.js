@@ -84,12 +84,12 @@ function Layout(props) {
               userRole={role}
               allowedRole={ROLES_ENUM.WORKSHOP}
             />
-            {/* <PrivateRoute
-              path="/app/workshopFn"
+            <PrivateRoute
+              path="/app/setSR"
               component={WorkshopSetSR}
               userRole={role}
               allowedRole={ROLES_ENUM.WORKSHOP}
-            /> */}
+            />
             <PrivateRoute
               path="/app/insurance"
               component={Notifications}

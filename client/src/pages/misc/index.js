@@ -34,6 +34,8 @@ const AddOwnerCard = () => {
   const [contact, setContact] = useState("");
   const [companyRegNo, setCompanyRegNo] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
+  const [DOR, setDOR] = useState("");
+
   const submit = async () => {
     const response = await VehicleRegistryService.registerOwnerDealer(drizzle, {
       ownerAddress,
@@ -41,7 +43,9 @@ const AddOwnerCard = () => {
       contact,
       companyRegNo,
       physicalAddress,
+      DOR,
     });
+    console.log(response);
   };
 
   // address = 0x58Ff09a4aFBf3cDD9791Bc603F4630D2c3fb3857
@@ -98,6 +102,15 @@ const AddOwnerCard = () => {
           onChange={(e) => setPhysicalAddress(e.target.value)}
           margin="normal"
           placeholder="Physical Address"
+          type="text"
+          fullWidth
+        />
+        <TextField
+          id="name"
+          value={DOR}
+          onChange={(e) => setDOR(e.target.value)}
+          margin="normal"
+          placeholder="Date of Reg"
           type="text"
           fullWidth
         />
