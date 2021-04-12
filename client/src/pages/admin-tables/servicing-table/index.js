@@ -17,8 +17,8 @@ const ServicingInfoPage = () => {
   const VehicleID = 1; //passed when u select a vehicle
   const servicingID = 1; //this one need to loop thru all servicings
   const { drizzle } = useDrizzle();
-  const [servicingInfo1, setservicingInfo1] = useState([]);
-  const [servicingInfo2, setservicingInfo2] = useState([]);
+  // const [servicingInfo1, setservicingInfo1] = useState([]);
+  // const [servicingInfo2, setservicingInfo2] = useState([]);
   console.log("account servicinginfo = ", account);
 
   const retrieveServicingInfo1 = async () => {
@@ -31,7 +31,7 @@ const ServicingInfoPage = () => {
     const infoarray = Object.values(info);
     console.log("infoarray = ", infoarray);
     console.log("type of info", typeof info);
-    setservicingInfo1(infoarray);
+    // setservicingInfo1(infoarray);
   };
 
   const retrieveServicingInfo2 = async () => {
@@ -44,7 +44,7 @@ const ServicingInfoPage = () => {
     const infoarray2 = Object.values(info2);
     console.log("infoarray = ", infoarray2);
     console.log("type of info", typeof info2);
-    setservicingInfo2(infoarray2);
+    // setservicingInfo2(infoarray2);
   };
 
   useEffect(() => {
@@ -53,8 +53,8 @@ const ServicingInfoPage = () => {
   }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
-      <ViewCard userData={servicingInfo1} title={"servicing record Details"} />
-      <TableCard
+      {/* <ViewCard userData={servicingInfo1} title={"servicing record Details"} /> */}
+      {/* <TableCard
         data={servicingInfo1}
         title={"servicing Records 1"}
         columns={[
@@ -75,7 +75,7 @@ const ServicingInfoPage = () => {
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
-      />
+      /> */}
     </Grid>
     
   );

@@ -24,29 +24,48 @@ const MiscPage = () => {
       <AddOwnerCard />
       <AddVehicleCom />
       <AddWorkshopCard />
+      <AddAdminCard />
     </Grid>
   );
 };
 const AddOwnerCard = () => {
   const { drizzle } = useDrizzle();
-  const [ownerAddress, setOwnerAddress] = useState("");
+  const [ownerDealerAddress, setOwnerAddress] = useState("");
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [companyRegNo, setCompanyRegNo] = useState("");
   const [physicalAddress, setPhysicalAddress] = useState("");
-  const [DOR, setDOR] = useState("");
+  const [dateOfReg, setDOR] = useState("");
 
   const submit = async () => {
     const response = await VehicleRegistryService.registerOwnerDealer(drizzle, {
-      ownerAddress,
+      ownerDealerAddress,
       name,
       contact,
       companyRegNo,
       physicalAddress,
-      DOR,
+      dateOfReg,
+      isDealer: false, 
     });
     console.log(response);
+    const testfn = await VehicleRegistryService.retrieveOwnerDealerInfo(drizzle, ownerDealerAddress);
+    console.log(testfn);
+    const testupdate = await VehicleRegistryService.updateOwnerDealerInfo(drizzle, {
+      ownerDealerAddress,
+      name,
+      contact,
+      companyRegNo:"ep23",
+      physicalAddress,
+      dateOfReg,
+      isDealer: false, 
+    });
+    console.log(testupdate);
   };
+  const remove = async() => {
+    const testrem = await VehicleRegistryService.removeAdmin(drizzle, 
+      "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676");
+      console.log("rem admin",testrem);
+  }
 
   // address = 0x58Ff09a4aFBf3cDD9791Bc603F4630D2c3fb3857
   return (
@@ -58,11 +77,12 @@ const AddOwnerCard = () => {
         padding: "24px",
       }}
     >
+      <Button onClick={() => remove()}>Remove</Button>
       <Grid container>
         registerOwnerDealer
         <TextField
           id="name"
-          value={ownerAddress}
+          value={ownerDealerAddress}
           onChange={(e) => setOwnerAddress(e.target.value)}
           margin="normal"
           placeholder="Owner/Dealer address"
@@ -107,7 +127,7 @@ const AddOwnerCard = () => {
         />
         <TextField
           id="name"
-          value={DOR}
+          value={dateOfReg}
           onChange={(e) => setDOR(e.target.value)}
           margin="normal"
           placeholder="Date of Reg"
@@ -194,7 +214,7 @@ const AddWorkshopCard = () => {
       'workshopRegNo',
       'physicalAddress',
       'contact',
-      'DOR',
+      'dateOfReg',
     ];
     bodyKeys1.map((key) => {
       body1[key] = data[key];
@@ -231,7 +251,68 @@ const AddWorkshopCard = () => {
           'workshopRegNo',
           'physicalAddress',
           'contact',
-          'DOR',
+          'dateOfReg',
+        ]}
+      />
+    </div>
+  );
+};
+const AddAdminCard = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const addAdmin = async (data) => {
+    console.log("data =", data);
+    const body1 = {};
+    const bodyKeys1 = [
+      'adminAddress',
+      'adminName',
+      'dateJoined',
+      'contact',
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    // const workshopAddress = data.workshopAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.registerAdmin(
+        drizzle,
+        body1,
+      ),
+    ]);
+    console.log("resp =", resp);
+    const testretad = await VehicleRegistryService.retrieveAdminInfo(drizzle, body1['adminAddress']);
+    console.log(testretad);
+    const testadupdate = await VehicleRegistryService.updateAdminInfo(drizzle, {
+      adminAddress: body1['adminAddress'],
+      adminName: body1['adminName'],
+      dateJoined: body1['dateJoined'],
+      contact: 239,
+    });
+    console.log(testadupdate);
+  };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setVisible(!visible)}
+      >
+        Add Admin
+      </Button>
+
+      <ModalForm
+        title={"Add Admin"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={addAdmin}
+        keys={[
+          'adminAddress',
+          'adminName',
+          'dateJoined',
+          'contact',
         ]}
       />
     </div>
