@@ -11,9 +11,12 @@ export default function PageTitle(props) {
 
   return (
     <div className={classes.pageTitleContainer}>
-      <Typography className={classes.typo} variant="h1" size="sm">
-        {props.title}
-      </Typography>
+      <div style={{ display: "flex", alignItems: "center" }}>
+        {props.backButton && props.backButton}
+        <Typography className={classes.typo} variant="h1" size="sm">
+          {props.title}
+        </Typography>
+      </div>
       {props.button && props.button}
     </div>
   );

@@ -26,6 +26,8 @@ import Tables from "../../pages/tables";
 import Icons from "../../pages/icons";
 import Charts from "../../pages/charts";
 import AdminPage from "../../pages/admin";
+import VehiclePage from "../../pages/vehicle";
+
 // import AdminInfoPage from "../../pages/admin-info";
 import OwnerPage from "../../pages/owner";
 import WorkshopPage from "../../pages/workshopInfo";
@@ -63,70 +65,77 @@ function Layout(props) {
             <PrivateRoute
               path="/app/dashboard"
               component={Dashboard}
-              userRole={role}
+              role={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />
             {/* <PrivateRoute
               path="/app/administrator/admin-info"
               component={AdminInfoPage}
-              userRole={role}
+              role={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             /> */}
             {/* <PrivateRoute
               path="/app/administrator/admin-tables/vehicle-table"
               component={AllVehicleInfo}
-              userRole={role}
+              role={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />
             <PrivateRoute
               path="/app/administrator/admin-tables/accident-table"
               component={AccidentInfoPage}
-              userRole={role}
+              role={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />
             <PrivateRoute
               path="/app/administrator/admin-tables/servicing-table"
               component={ServicingInfoPage}
-              userRole={role}
+              role={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             /> */}
             <PrivateRoute
               path="/app/administrator"
               component={AdminPage}
               isRegistryOwner={props.isRegistryOwner}
-              userRole={role}
-              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+              role={role}
+              // allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />
             <PrivateRoute
-              path="/app/owner"
+              path="/app/owner/:ownerAddress?"
               component={OwnerPage}
-              userRole={role}
-              allowedRole={ROLES_ENUM.OWNER}
+              role={role}
+              // allowedRole={ROLES_ENUM.OWNER}
             />
             <PrivateRoute
               path="/app/dealer"
               component={Notifications}
-              userRole={role}
-              allowedRole={ROLES_ENUM.DEALER}
+              role={role}
+              // allowedRole={ROLES_ENUM.DEALER}
             />
             <PrivateRoute
               path="/app/workshop"
               component={WorkshopPage}
-              userRole={role}
-              allowedRole={ROLES_ENUM.WORKSHOP}
+              role={role}
+              // allowedRole={ROLES_ENUM.WORKSHOP}
             />
             <PrivateRoute
               path="/app/setSR"
               component={WorkshopSetSR}
-              userRole={role}
-              allowedRole={ROLES_ENUM.WORKSHOP}
+              role={role}
+              // allowedRole={ROLES_ENUM.WORKSHOP}
             />
             <PrivateRoute
+              path="/app/vehicle/:vehicleId"
+              component={VehiclePage}
+              isRegistryOwner={props.isRegistryOwner}
+              role={role}
+              // allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            {/* <PrivateRoute
               path="/app/insurance"
               component={Notifications}
-              userRole={role}
-              allowedRole={ROLES_ENUM.INSURANCE}
-            />
+              role={role}
+              // allowedRole={ROLES_ENUM.INSURANCE}
+            /> */}
             <Route
               exact
               path="/app/ui"
@@ -198,15 +207,16 @@ function Layout(props) {
 
 const PrivateRoute = ({
   component,
-  userRole,
+  role,
   path,
   allowedRole,
   isRegistryOwner,
   ...rest
 }) => {
-  // const isAuthenticated = userRole === allowedRole;
-  const rolePath = userRole.split(" ")[0].toLowerCase();
-  const isAuthenticated = true;
+  // const isAuthenticated = role === allowedRole;
+  const isAuthenticated = allowedRole ? role === allowedRole : true;
+  const rolePath = role.split(" ")[0].toLowerCase();
+  // const isAuthenticated = true;
 
   return (
     <Route
@@ -215,7 +225,7 @@ const PrivateRoute = ({
         isAuthenticated ? (
           React.createElement(component, {
             ...props,
-            role: userRole,
+            role,
             isRegistryOwner,
           })
         ) : (

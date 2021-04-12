@@ -12,8 +12,8 @@ import {
   CardContent,
 } from "@material-ui/core";
 
-const ViewCard = ({ userData, title, extraComponent }) => {
-  const keys = Object.keys(userData);
+const ViewCard = ({ data, title, extraComponent }) => {
+  const keys = Object.keys(data);
   return (
     <Grid item style={{ width: "100%" }}>
       <Card style={{ width: "100%", minHeight: "284px" }}>
@@ -55,7 +55,7 @@ const ViewCard = ({ userData, title, extraComponent }) => {
                     {label}
                   </div>
                   <div style={{ paddingLeft: "0px" }}>
-                    {userData[key]?.toString()}
+                    {data[key]?.toString()}
                   </div>
                 </div>
               );

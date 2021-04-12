@@ -351,6 +351,20 @@ class VehicleRegistryService {
       return [];
     }
   }
+
+  static async retrieveOneVehicleDetails(drizzle, vehicleId) {
+    const data = await Promise.all([
+      await this.retrieveVehicleDetails1(drizzle, vehicleId),
+      await this.retrieveVehicleDetails1Part2(drizzle, vehicleId),
+      await this.retrieveVehicleDetails2(drizzle, vehicleId),
+    ]);
+    return {
+      vehicleId,
+      ...data[0],
+      ...data[1],
+      ...data[2],
+    };
+  }
   static async retrieveVehicleDetails1(drizzle, vehicleId) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
@@ -536,7 +550,7 @@ class VehicleRegistryService {
         // AccidenIds is an array of accidentId arrays for each veh
         const accidentIds = await Promise.all(
           vehIds.map(async (vehId) => {
-            return drizzle.contracts.VehicleRegistry.retrieveAllAccidentRecordsOn(
+            return drizzle.contracts.VehicleRegistry.methods.retrieveAllAccidentRecordsOn(
               vehId,
             );
           }),
@@ -638,7 +652,7 @@ class VehicleRegistryService {
         // AccidenIds is an array of accidentId arrays for each veh
         const servicingIds = await Promise.all(
           vehIds.map(async (vehId) => {
-            return drizzle.contracts.VehicleRegistry.retrieveAllServicingRecordsOn(
+            return drizzle.contracts.VehicleRegistry.methods.retrieveAllServicingRecordsOn(
               vehId,
             );
           }),
@@ -674,6 +688,69 @@ class VehicleRegistryService {
         );
         // console.log("veh =", vehicles);
         return servicingRecords;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return [];
+    }
+  }
+  static async retrieveOneVehicleServicingRecords(drizzle, vehicleId) {
+    try {
+      const servicingIds = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllServicingRecordsOn(vehicleId)
+        .call();
+
+      const servicingRecords = await Promise.all(
+        servicingIds.map(async (sId) => {
+          const data = await Promise.all([
+            this.retrieveServicingHistory1(drizzle, vehicleId, sId),
+            this.retrieveServicingHistory2(drizzle, vehicleId, sId),
+          ]);
+
+          return {
+            vehicleId,
+            ...data[0],
+            ...data[1],
+          };
+        }),
+      );
+
+      if (servicingRecords) {
+        return servicingRecords;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return [];
+    }
+  }
+
+  static async retrieveOneVehicleAccidentRecords(drizzle, vehicleId) {
+    try {
+      const accidentIds = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllAccidentRecordsOn(vehicleId)
+        .call();
+      console.log("accidentIds =", accidentIds);
+
+      const accidentRecords = await Promise.all(
+        accidentIds.map(async (aId) => {
+          const data = await Promise.all([
+            this.retrieveAccidentHistory1(drizzle, vehicleId, aId),
+            this.retrieveAccidentHistory2(drizzle, vehicleId, aId),
+          ]);
+
+          return {
+            vehicleId,
+            ...data[0],
+            ...data[1],
+          };
+        }),
+      );
+      if (accidentRecords) {
+        return accidentRecords;
       } else {
         return [];
       }

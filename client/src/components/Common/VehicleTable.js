@@ -9,7 +9,7 @@ const VehicleTable = ({ userVehicles }) => {
 
   const viewVehicle = (data) => {
     console.log("data =", data);
-    // history.push("/test");
+    history.push(`/app/vehicle/${data.vehicleId}`);
   };
   return (
     <TableCard

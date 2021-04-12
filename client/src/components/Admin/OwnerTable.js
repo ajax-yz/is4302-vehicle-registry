@@ -6,11 +6,12 @@ import { ownerColumns } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import RegisterButton from "../Common/RegisterButton";
 import TableCard from "../Common/Table";
-
+import { useHistory } from "react-router-dom";
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
 const OwnerTable = () => {
   const [ownerList, setOwnerList] = useState([]);
+  const history = useHistory();
   const { drizzle } = useDrizzle();
   const state = useDrizzleState((state) => state);
 
@@ -67,6 +68,11 @@ const OwnerTable = () => {
     }
   };
 
+  const viewOwner = async (owner) => {
+    console.log("viewowner =", owner);
+    history.push(`/app/owner/${owner.ownerDealerAddress}`);
+  };
+
   useEffect(() => {
     getAllOwners();
   }, [state.drizzleStatus.initialized]);
@@ -78,6 +84,7 @@ const OwnerTable = () => {
         columns={ownerColumns}
         cardWidth={"100%"}
         deleteData={deleteOwner}
+        viewData={viewOwner}
         extraComponent={
           <RegisterButton
             submitRegister={registerOwner}

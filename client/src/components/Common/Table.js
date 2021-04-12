@@ -44,20 +44,6 @@ const TableCard = ({
           };
           return (
             <>
-              {deleteData ? (
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  onClick={() => deleteData(data[row])}
-                >
-                  Delete
-                </Button>
-              ) : null}
-              {hasAck ? (
-                <Button variant="contained" color="primary" onClick={onClick}>
-                  Mark as verified
-                </Button>
-              ) : null}
               {viewData ? (
                 <Button
                   variant="contained"
@@ -65,6 +51,21 @@ const TableCard = ({
                   onClick={() => viewData(data[row])}
                 >
                   View
+                </Button>
+              ) : null}
+
+              {hasAck ? (
+                <Button variant="contained" color="primary" onClick={onClick}>
+                  Mark as verified
+                </Button>
+              ) : null}
+              {deleteData ? (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => deleteData(data[row])}
+                >
+                  Delete
                 </Button>
               ) : null}
             </>
