@@ -11,7 +11,7 @@ import VehicleRegistryService from "../../../services/VehicleRegistry";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
-const servicingInfoPage = () => {
+const ServicingInfoPage = () => {
   const state = useDrizzleState((state) => state);
   const account = state.accounts[0];
   const VehicleID = 1; //passed when u select a vehicle
@@ -21,8 +21,8 @@ const servicingInfoPage = () => {
   // const [servicingInfo2, setservicingInfo2] = useState([]);
   console.log("account servicinginfo = ", account);
 
-  const retrieveServicingInfo = async () => {
-    const info = await VehicleRegistryService.retriveServicingHistory1(
+  const retrieveServicingInfo1 = async () => {
+    const info = await VehicleRegistryService.retrieveServicingHistory1(
       drizzle,
       VehicleID,
       servicingID,
@@ -35,7 +35,7 @@ const servicingInfoPage = () => {
   };
 
   const retrieveServicingInfo2 = async () => {
-    const info2 = await VehicleRegistryService.retriveServicingHistory2(
+    const info2 = await VehicleRegistryService.retrieveServicingHistory2(
       drizzle,
       VehicleID,
       servicingID,
@@ -48,8 +48,8 @@ const servicingInfoPage = () => {
   };
 
   useEffect(() => {
-    retrieveservicingInfo1();
-    retrieveservicingInfo2();
+    retrieveServicingInfo1();
+    retrieveServicingInfo2();
   }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
@@ -81,4 +81,4 @@ const servicingInfoPage = () => {
   );
 };
 
-export default servicingInfoPage;
+export default ServicingInfoPage;

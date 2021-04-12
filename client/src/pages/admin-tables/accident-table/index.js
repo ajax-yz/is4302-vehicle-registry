@@ -22,18 +22,31 @@ const AccidentInfoPage = () => {
   // const [accidentInfo2, setAccidentInfo2] = useState([]);
   console.log("account accidentinfo = ", account);
 
-  // const retrieveAccidentInfo1 = async () => {
-  //   const info = await VehicleRegistryService.retrieveAccidentHistory1(
-  //     drizzle,
-  //     VehicleID,
-  //     accidentID,
-  //   );
-  //   console.log("retrieved accident records", info);
-  //   const infoarray = Object.values(info);
-  //   console.log("infoarray = ", infoarray);
-  //   console.log("type of info", typeof info);
-  //   // setAccidentInfo(infoarray);
-  // };
+  const retrieveAccidentInfo1 = async () => {
+    const info = await VehicleRegistryService.retrieveAccidentHistory1(
+      drizzle,
+      VehicleID,
+      accidentID,
+    );
+    console.log("retrieved accident records", info);
+    const infoarray = Object.values(info);
+    console.log("infoarray = ", infoarray);
+    console.log("type of info", typeof info);
+    setAccidentInfo1(infoarray);
+  };
+
+  const retrieveAccidentInfo2 = async () => {
+    const info2 = await VehicleRegistryService.retrieveAccidentHistory2(
+      drizzle,
+      VehicleID,
+      accidentID,
+    );
+    console.log("retrieved accident records", info2);
+    const infoarray2 = Object.values(info2);
+    console.log("infoarray = ", infoarray2);
+    console.log("type of info", typeof info2);
+    setAccidentInfo2(infoarray2);
+  };
 
   // useEffect(() => {
   //   retrieveAccidentInfo1();
@@ -41,14 +54,11 @@ const AccidentInfoPage = () => {
   // }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
-      {/* <ViewCard userData={accidentInfo} title={"Accident record Details"} /> */}
-      {/* <TableCard
+      <ViewCard userData={accidentInfo1} title={"Accident record Details"} />
+      <TableCard
         data={accidentInfo1}
         title={"Accident Records"}
-        columns={[
-          "Vehicle Id",
-          ...accidentColumns.accident1,
-        ]}
+        columns={["Vehicle Id", ...accidentColumns.accident1]}
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
@@ -56,14 +66,11 @@ const AccidentInfoPage = () => {
       <TableCard
         data={accidentInfo2}
         title={"Accident Records"}
-        columns={[
-          "Vehicle Id",
-          ...accidentColumns.accident2,
-        ]}
+        columns={["Vehicle Id", ...accidentColumns.accident2]}
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
-      /> */}
+      />
     </Grid>
   );
 };
