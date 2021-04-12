@@ -11,6 +11,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     address public vehicleRegistryOwner; // Contract owner
 
     // -------------- OpenZeppelin Role-Based Access Control --------------- //
+
     using Roles for Roles.Role;
     Roles.Role private _ownerDealer;
     Roles.Role private _workshop;
@@ -93,6 +94,10 @@ contract VehicleRegistry is Ownable, Vehicle {
     mapping(address => uint256) workshopIndex;
     mapping(address => uint256) adminIndex;
 
+    // ----------------------- Constant Variable ----------------------- //
+
+    bytes32 constant NULL = "";
+
     // ----------------------- OpenZeppelin Counters ----------------------- //
 
     using Counters for Counters.Counter;
@@ -165,6 +170,11 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256 vehicleId,
         uint256 noOfAccidentRecords
     );
+
+    // Re-registration events
+    event ownerDealerReregistered(address ownerDealerAddress);
+    event workshopReregistered(address workshopAddress);
+    event adminReregistered(address adminAddress);
 
     // Vehicle.sol's functions events
     event vehicleRegistration1Completed(
@@ -240,17 +250,17 @@ contract VehicleRegistry is Ownable, Vehicle {
     }
 
     // Checks access only for vehicle owner
-    modifier onlyVehOwner(uint256 _vehicleId, address _validAddress){
-        require(isVehicleOwnedBy(_vehicleId, _validAddress),
+    modifier onlyVehOwner(uint256 _vehicleId){
+        require(isVehicleOwnedBy(_vehicleId, msg.sender),
         "Only vehicle owner can access this function");
         _;
     }
 
     // Checks access only for vehicle owner and admin
-    modifier onlyVehOwnerAndAdmin(uint256 _vehicleId, address _validAddress) {
+    modifier onlyVehOwnerAndAdmin(uint256 _vehicleId) {
         require(
-            _administrator.has(_validAddress) ||
-                isVehicleOwnedBy(_vehicleId, _validAddress),
+            _administrator.has(msg.sender) ||
+                isVehicleOwnedBy(_vehicleId, msg.sender),
             "Only vehicle owner or administrator can access this function"
         );
         _;
@@ -273,11 +283,11 @@ contract VehicleRegistry is Ownable, Vehicle {
     }
 
     // Only registered users (owner, workshop, admin)
-    modifier onlyRegisteredUsers(address _validAddress) {
+    modifier onlyRegisteredUsers() {
         require(
-            _ownerDealer.has(_validAddress)
-            || _administrator.has(_validAddress)
-            || _workshop.has(_validAddress),
+            _ownerDealer.has(msg.sender)
+            || _administrator.has(msg.sender)
+            || _workshop.has(msg.sender),
             "Only owner/dealer, admin, and workshops can acess this function"
         );
         _;
@@ -285,19 +295,18 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     // Checks access only for owner, admin, or authorized parties
     modifier onlyOwnerAdminAuthorized(
-        uint256 _vehicleId,
-        address _validAddress
+        uint256 _vehicleId
     ) {
         address _ownerDealerAddress =
             vehicleContract.getCurrentVehOwnerAddress(_vehicleId);
 
         require(
-            _administrator.has(_validAddress) ||
-                isVehicleOwnedBy(_vehicleId, _validAddress) ||
+            _administrator.has(msg.sender) ||
+                isVehicleOwnedBy(_vehicleId, msg.sender) ||
                 isAddressAuthorized(
                     _vehicleId,
                     _ownerDealerAddress,
-                    _validAddress
+                    msg.sender
                 ),
             "Only administrator or vehicle owner or authorized parties can access this function"
         );
@@ -305,18 +314,18 @@ contract VehicleRegistry is Ownable, Vehicle {
     }
 
     // Checks access only for owner, admin, workshop or authorized parties
-    modifier onlyAllAuthorizedRoles(uint256 _vehicleId, address _validAddress) {
+    modifier onlyAllAuthorizedRoles(uint256 _vehicleId) {
         address _ownerDealerAddress =
             vehicleContract.getCurrentVehOwnerAddress(_vehicleId);
 
         require(
-            _administrator.has(_validAddress) ||
-                _workshop.has(_validAddress) ||
-                isVehicleOwnedBy(_vehicleId, _validAddress) ||
+            _administrator.has(msg.sender) ||
+                _workshop.has(msg.sender) ||
+                isVehicleOwnedBy(_vehicleId, msg.sender) ||
                 isAddressAuthorized(
                     _vehicleId,
                     _ownerDealerAddress,
-                    _validAddress
+                    msg.sender
                 ),
             "Only administrator or workshop or vehicle owner or authorized parties can access this function"
         );
@@ -344,39 +353,50 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as owner or dealer"
         );
 
-        uint256 _newOwnerDealerId = _numOfOwnersDealers.current();
+        // If the owner/dealer was registered before but archived
+        if (ownersDealers[_ownerDealerAddress].name != NULL){
 
-        // Mappings are added & updated seperately
-        OwnerDealer memory newOwnerDealer =
-            OwnerDealer(
-                _newOwnerDealerId,
-                _name,
-                _contact,
-                _companyRegNo,
-                _physicalAddress,
-                _isDealer,
-                0, // number of vehicles own
-                _dateOfReg,
-                new uint256[](0), // [Empty array of 0 length] vehicleIds[]
-                true
-            );
+            // Re-register owner
+            bool reregisterCompleted = reregisterOwnerDealer(_ownerDealerAddress);
 
-        ownersDealers[_ownerDealerAddress] = newOwnerDealer;
+            return reregisterCompleted;
 
-        // Register address into owner/dealer role
-        _ownerDealer.add(_ownerDealerAddress);
-        ownersDealers[_ownerDealerAddress].active = true;
+        } else {
 
-        // Update to array of addresses
-        ownerDealerIndex[_ownerDealerAddress] = _newOwnerDealerId;
-        ownerDealerAddresses.push(_ownerDealerAddress);
+            uint256 _newOwnerDealerId = _numOfOwnersDealers.current();
 
-        // Increment counter
-        _numOfOwnersDealers.increment();
+            // Mappings are added & updated seperately
+            OwnerDealer memory newOwnerDealer =
+                OwnerDealer(
+                    _newOwnerDealerId,
+                    _name,
+                    _contact,
+                    _companyRegNo,
+                    _physicalAddress,
+                    _isDealer,
+                    0, // number of vehicles own
+                    _dateOfReg,
+                    new uint256[](0), // [Empty array of 0 length] vehicleIds[]
+                    true
+                );
 
-        emit ownerDealerRegistered(_ownerDealerAddress);
+            ownersDealers[_ownerDealerAddress] = newOwnerDealer;
 
-        return true;
+            // Register address into owner/dealer role
+            _ownerDealer.add(_ownerDealerAddress);
+            ownersDealers[_ownerDealerAddress].active = true;
+
+            // Update to array of addresses
+            ownerDealerIndex[_ownerDealerAddress] = _newOwnerDealerId;
+            ownerDealerAddresses.push(_ownerDealerAddress);
+
+            // Increment counter
+            _numOfOwnersDealers.increment();
+
+            emit ownerDealerRegistered(_ownerDealerAddress);
+
+            return true;
+        }
     }
 
     /**
@@ -486,36 +506,47 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as workshop"
         );
 
-        uint256 _newWorkshopId = _numOfWorkshops.current();
+        // If the workshop was registered before but archived
+        if (workshops[_workshopAddress].workshopName != NULL){
 
-        Workshop memory newWorkshop =
-            Workshop(
-                _newWorkshopId,
-                _workshopName,
-                _workshopRegNo,
-                _physicalAddress,
-                _contact,
-                _dateOfReg,
-                new uint256[](0), // [Empty array of 0 length] vehicleIdsWorkedOn[]
-                true
-            );
+            // Re-register owner
+            bool reregisterCompleted = reregisterWorkshop(_workshopAddress);
 
-        workshops[_workshopAddress] = newWorkshop;
+            return reregisterCompleted;
 
-        // Register address
-        _workshop.add(_workshopAddress);
-        workshops[_workshopAddress].active = true;
+        } else {
 
-        // Update to array of addresses
-        workshopIndex[_workshopAddress] = _newWorkshopId;
-        workshopAddresses.push(_workshopAddress);
+            uint256 _newWorkshopId = _numOfWorkshops.current();
 
-        // Increment counter
-        _numOfWorkshops.increment();
+            Workshop memory newWorkshop =
+                Workshop(
+                    _newWorkshopId,
+                    _workshopName,
+                    _workshopRegNo,
+                    _physicalAddress,
+                    _contact,
+                    _dateOfReg,
+                    new uint256[](0), // [Empty array of 0 length] vehicleIdsWorkedOn[]
+                    true
+                );
 
-        emit workshopRegistered(_workshopAddress);
+            workshops[_workshopAddress] = newWorkshop;
 
-        return true;
+            // Register address
+            _workshop.add(_workshopAddress);
+            workshops[_workshopAddress].active = true;
+
+            // Update to array of addresses
+            workshopIndex[_workshopAddress] = _newWorkshopId;
+            workshopAddresses.push(_workshopAddress);
+
+            // Increment counter
+            _numOfWorkshops.increment();
+
+            emit workshopRegistered(_workshopAddress);
+
+            return true;
+        }
     }
 
     /**
@@ -525,7 +556,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveWorkshopInfo(address _workshopAddress)
         public
-        onlyRegisteredUsers(msg.sender)
+        onlyRegisteredUsers
         returns (
             bytes32,
             bytes32,
@@ -614,32 +645,43 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as administrator"
         );
 
-        uint256 _newAdminId = _numOfAdmins.current();
+        // If the admin was registered before but archived
+        if (admins[_adminAddress].adminName != NULL){
 
-        Administrator memory newAdministrator =
-            Administrator(
-                _newAdminId, // first admin's admin id = 0
-                _adminName, 
-                _dateJoined, 
-                _contact, 
-                true);
+            // Re-register owner
+            bool reregisterCompleted = reregisterAdmin(_adminAddress);
 
-        admins[_adminAddress] = newAdministrator;
+            return reregisterCompleted;
 
-        // Register address
-        _administrator.add(_adminAddress);
-        admins[_adminAddress].active = true;
+        } else {
 
-        // Add to adminAddresses
-        adminIndex[_adminAddress] = _newAdminId;
-        adminAddresses.push(_adminAddress);
+            uint256 _newAdminId = _numOfAdmins.current();
 
-        // Increment counter
-        _numOfAdmins.increment();
+            Administrator memory newAdministrator =
+                Administrator(
+                    _newAdminId, // first admin's admin id = 0
+                    _adminName, 
+                    _dateJoined, 
+                    _contact, 
+                    true);
 
-        emit adminRegistered(_adminAddress);
+            admins[_adminAddress] = newAdministrator;
 
-        return true;
+            // Register address
+            _administrator.add(_adminAddress);
+            admins[_adminAddress].active = true;
+
+            // Add to adminAddresses
+            adminIndex[_adminAddress] = _newAdminId;
+            adminAddresses.push(_adminAddress);
+
+            // Increment counter
+            _numOfAdmins.increment();
+
+            emit adminRegistered(_adminAddress);
+
+            return true;
+        }
     }
 
     /**
@@ -724,7 +766,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         address _authorizedAddress
     ) public 
         ownerDealerActive(msg.sender)
-        onlyVehOwner(_vehicleId, msg.sender) 
+        onlyVehOwner(_vehicleId) 
         onlyOwnerDealer returns (bool) {
 
         address _authorizer = msg.sender;
@@ -757,7 +799,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     )
         public
         ownerDealerActive(msg.sender)
-        onlyVehOwner(_vehicleId, msg.sender)
+        onlyVehOwner(_vehicleId)
         onlyOwnerDealer
         returns (uint256, address[] memory)
     {
@@ -784,7 +826,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         address _authorizedAddress
     ) public 
         ownerDealerActive(msg.sender)
-        onlyVehOwner(_vehicleId, msg.sender) 
+        onlyVehOwner(_vehicleId) 
         onlyOwnerDealer 
         returns (bool) {
 
@@ -815,7 +857,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveAllVehiclesOwn(address _ownerDealerAddress)
         public
-        onlyRegisteredUsers(_ownerDealerAddress)
+        onlyRegisteredUsers
         ownerDealerActive(_ownerDealerAddress)
 
         returns (uint256[] memory)
@@ -835,7 +877,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     function retrieveAllServicingRecordsOn(uint256 _vehicleId)
         public
         vehicleExists(_vehicleId)
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (uint256[] memory servicingRecords)
     {
         servicingRecords = vehicleContract.getAllVehServicingRecords(
@@ -860,7 +902,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     function retrieveAllAccidentRecordsOn(uint256 _vehicleId)
         public
         vehicleExists(_vehicleId)
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (uint256[] memory accidentRecords)
     {
         accidentRecords = vehicleContract.getAllVehAccidentRecords(_vehicleId);
@@ -926,7 +968,7 @@ contract VehicleRegistry is Ownable, Vehicle {
         bytes32 _newOwnerDateOfReg // Omitted unless buyer is an unregistered owner
     ) public 
         vehicleExists(_vehicleId)
-        onlyVehOwner(_vehicleId, msg.sender) 
+        onlyVehOwner(_vehicleId) 
         onlyOwnerDealer
         returns (bool) {
 
@@ -1065,7 +1107,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveVehicleDetails1(uint256 _vehicleId)
         public
-        onlyOwnerAdminAuthorized(_vehicleId, msg.sender)
+        onlyOwnerAdminAuthorized(_vehicleId)
         returns (
             bytes32 _vehicleNo,
             bytes32 _makeModel,
@@ -1101,7 +1143,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveVehicleDetails1Part2(uint256 _vehicleId)
         public
-        onlyOwnerAdminAuthorized(_vehicleId, msg.sender)
+        onlyOwnerAdminAuthorized(_vehicleId)
         returns (
             uint256 omv,
             bytes32 originalRegDate,
@@ -1120,7 +1162,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveVehicleDetails2(uint256 _vehicleId)
         public
-        onlyOwnerAdminAuthorized(_vehicleId, msg.sender)
+        onlyOwnerAdminAuthorized(_vehicleId)
         returns (
             uint256 noOfTransfers,
             bytes32 engineCap,
@@ -1218,7 +1260,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveNoOfTransfers(uint256 _vehicleId)
         public
-        onlyOwnerAdminAuthorized(_vehicleId, msg.sender)
+        onlyOwnerAdminAuthorized(_vehicleId)
         returns (uint256 _noOfTransfers)
     {
         // Retrieve from Vehicle.sol
@@ -1305,7 +1347,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveNoOfServicingRecords(uint256 _vehicleId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (uint256 _noOfServicingRecords)
     {
         // Retrieve from Vehicle.sol
@@ -1326,7 +1368,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveServicingRecord1(uint256 _vehicleId, uint256 _servicingId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (
             bytes32 dateCompleted,
             bytes32 workshopRegNo,
@@ -1348,7 +1390,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveServicingRecord2(uint256 _vehicleId, uint256 _servicingId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (bytes32 typeOfWorkDone, bytes32 totalCharges)
     {
         // Emit event omitted since vehicleContract already has event emitted
@@ -1395,7 +1437,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveNoOfAccidentRecords(uint256 _vehicleId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (uint256)
     {
         // Retrieve from Vehicle.sol
@@ -1415,7 +1457,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveAccidentRecord1(uint256 _vehicleId, uint256 _accidentId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (
             bytes32 accidentDateLocation,
             bytes32 driverName,
@@ -1448,7 +1490,7 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function retrieveAccidentRecord2(uint256 _vehicleId, uint256 _accidentId)
         public
-        onlyAllAuthorizedRoles(_vehicleId, msg.sender)
+        onlyAllAuthorizedRoles(_vehicleId)
         returns (
             bytes32 appointedWorkshopNo,
             uint256 servicingId,
@@ -1871,6 +1913,48 @@ contract VehicleRegistry is Ownable, Vehicle {
         addVehicleIdIntoVehiclesArray(_newOwnerAddress, _vehicleId);
         ownersDealers[_newOwnerAddress].noOfVehiclesOwn++;
         ownersDealers[_newOwnerAddress].ownsVehicle[_vehicleId] = true;
+
+        return true;
+
+    }
+
+    // Helper function to re-register owner / dealer
+    function reregisterOwnerDealer(address _ownerDealerAddress) internal returns (bool) {
+        
+        
+        ownersDealers[_ownerDealerAddress].active = true;
+        _ownerDealer.add(_ownerDealerAddress);
+
+        // emit event
+        emit ownerDealerReregistered(_ownerDealerAddress);
+
+        return true;
+
+    }
+
+    // Helper function to re-register workshop
+    function reregisterWorkshop(address _workshopAddress) internal returns (bool) {
+        
+        
+        workshops[_workshopAddress].active = true;
+        _workshop.add(_workshopAddress);
+
+        // emit event
+        emit workshopReregistered(_workshopAddress);
+
+        return true;
+
+    }
+
+    // Helper function to re-register admin
+    function reregisterAdmin(address _adminAddress) internal returns (bool) {
+        
+        
+        admins[_adminAddress].active = true;
+        _administrator.add(_adminAddress);
+
+        // emit event
+        emit adminReregistered(_adminAddress);
 
         return true;
 

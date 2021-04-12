@@ -84,10 +84,10 @@ const AdminPage = (props) => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={2}>
-            <Grid item lg={8} sm={8} xs={12}>
-              <ViewCard userData={admin} title={"User Details"} />
+            <Grid item lg={10} sm={8} xs={12}>
+              <ViewCard data={admin} title={"User Details"} />
             </Grid>
-            <Grid item lg={4} sm={4} xs={12}>
+            <Grid item lg={2} sm={4} xs={12}>
               <Widget
                 title="Vehicle Functions"
                 upperTitle

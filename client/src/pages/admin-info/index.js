@@ -29,7 +29,7 @@ const AdminInfoPage = () => {
   }, []);
   return (
     <Grid container direction={"column"} spacing={4}>
-      <ViewCard userData={adminInfo} title={"Admin Details"} />
+      <ViewCard data={adminInfo} title={"Admin Details"} />
       <TableCard
         data={adminInfo}
         title={"Admin Data"}

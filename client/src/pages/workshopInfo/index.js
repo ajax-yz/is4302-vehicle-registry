@@ -55,9 +55,9 @@ const WorkshopPage = () => {
   }, []);
   return (
     <>
-      <PageTitle title="Workshop Info" button={<UpdateWorkshopCard />} />
+      <PageTitle title="Workshop" button={<UpdateWorkshopCard />} />
       <Grid container direction={"column"} spacing={4}>
-        <ViewCard userData={workshopInfo} title={"Workshop Details"} />
+        <ViewCard data={workshopInfo} title={"Workshop Details"} />
         {/* <UpdateWorkshopCard /> */}
       </Grid>
     </>

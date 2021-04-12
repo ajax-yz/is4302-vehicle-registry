@@ -54,7 +54,7 @@ const AccidentInfoPage = () => {
   // }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
-      <ViewCard userData={accidentInfo1} title={"Accident record Details"} />
+      <ViewCard data={accidentInfo1} title={"Accident record Details"} />
       <TableCard
         data={accidentInfo1}
         title={"Accident Records"}
