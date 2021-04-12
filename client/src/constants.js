@@ -64,3 +64,12 @@ export const adminColumns = [
   "dateJoined",
   "contact",
 ];
+
+export const workshopColumns = [
+  "workshopAddress",
+  "workshopName",
+  "workshopRegNo",
+  "physicalAddress",
+  "contact",
+  "dateOfReg",
+];
