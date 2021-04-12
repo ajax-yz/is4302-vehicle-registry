@@ -32,6 +32,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     // ---------------------------- Structs ---------------------------- //
 
     struct OwnerDealer {
+        uint256 ownerDealerId; // Owner/Dealer Id = 0 for the first owner/dealer
         bytes32 name; // Vincar Pte Ltd.
         uint256 contact; // 95554302
         bytes32 companyRegNo; // 200312900K
@@ -50,6 +51,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     }
 
     struct Workshop {
+        uint256 workshopId; // Workshop Id = 0 for the first workshop
         bytes32 workshopName; // Precise Auto Service
         bytes32 workshopRegNo; // 35766600C
         bytes32 physicalAddress; // 1 Kaki Bukit Avenue 6, #02-34/36, Autobay @ Kaki Bukit, Singapore 417883
@@ -58,11 +60,11 @@ contract VehicleRegistry is Ownable, Vehicle {
         uint256[] vehicleIdsWorkedOn; // Array of vehicle IDs worked on (E.g. 1, 5, 10, ...)
         mapping(uint256 => bool) vehIdsWorkedOnExists; // e.g. vehIdsWorkedOnActive[Vehicle ID] = true;
         mapping(uint256 => uint256[]) vehServicingIdsCompleted; // vehServicingIdsCompleted[Vehicle ID] => uint256[] servicing ids
-        address workshopOwnerAddress; // Workshop owner address
         bool active; // To check whether workshop is active
     }
 
     struct Administrator {
+        uint256 adminId; // Admin Id = 0 for the first admin
         bytes32 adminName; // Rebecca Lim
         bytes32 dateJoined; // 21 February 2021
         uint256 contact; // 97774302
@@ -74,6 +76,22 @@ contract VehicleRegistry is Ownable, Vehicle {
     mapping(address => OwnerDealer) ownersDealers;
     mapping(address => Workshop) workshops;
     mapping(address => Administrator) admins;
+
+    // ---------------------------- Arrays ---------------------------- //
+
+    address[] ownerDealerAddresses;
+    address[] workshopAddresses;
+    address[] adminAddresses;
+
+    address[] activeOwnersDealers;
+    address[] activeWorkshops;
+    address[] activeAdmins;
+
+    // ---------------------------- Index of the address in the arrays above ---------------------------- //
+
+    mapping(address => uint256) ownerDealerIndex;
+    mapping(address => uint256) workshopIndex;
+    mapping(address => uint256) adminIndex;
 
     // ----------------------- OpenZeppelin Counters ----------------------- //
 
@@ -326,9 +344,12 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as owner or dealer"
         );
 
+        uint256 _newOwnerDealerId = _numOfOwnersDealers.current();
+
         // Mappings are added & updated seperately
         OwnerDealer memory newOwnerDealer =
             OwnerDealer(
+                _newOwnerDealerId,
                 _name,
                 _contact,
                 _companyRegNo,
@@ -345,6 +366,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Register address into owner/dealer role
         _ownerDealer.add(_ownerDealerAddress);
         ownersDealers[_ownerDealerAddress].active = true;
+
+        // Update to array of addresses
+        ownerDealerIndex[_ownerDealerAddress] = _newOwnerDealerId;
+        ownerDealerAddresses.push(_ownerDealerAddress);
 
         // Increment counter
         _numOfOwnersDealers.increment();
@@ -461,15 +486,17 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as workshop"
         );
 
+        uint256 _newWorkshopId = _numOfWorkshops.current();
+
         Workshop memory newWorkshop =
             Workshop(
+                _newWorkshopId,
                 _workshopName,
                 _workshopRegNo,
                 _physicalAddress,
                 _contact,
                 _dateOfReg,
                 new uint256[](0), // [Empty array of 0 length] vehicleIdsWorkedOn[]
-                _workshopAddress,
                 true
             );
 
@@ -478,6 +505,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Register address
         _workshop.add(_workshopAddress);
         workshops[_workshopAddress].active = true;
+
+        // Update to array of addresses
+        workshopIndex[_workshopAddress] = _newWorkshopId;
+        workshopAddresses.push(_workshopAddress);
 
         // Increment counter
         _numOfWorkshops.increment();
@@ -583,14 +614,25 @@ contract VehicleRegistry is Ownable, Vehicle {
             "Address already registered as administrator"
         );
 
+        uint256 _newAdminId = _numOfAdmins.current();
+
         Administrator memory newAdministrator =
-            Administrator(_adminName, _dateJoined, _contact, true);
+            Administrator(
+                _newAdminId, // first admin's admin id = 0
+                _adminName, 
+                _dateJoined, 
+                _contact, 
+                true);
 
         admins[_adminAddress] = newAdministrator;
 
         // Register address
         _administrator.add(_adminAddress);
         admins[_adminAddress].active = true;
+
+        // Add to adminAddresses
+        adminIndex[_adminAddress] = _newAdminId;
+        adminAddresses.push(_adminAddress);
 
         // Increment counter
         _numOfAdmins.increment();
@@ -1431,7 +1473,6 @@ contract VehicleRegistry is Ownable, Vehicle {
      */
     function isAddressRegisteredOwner(address _address)
         public
-        onlyOwnerAdmin(_address)
         view
         returns (bool)
     {
@@ -1443,6 +1484,122 @@ contract VehicleRegistry is Ownable, Vehicle {
 
         return _ownerDealer.has(_address);
     }
+
+    /**
+     * Function 42: Returns all administrators registered in the system
+     * Comments: 
+     * Allowed Roles: Vehicle Registry Owner
+     */
+    function getAllAdmins()
+        public
+        onlyOwner
+        view
+        returns (address[] memory)
+    {
+        return adminAddresses;
+    }
+
+    /**
+     * Function 43: Returns all active administrators registered in the system
+     * Comments: 
+     * Allowed Roles: Vehicle Registry Owner
+     */
+    function getAllActiveAdmins()
+        public
+        onlyOwner
+        returns (address[] memory)
+    {
+
+        address[] memory tempActiveAdmins;
+        activeAdmins = tempActiveAdmins;
+
+        for(uint256 i = 0; i < adminAddresses.length; i++) {
+
+            if (admins[adminAddresses[i]].active == true) {
+                activeAdmins.push(adminAddresses[i]);
+            }
+        }
+        
+        return activeAdmins;
+    }
+
+    /**
+     * Function 44: Returns all the workshops registered in the system
+     * Comments: 
+     * Allowed Roles: Admin
+     */
+    function getAllWorkshops()
+        public
+        onlyAdmin
+        view
+        returns (address[] memory)
+    {
+        return workshopAddresses;
+    }
+
+    /**
+     * Function 45: Returns all active workshops registered in the system
+     * Comments: 
+     * Allowed Roles: Admin
+     */
+    function getAllActiveWorkshops()
+        public
+        onlyAdmin
+        returns (address[] memory)
+    {
+
+        address[] memory tempActiveWorkshops;
+        activeWorkshops = tempActiveWorkshops;
+
+        for(uint256 i = 0; i < workshopAddresses.length; i++) {
+
+            if (workshops[workshopAddresses[i]].active == true) {
+                activeWorkshops.push(workshopAddresses[i]);
+            }
+        }
+        
+        return activeWorkshops;
+    }
+
+    /**
+     * Function 46: Returns all the owners / dealers registered in the system
+     * Comments: 
+     * Allowed Roles: Admin
+     */
+    function getAllOwnerDealers()
+        public
+        onlyAdmin
+        view
+        returns (address[] memory)
+    {
+        return ownerDealerAddresses;
+    }
+
+    /**
+     * Function 47: Returns all active owners / dealers registered in the system
+     * Comments: 
+     * Allowed Roles: Admin
+     */
+    function getAllActiveOwnerDealers()
+        public
+        onlyAdmin
+        returns (address[] memory)
+    {
+
+        address[] memory tempActiveOwnerDealers;
+        activeOwnersDealers = tempActiveOwnerDealers;
+
+        for(uint256 i = 0; i < ownerDealerAddresses.length; i++) {
+
+            if (ownersDealers[ownerDealerAddresses[i]].active == true) {
+                activeOwnersDealers.push(ownerDealerAddresses[i]);
+            }
+        }
+        
+        return activeOwnersDealers;
+    }
+
+
 
     // ---------------------------- Helper Functions ---------------------------- //
 
@@ -1602,7 +1759,7 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     // Helper function to convert string to bytes32
     function stringToBytes32(string memory source)
-        public
+        internal
         pure
         returns (bytes32 result)
     {
@@ -1627,8 +1784,11 @@ contract VehicleRegistry is Ownable, Vehicle {
         // Add the buyer to owner / dealer database
         _ownerDealer.add(_newOwnerAddress);
 
+        uint256 _newOwnerId = _numOfOwnersDealers.current();
+
         OwnerDealer memory newOwnerDealer =
             OwnerDealer(
+                _newOwnerId,
                 _newOwnerName,
                 _newOwnerContact,
                 bytes32(""), // Reg no. = undefined, unregistered buyers cannot be dealers
@@ -1716,11 +1876,10 @@ contract VehicleRegistry is Ownable, Vehicle {
 
     }
 
-    // Check whether ERC721 token exists
-    function doesTokenExists(uint256 tokenId) public view returns (bool) {
-        return vehicleContract.doesERC721TokenExists(tokenId);
+    function getTotalNoOfVehiclesRegistered() public view returns (uint256) {
+        return vehicleContract.getNoOfVehiclesRegistered();
     }
-
+ 
     function getNoOfOwnersDealers() public view returns (uint256) {
         return _numOfOwnersDealers.current();
     }
