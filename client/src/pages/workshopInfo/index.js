@@ -1,11 +1,11 @@
 import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Grid, Button } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
-import ViewCard from "../../components/ViewCard";
 import Widget from "../../components/Widget";
 import PageTitle from "../../components/PageTitle";
-import TableCard from "../../components/ViewCard/table";
-import ModalForm from "../../components/Modal/form";
+import ViewCard from "../../components/Common/ViewCard";
+import TableCard from "../../components/Common/Table";
+import ModalForm from "../../components/Common/ModalForm";
 
 import {
   accidentColumns,
@@ -22,11 +22,11 @@ const WorkshopPage = () => {
   const { drizzle } = useDrizzle();
   const [workshopInfo, setWorkshopInfo] = useState({});
 
-//   const data = {"address": account};
-//   setWorkshopInfo(data);
+  //   const data = {"address": account};
+  //   setWorkshopInfo(data);
   const [AllVehIdsServicedBy, setAllVehIdsServicedBy] = useState([]);
-//   const [userAccidents, setUserAccidents] = useState([]);
-//   const [userServicing, setUserServicing] = useState([]);
+  //   const [userAccidents, setUserAccidents] = useState([]);
+  //   const [userServicing, setUserServicing] = useState([]);
 
   const retrieveWorkshop = async () => {
     const results = await VehicleRegistryService.retrieveWorkshopInfo(
@@ -46,17 +46,16 @@ const WorkshopPage = () => {
     console.log("vehicles =", vehicles);
   };
 
-
   useEffect(() => {
-//       setWorkshopInfo(data);
+    //       setWorkshopInfo(data);
     retrieveWorkshop();
     retrieveAllVehIdsServicedBy();
-//     // retrieveAccidents();
-//     // retrieveServicing();
+    //     // retrieveAccidents();
+    //     // retrieveServicing();
   }, []);
   return (
     <>
-      <PageTitle title="Workshop Info" button={<UpdateWorkshopCard/>} />
+      <PageTitle title="Workshop Info" button={<UpdateWorkshopCard />} />
       <Grid container direction={"column"} spacing={4}>
         <ViewCard userData={workshopInfo} title={"Workshop Details"} />
         {/* <UpdateWorkshopCard /> */}
@@ -65,60 +64,57 @@ const WorkshopPage = () => {
   );
 };
 const UpdateWorkshopCard = () => {
-    const [visible, setVisible] = useState(false);
-    const { drizzle } = useDrizzle();
-  
-    const updateWorkshop = async (data) => {
-      console.log("data =", data);
-      const body1 = {};
-      const bodyKeys1 = [
-        'workshopAddress',
-        'workshopName',
-        'workshopRegNo',
-        'physicalAddress',
-        'contact',
-        'dateOfReg',
-      ];
-      bodyKeys1.map((key) => {
-        body1[key] = data[key];
-      });
-      // const workshopAddress = data.workshopAddress;
-  
-      const resp = await Promise.all([
-        VehicleRegistryService.updateWorkshopInfo(
-          drizzle,
-          body1,
-        ),
-      ]);
-      console.log("resp =", resp);
-    };
-  
-    return (
-      <div>
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={() => setVisible(!visible)}
-        >
-          Update Workshop Info
-        </Button>
-  
-        <ModalForm
-          title={"Update Workshop details"}
-          visible={visible}
-          toggleVisible={() => setVisible(!visible)}
-          onSubmit={updateWorkshop}
-          keys={[
-            'workshopAddress',
-            'workshopName',
-            'workshopRegNo',
-            'physicalAddress',
-            'contact',
-            'dateOfReg',
-          ]}
-        />
-      </div>
-    );
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const updateWorkshop = async (data) => {
+    console.log("data =", data);
+    const body1 = {};
+    const bodyKeys1 = [
+      "workshopAddress",
+      "workshopName",
+      "workshopRegNo",
+      "physicalAddress",
+      "contact",
+      "dateOfReg",
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    // const workshopAddress = data.workshopAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.updateWorkshopInfo(drizzle, body1),
+    ]);
+    console.log("resp =", resp);
   };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setVisible(!visible)}
+      >
+        Update Workshop Info
+      </Button>
+
+      <ModalForm
+        title={"Update Workshop details"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={updateWorkshop}
+        keys={[
+          "workshopAddress",
+          "workshopName",
+          "workshopRegNo",
+          "physicalAddress",
+          "contact",
+          "dateOfReg",
+        ]}
+      />
+    </div>
+  );
+};
 
 export default WorkshopPage;

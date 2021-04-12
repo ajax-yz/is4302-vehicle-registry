@@ -1,15 +1,17 @@
 import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Grid, Button } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
-import ViewCard from "../../components/ViewCard";
-import TableCard from "../../components/ViewCard/table";
+import ViewCard from "../../components/Common/ViewCard";
+import TableCard from "../../components/Common/Table";
+import VehicleTable from "../../components/Common/VehicleTable";
+
 import {
   accidentColumns,
   servicingColumns,
   vehicleColumns,
 } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
-import ModalForm from "../../components/Modal/form";
+import ModalForm from "../../components/Common/ModalForm";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
@@ -61,31 +63,22 @@ const OwnerPage = () => {
     retrieveAccidents();
     retrieveServicing();
   }, []);
-  const remove = async() => {
-    const testremauth = await VehicleRegistryService.removeAuthorization(drizzle,{ 
-      vehicleId: 1,
-      authorizedAddress: "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
-    });
-      console.log("rem auth",testremauth);
-  }
+  const remove = async () => {
+    const testremauth = await VehicleRegistryService.removeAuthorization(
+      drizzle,
+      {
+        vehicleId: 1,
+        authorizedAddress: "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
+      },
+    );
+    console.log("rem auth", testremauth);
+  };
   return (
     <Grid container direction={"column"} spacing={4}>
       <Authorize />
       <Button onClick={() => remove()}>Remove</Button>
       <ViewCard userData={userInfo} title={"User Details"} />
-      <TableCard
-        data={userVehicles}
-        title={"Vehicles Data"}
-        columns={[
-          "vehicleId",
-          ...vehicleColumns.details1,
-          ...vehicleColumns.details1p2,
-          ...vehicleColumns.details2,
-        ]}
-        cardWidth={"100%"}
-        hasAck={true}
-        onClick={(_data) => console.log(_data)}
-      />
+      <VehicleTable userVehicles={userVehicles} />
       <TableCard
         data={userAccidents}
         title={"Accident Records"}
@@ -117,23 +110,20 @@ const Authorize = () => {
   const authorize = async (data) => {
     console.log("data =", data);
     const body1 = {};
-    const bodyKeys1 = [
-      'vehicleId',
-      'authorizedAddress',
-    ];
+    const bodyKeys1 = ["vehicleId", "authorizedAddress"];
     bodyKeys1.map((key) => {
       body1[key] = data[key];
     });
     // const workshopAddress = data.workshopAddress;
 
     const resp = await Promise.all([
-      VehicleRegistryService.authorizeAccess(
-        drizzle,
-        body1,
-      ),
+      VehicleRegistryService.authorizeAccess(drizzle, body1),
     ]);
     console.log("resp =", resp);
-    const testauth = await VehicleRegistryService.retrieveAuthorizedAddresses(drizzle, body1['vehicleId']);
+    const testauth = await VehicleRegistryService.retrieveAuthorizedAddresses(
+      drizzle,
+      body1["vehicleId"],
+    );
     console.log(testauth);
   };
 
@@ -152,10 +142,7 @@ const Authorize = () => {
         visible={visible}
         toggleVisible={() => setVisible(!visible)}
         onSubmit={authorize}
-        keys={[
-          'vehicleId',
-          'authorizedAddress',
-        ]}
+        keys={["vehicleId", "authorizedAddress"]}
       />
     </div>
   );

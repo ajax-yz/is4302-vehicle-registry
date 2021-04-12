@@ -134,16 +134,24 @@ const Sidebar = ({ location, role }) => {
       </div>
       <List className={classes.sidebarList}>
         {structure.map((link) => {
-          if (!link.allowedRole || link.allowedRole === role) {
-            return (
-              <SidebarLink
-                key={link.id}
-                location={location}
-                isSidebarOpened={isSidebarOpened}
-                {...link}
-              />
-            );
-          }
+          return (
+            <SidebarLink
+              key={link.id}
+              location={location}
+              isSidebarOpened={isSidebarOpened}
+              {...link}
+            />
+          );
+          // if (!link.allowedRole || link.allowedRole === role) {
+          //   return (
+          //     <SidebarLink
+          //       key={link.id}
+          //       location={location}
+          //       isSidebarOpened={isSidebarOpened}
+          //       {...link}
+          //     />
+          //   );
+          // }
         })}
       </List>
     </Drawer>

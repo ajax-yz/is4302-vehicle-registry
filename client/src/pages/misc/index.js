@@ -12,7 +12,7 @@ import {
 } from "@material-ui/core";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import { vehicleColumns } from "../../constants";
-import ModalForm from "../../components/Modal/form";
+import ModalForm from "../../components/Common/ModalForm";
 
 // drizzle
 import { drizzleReactHooks } from "@drizzle/react-plugin";
@@ -45,27 +45,35 @@ const AddOwnerCard = () => {
       companyRegNo,
       physicalAddress,
       dateOfReg,
-      isDealer: false, 
+      isDealer: false,
     });
     console.log(response);
-    const testfn = await VehicleRegistryService.retrieveOwnerDealerInfo(drizzle, ownerDealerAddress);
-    console.log(testfn);
-    const testupdate = await VehicleRegistryService.updateOwnerDealerInfo(drizzle, {
+    const testfn = await VehicleRegistryService.retrieveOwnerDealerInfo(
+      drizzle,
       ownerDealerAddress,
-      name,
-      contact,
-      companyRegNo:"ep23",
-      physicalAddress,
-      dateOfReg,
-      isDealer: false, 
-    });
+    );
+    console.log(testfn);
+    const testupdate = await VehicleRegistryService.updateOwnerDealerInfo(
+      drizzle,
+      {
+        ownerDealerAddress,
+        name,
+        contact,
+        companyRegNo: "ep23",
+        physicalAddress,
+        dateOfReg,
+        isDealer: false,
+      },
+    );
     console.log(testupdate);
   };
-  const remove = async() => {
-    const testrem = await VehicleRegistryService.removeAdmin(drizzle, 
-      "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676");
-      console.log("rem admin",testrem);
-  }
+  const remove = async () => {
+    const testrem = await VehicleRegistryService.removeAdmin(
+      drizzle,
+      "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
+    );
+    console.log("rem admin", testrem);
+  };
 
   // address = 0x58Ff09a4aFBf3cDD9791Bc603F4630D2c3fb3857
   return (
@@ -209,12 +217,12 @@ const AddWorkshopCard = () => {
     console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = [
-      'workshopAddress',
-      'workshopName',
-      'workshopRegNo',
-      'physicalAddress',
-      'contact',
-      'dateOfReg',
+      "workshopAddress",
+      "workshopName",
+      "workshopRegNo",
+      "physicalAddress",
+      "contact",
+      "dateOfReg",
     ];
     bodyKeys1.map((key) => {
       body1[key] = data[key];
@@ -222,10 +230,7 @@ const AddWorkshopCard = () => {
     // const workshopAddress = data.workshopAddress;
 
     const resp = await Promise.all([
-      VehicleRegistryService.registerWorkshop(
-        drizzle,
-        body1,
-      ),
+      VehicleRegistryService.registerWorkshop(drizzle, body1),
     ]);
     console.log("resp =", resp);
   };
@@ -246,12 +251,12 @@ const AddWorkshopCard = () => {
         toggleVisible={() => setVisible(!visible)}
         onSubmit={addWorkshop}
         keys={[
-          'workshopAddress',
-          'workshopName',
-          'workshopRegNo',
-          'physicalAddress',
-          'contact',
-          'dateOfReg',
+          "workshopAddress",
+          "workshopName",
+          "workshopRegNo",
+          "physicalAddress",
+          "contact",
+          "dateOfReg",
         ]}
       />
     </div>
@@ -264,30 +269,25 @@ const AddAdminCard = () => {
   const addAdmin = async (data) => {
     console.log("data =", data);
     const body1 = {};
-    const bodyKeys1 = [
-      'adminAddress',
-      'adminName',
-      'dateJoined',
-      'contact',
-    ];
+    const bodyKeys1 = ["adminAddress", "adminName", "dateJoined", "contact"];
     bodyKeys1.map((key) => {
       body1[key] = data[key];
     });
     // const workshopAddress = data.workshopAddress;
 
     const resp = await Promise.all([
-      VehicleRegistryService.registerAdmin(
-        drizzle,
-        body1,
-      ),
+      VehicleRegistryService.registerAdmin(drizzle, body1),
     ]);
     console.log("resp =", resp);
-    const testretad = await VehicleRegistryService.retrieveAdminInfo(drizzle, body1['adminAddress']);
+    const testretad = await VehicleRegistryService.retrieveAdminInfo(
+      drizzle,
+      body1["adminAddress"],
+    );
     console.log(testretad);
     const testadupdate = await VehicleRegistryService.updateAdminInfo(drizzle, {
-      adminAddress: body1['adminAddress'],
-      adminName: body1['adminName'],
-      dateJoined: body1['dateJoined'],
+      adminAddress: body1["adminAddress"],
+      adminName: body1["adminName"],
+      dateJoined: body1["dateJoined"],
       contact: 239,
     });
     console.log(testadupdate);
@@ -308,12 +308,7 @@ const AddAdminCard = () => {
         visible={visible}
         toggleVisible={() => setVisible(!visible)}
         onSubmit={addAdmin}
-        keys={[
-          'adminAddress',
-          'adminName',
-          'dateJoined',
-          'contact',
-        ]}
+        keys={["adminAddress", "adminName", "dateJoined", "contact"]}
       />
     </div>
   );

@@ -12,22 +12,26 @@ import {
   CardContent,
 } from "@material-ui/core";
 
-const ViewCard = ({ userData, title }) => {
+const ViewCard = ({ userData, title, extraComponent }) => {
   const keys = Object.keys(userData);
   return (
     <Grid item style={{ width: "100%" }}>
-      <Card style={{ width: "100%" }}>
+      <Card style={{ width: "100%", minHeight: "284px" }}>
         <CardContent>
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: "bold",
-              padding: "4px ​4px 14px 4px",
-              borderBottom: "1px solid #e8e8e8",
-              marginBottom: "12px",
-            }}
-          >
-            {title}
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
+            <div
+              style={{
+                fontSize: "20px",
+                fontWeight: "bold",
+                padding: "4px ​4px 14px 4px",
+                borderBottom: "1px solid #e8e8e8",
+                marginBottom: "12px",
+              }}
+            >
+              {title}
+            </div>
+
+            {extraComponent}
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", width: "100%" }}>
             {keys.map((key, i) => {
@@ -50,7 +54,9 @@ const ViewCard = ({ userData, title }) => {
                   >
                     {label}
                   </div>
-                  <div style={{ paddingLeft: "0px" }}>{userData[key]}</div>
+                  <div style={{ paddingLeft: "0px" }}>
+                    {userData[key]?.toString()}
+                  </div>
                 </div>
               );
             })}

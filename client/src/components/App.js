@@ -19,6 +19,7 @@ const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 const App = () => {
   // global
   const [userRole, setUserRole] = useState(null);
+  const [isRegistryOwner, setRegistryOwner] = useState(false);
   const drizzleState = useDrizzleState((state) => state);
   const account = drizzleState.accounts[0];
   console.log("drizzlestate.accounts =", drizzleState.accounts);
@@ -40,9 +41,19 @@ const App = () => {
     }
   };
 
+  const checkIsRegistryOwner = async () => {
+    const ownerAddress = await drizzle.contracts.VehicleRegistry.methods
+      .vehicleRegistryOwner()
+      .call();
+    if (ownerAddress === account) {
+      setRegistryOwner(true);
+    }
+  };
+
   useEffect(() => {
     if (drizzleState.drizzleStatus.initialized && accountsLength == 1) {
       getRole();
+      // checkIsRegistryOwner();
     }
   }, [drizzleState.drizzleStatus.initialized]);
 
@@ -60,7 +71,12 @@ const App = () => {
           path="/app"
           render={() => <Redirect to="/app/dashboard" />}
         />
-        <PrivateRoute path="/app" component={Layout} role={userRole} />
+        <PrivateRoute
+          path="/app"
+          component={Layout}
+          role={userRole}
+          // isRegistryOwner={isRegistryOwner}
+        />
         <PublicRoute
           path="/login"
           component={Login}
@@ -73,14 +89,16 @@ const App = () => {
   );
 };
 
-const PrivateRoute = ({ component, role, ...rest }) => {
-  const isAuthenticated = allRoles.indexOf(role) != -1;
+const PrivateRoute = ({ component, role, isRegistryOwner, ...rest }) => {
+  // const isAuthenticated = allRoles.indexOf(role) != -1;
+  const isAuthenticated = true;
+  console.log("test ");
   return (
     <Route
       {...rest}
       render={(props) =>
         isAuthenticated ? (
-          React.createElement(component, { ...props, role })
+          React.createElement(component, { ...props, role, isRegistryOwner })
         ) : (
           <Redirect
             to={{

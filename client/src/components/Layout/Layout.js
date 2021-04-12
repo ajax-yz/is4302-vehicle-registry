@@ -42,6 +42,7 @@ import { ROLES_ENUM } from "../../constants";
 import MiscPage from "../../pages/misc";
 
 function Layout(props) {
+  console.log("layout prrops=-", props);
   var classes = useStyles();
 
   // global
@@ -92,6 +93,7 @@ function Layout(props) {
             <PrivateRoute
               path="/app/administrator"
               component={AdminPage}
+              isRegistryOwner={props.isRegistryOwner}
               userRole={role}
               allowedRole={ROLES_ENUM.ADMINISTRATOR}
             />
@@ -194,19 +196,33 @@ function Layout(props) {
   );
 }
 
-const PrivateRoute = ({ component, userRole, allowedRole, ...rest }) => {
-  const isAuthenticated = userRole === allowedRole;
+const PrivateRoute = ({
+  component,
+  userRole,
+  path,
+  allowedRole,
+  isRegistryOwner,
+  ...rest
+}) => {
+  // const isAuthenticated = userRole === allowedRole;
   const rolePath = userRole.split(" ")[0].toLowerCase();
+  const isAuthenticated = true;
+
   return (
     <Route
       {...rest}
       render={(props) =>
         isAuthenticated ? (
-          React.createElement(component, { ...props, role: userRole })
+          React.createElement(component, {
+            ...props,
+            role: userRole,
+            isRegistryOwner,
+          })
         ) : (
           <Redirect
             to={{
-              pathname: `/app/${rolePath}`,
+              pathname: path,
+              // pathname: `/app/${rolePath}`,
               state: {
                 from: props.location,
               },

@@ -14,6 +14,15 @@ export const ROLES_ENUM = {
   INSURANCE: "Insurance Company",
 };
 
+export const ownerColumns = [
+  "ownerDealerAddress",
+  "name",
+  "contact",
+  "companyRegNo",
+  "physicalAddress",
+  "dateOfReg",
+  "isDealer",
+];
 export const vehicleColumns = {
   details1: [
     "vehicleNo",
@@ -49,11 +58,9 @@ export const servicingColumns = {
   history2: ["typeOfWorkDone", "totalCharges", "acknowledgedByOwner"],
 };
 
-export const adminColumns = {
-  admin1: [
-    "adminAddress",
-    "adminName",
-    "dateJoined",
-    "contact",
-  ],
-};
+export const adminColumns = [
+  "adminAddress",
+  "adminName",
+  "dateJoined",
+  "contact",
+];

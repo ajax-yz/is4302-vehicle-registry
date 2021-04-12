@@ -1,11 +1,9 @@
 import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Grid } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
-import ViewCard from "../../components/ViewCard";
-import TableCard from "../../components/ViewCard/table";
-import {
-  adminColumns,
-} from "../../constants";
+import ViewCard from "../../components/Common/ViewCard";
+import TableCard from "../../components/Common/Table";
+import { adminColumns } from "../../constants";
 import VehicleRegistry from "../../services/VehicleRegistry";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
@@ -18,10 +16,7 @@ const AdminInfoPage = () => {
   console.log("account admininfo = ", account);
 
   const retrieveAdminInfo = async () => {
-    const info = await VehicleRegistry.retrieveAdminInfo(
-      drizzle,
-      account,
-    );
+    const info = await VehicleRegistry.retrieveAdminInfo(drizzle, account);
     console.log("retrieved admin info", info);
     const infoarray = Object.values(info);
     console.log("infoarray = ", infoarray);
@@ -38,10 +33,7 @@ const AdminInfoPage = () => {
       <TableCard
         data={adminInfo}
         title={"Admin Data"}
-        columns={[
-          "AdminId",
-          ...adminColumns.admin1,
-        ]}
+        columns={["AdminId", ...adminColumns.admin1]}
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
