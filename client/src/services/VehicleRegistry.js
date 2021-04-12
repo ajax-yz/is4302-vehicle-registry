@@ -1,11 +1,11 @@
 class VehicleRegistryService {
-  // ==================================== USERS ====================================
+  // ==================================== OWNER/DEALER INFO/REMOVE FNS ====================================
   static async registerOwnerDealer(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
       const success = await drizzle.contracts.VehicleRegistry.methods
         .registerOwnerDealer(
-          values.ownerAddress,
+          values.ownerDealerAddress,
           strConvert(values.name),
           values.contact,
           strConvert(values.companyRegNo),
@@ -26,11 +26,11 @@ class VehicleRegistryService {
     }
   }
 
-  static async retrieveOwnerDealerInfo(drizzle, ownerAddress) {
+  static async retrieveOwnerDealerInfo(drizzle, ownerDealerAddress) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveOwnerDealerInfo(ownerAddress)
+        .retrieveOwnerDealerInfo(ownerDealerAddress)
         .call();
       console.log("res =", res);
       if (res) {
@@ -52,16 +52,17 @@ class VehicleRegistryService {
     }
   }
 
-
-  static async registerAdmin(drizzle, values) {
+  static async updateOwnerDealerInfo(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
       const success = await drizzle.contracts.VehicleRegistry.methods
-        .registerAdmin(
-          values.adminAddress,
-          strConvert(values.adminName),
-          strConvert(values.dateJoined),
+        .updateOwnerDealerInfo(
+          values.ownerDealerAddress,
+          strConvert(values.name),
           values.contact,
+          strConvert(values.companyRegNo),
+          strConvert(values.physicalAddress),
+          strConvert(values.dateOfReg),
         )
         .send();
 
@@ -75,23 +76,14 @@ class VehicleRegistryService {
       return false;
     }
   }
-
-
-  static async retrieveAdminInfo(drizzle, adminAddress) {
-    const hexConvert = drizzle.web3.utils.toUtf8;
+  static async removeDealer(drizzle, dealerAddress) {
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveAdminInfo(adminAddress)
-        .call();
+        .removeDealer(dealerAddress)
+        .send();
       console.log("res =", res);
       if (res) {
-        const info = {
-          adminAddress: adminAddress,
-          adminName: hexConvert(res[0]),
-          dateJoined: hexConvert(res[1]),
-          contact: res[2],
-        };
-        return info;
+        return true;
       } else {
         return false;
       }
@@ -100,7 +92,8 @@ class VehicleRegistryService {
       return false;
     }
   }
-  
+
+  // ==================================== WORKSHOP INFO/REMOVE FNS ====================================
   static async registerWorkshop(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
@@ -111,7 +104,7 @@ class VehicleRegistryService {
           strConvert(values.workshopRegNo),
           strConvert(values.physicalAddress),
           values.contact,
-          strConvert(values.DOR),
+          strConvert(values.dateOfReg),
         )
         .send();
 
@@ -138,7 +131,8 @@ class VehicleRegistryService {
           workshopRegNo: hexConvert(res[1]),
           physicalAddress: hexConvert(res[2]),
           workshopContact: res[3],
-          DOR: hexConvert(res[4]),
+          dateOfReg: hexConvert(res[4]),
+          isActive: res[5],
         };
         return info;
       } else {
@@ -159,7 +153,7 @@ class VehicleRegistryService {
           strConvert(values.workshopRegNo),
           strConvert(values.physicalAddress),
           values.contact,
-          strConvert(values.DOR),
+          strConvert(values.dateOfReg),
         )
         .send();
 
@@ -173,6 +167,273 @@ class VehicleRegistryService {
       return false;
     }
   }
+  static async removeWorkshop(drizzle, workshopAddress) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .removeWorkshop(workshopAddress)
+        .send();
+      console.log("res =", res);
+      if (res) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  // ==================================== ADMIN INFO/REMOVE FNS ====================================
+  static async registerAdmin(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .registerAdmin(
+          values.adminAddress,
+          strConvert(values.adminName),
+          strConvert(values.dateJoined),
+          values.contact,
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveAdminInfo(drizzle, adminAddress) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAdminInfo(adminAddress)
+        .call();
+      console.log("res =", res);
+      if (res) {
+        const info = {
+          adminAddress: adminAddress,
+          adminName: hexConvert(res[0]),
+          dateJoined: hexConvert(res[1]),
+          contact: res[2],
+          isActive: res[3],
+        };
+        return info;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async updateAdminInfo(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .updateAdminInfo(
+          values.adminAddress,
+          strConvert(values.adminName),
+          strConvert(values.dateJoined),
+          values.contact,
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async removeAdmin(drizzle, adminAddress) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .removeAdmin(adminAddress)
+        .send();
+      console.log("res =", res);
+      if (res) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  // ==================================== Authorize FNS ====================================  
+  static async authorizeAccess(drizzle, values) {
+    try{  
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .authorizeAccess(
+          values.vehicleId,
+          values.authorizedAddress,
+        )
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveAuthorizedAddresses(drizzle, vehicleId) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAuthorizedAddresses(vehicleId)
+        .call();
+      console.log("res =", res);
+      if (res) {
+        const info = {
+          noOfAuthorizedParties: res[0], //no of authorized parties for the given vehicleId
+          authorizedParties: res[1], //array of authorized parties' addresses
+        };
+        return info;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async removeAuthorization(drizzle, values) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .removeAuthorization(
+          values.vehicleId,
+          values.authorizedAddress,
+        )
+        .send();
+      console.log("res =", res);
+      if (res) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+// ==================================== VEHICLE INFO FNS ====================================  
+  static async retrieveAllVehiclesOwn(drizzle, ownerDealerAddress) {
+    try {
+      const vehIds = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllVehiclesOwn(ownerDealerAddress)
+        .call();
+      console.log("vehIds =", vehIds);
+      if (vehIds) {
+        const vehicles = await Promise.all(
+          vehIds.map(async (id) => {
+            const data = await Promise.all([
+              await this.retrieveVehicleDetails1(drizzle, id),
+              await this.retrieveVehicleDetails1Part2(drizzle, id),
+              await this.retrieveVehicleDetails2(drizzle, id),
+            ]);
+            return {
+              vehicleId: id,
+              ...data[0],
+              ...data[1],
+              ...data[2],
+            };
+          }),
+        );
+        console.log("veh =", vehicles);
+        return vehicles;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return [];
+    }
+  }
+  static async retrieveVehicleDetails1(drizzle, vehicleId) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveVehicleDetails1(vehicleId)
+        .call();
+      if (res) {
+        const details1 = {
+          vehicleNo: hexConvert(res[0]),
+          makeModel: hexConvert(res[1]),
+          manufacturingYear: res[2],
+          engineNo: hexConvert(res[3]),
+          chassisNo: hexConvert(res[4]),
+        };
+        console.log("details 1=", details1);
+        return details1;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveVehicleDetails1Part2(drizzle, vehicleId) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveVehicleDetails1Part2(vehicleId)
+        .call();
+      if (res) {
+        const details1p2 = {
+          omv: res[0],
+          originalRegDate: hexConvert(res[1]),
+          effectiveRegDate: hexConvert(res[2]),
+        };
+        console.log("details1p2 =", details1p2);
+        return details1p2;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+  static async retrieveVehicleDetails2(drizzle, vehicleId) {
+    const hexConvert = drizzle.web3.utils.toUtf8;
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveVehicleDetails2(vehicleId)
+        .call();
+      if (res) {
+        const details2 = {
+          noOfTransfers: res[0],
+          engineCap: hexConvert(res[1]),
+          coeCat: hexConvert(res[2]),
+          quotaPrem: res[3],
+          ownerName: hexConvert(res[4]),
+        };
+        return details2;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+// ============================ functions to be checked and added ==============
   static async addServicingRecord(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
@@ -227,110 +488,8 @@ class VehicleRegistryService {
 
   // ==================================== VEHICLES ====================================
 
-  static async retrieveAllVehiclesOwn(drizzle, ownerAddress) {
-    try {
-      const vehIds = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveAllVehiclesOwn(ownerAddress)
-        .call();
-      console.log("vehIds =", vehIds);
-      if (vehIds) {
-        const vehicles = await Promise.all(
-          vehIds.map(async (id) => {
-            const data = await Promise.all([
-              await this.retrieveVehicleDetails1(drizzle, id),
-              await this.retrieveVehicleDetails1Part2(drizzle, id),
-              await this.retrieveVehicleDetails2(drizzle, id),
-            ]);
-            return {
-              vehicleId: id,
-              ...data[0],
-              ...data[1],
-              ...data[2],
-            };
-          }),
-        );
-        console.log("veh =", vehicles);
-        return vehicles;
-      } else {
-        return [];
-      }
-    } catch (e) {
-      console.log("e =", e);
-      return [];
-    }
-  }
+  
 
-  static async retrieveVehicleDetails1(drizzle, vehicleId) {
-    const hexConvert = drizzle.web3.utils.toUtf8;
-    try {
-      const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveVehicleDetails1(vehicleId)
-        .call();
-      if (res) {
-        const details1 = {
-          vehicleNo: hexConvert(res[0]),
-          makeModel: hexConvert(res[1]),
-          manufacturingYear: res[2],
-          engineNo: hexConvert(res[3]),
-          chassisNo: hexConvert(res[4]),
-        };
-        console.log("details 1=", details1);
-        return details1;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.log("e =", e);
-      return false;
-    }
-  }
-
-  static async retrieveVehicleDetails1Part2(drizzle, vehicleId) {
-    const hexConvert = drizzle.web3.utils.toUtf8;
-    try {
-      const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveVehicleDetails1Part2(vehicleId)
-        .call();
-      if (res) {
-        const details1p2 = {
-          omv: res[0],
-          originalRegDate: hexConvert(res[1]),
-          effectiveRegDate: hexConvert(res[2]),
-        };
-        console.log("details1p2 =", details1p2);
-        return details1p2;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.log("e =", e);
-      return false;
-    }
-  }
-
-  static async retrieveVehicleDetails2(drizzle, vehicleId) {
-    const hexConvert = drizzle.web3.utils.toUtf8;
-    try {
-      const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveVehicleDetails2(vehicleId)
-        .call();
-      if (res) {
-        const details2 = {
-          noOfTransfers: res[0],
-          engineCap: hexConvert(res[1]),
-          coeCat: hexConvert(res[2]),
-          quotaPrem: res[3],
-          ownerName: hexConvert(res[4]),
-        };
-        return details2;
-      } else {
-        return false;
-      }
-    } catch (e) {
-      console.log("e =", e);
-      return false;
-    }
-  }
 
   static async registerVehicleToOwner1(drizzle, values, ownerAddress) {
     const strConvert = drizzle.web3.utils.utf8ToHex;

@@ -18,8 +18,8 @@ const AccidentInfoPage = () => {
   const VehicleID = 1; //passed when u select a vehicle
   const accidentID = 1; //this one need to loop thru all accidents
   const { drizzle } = useDrizzle();
-  const [accidentInfo1, setAccidentInfo1] = useState([]);
-  const [accidentInfo2, setAccidentInfo2] = useState([]);
+  // const [accidentInfo1, setAccidentInfo1] = useState([]);
+  // const [accidentInfo2, setAccidentInfo2] = useState([]);
   console.log("account accidentinfo = ", account);
 
   const retrieveAccidentInfo1 = async () => {
@@ -48,20 +48,17 @@ const AccidentInfoPage = () => {
     setAccidentInfo2(infoarray2);
   };
 
-  useEffect(() => {
-    retrieveAccidentInfo1();
-    retrieveAccidentInfo2();
-  }, []);
+  // useEffect(() => {
+  //   retrieveAccidentInfo1();
+  //   retrieveAccidentInfo2();
+  // }, []);
   return (
     <Grid container direction={"column"} spacing={5}>
       <ViewCard userData={accidentInfo1} title={"Accident record Details"} />
       <TableCard
         data={accidentInfo1}
         title={"Accident Records"}
-        columns={[
-          "Vehicle Id",
-          ...accidentColumns.accident1,
-        ]}
+        columns={["Vehicle Id", ...accidentColumns.accident1]}
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}
@@ -69,10 +66,7 @@ const AccidentInfoPage = () => {
       <TableCard
         data={accidentInfo2}
         title={"Accident Records"}
-        columns={[
-          "Vehicle Id",
-          ...accidentColumns.accident2,
-        ]}
+        columns={["Vehicle Id", ...accidentColumns.accident2]}
         cardWidth={"100%"}
         hasAck={true}
         onClick={(_data) => console.log(_data)}

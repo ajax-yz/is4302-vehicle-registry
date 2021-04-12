@@ -1,5 +1,5 @@
 import { drizzleReactHooks } from "@drizzle/react-plugin";
-import { Grid } from "@material-ui/core";
+import { Grid, Button } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import ViewCard from "../../components/ViewCard";
 import TableCard from "../../components/ViewCard/table";
@@ -9,6 +9,7 @@ import {
   vehicleColumns,
 } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
+import ModalForm from "../../components/Modal/form";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
@@ -60,8 +61,17 @@ const OwnerPage = () => {
     retrieveAccidents();
     retrieveServicing();
   }, []);
+  const remove = async() => {
+    const testremauth = await VehicleRegistryService.removeAuthorization(drizzle,{ 
+      vehicleId: 1,
+      authorizedAddress: "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
+    });
+      console.log("rem auth",testremauth);
+  }
   return (
     <Grid container direction={"column"} spacing={4}>
+      <Authorize />
+      <Button onClick={() => remove()}>Remove</Button>
       <ViewCard userData={userInfo} title={"User Details"} />
       <TableCard
         data={userVehicles}
@@ -98,6 +108,56 @@ const OwnerPage = () => {
         cardWidth={"100%"}
       />
     </Grid>
+  );
+};
+const Authorize = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const authorize = async (data) => {
+    console.log("data =", data);
+    const body1 = {};
+    const bodyKeys1 = [
+      'vehicleId',
+      'authorizedAddress',
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    // const workshopAddress = data.workshopAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.authorizeAccess(
+        drizzle,
+        body1,
+      ),
+    ]);
+    console.log("resp =", resp);
+    const testauth = await VehicleRegistryService.retrieveAuthorizedAddresses(drizzle, body1['vehicleId']);
+    console.log(testauth);
+  };
+
+  return (
+    <div>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => setVisible(!visible)}
+      >
+        Authorize
+      </Button>
+
+      <ModalForm
+        title={"Authorize"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={authorize}
+        keys={[
+          'vehicleId',
+          'authorizedAddress',
+        ]}
+      />
+    </div>
   );
 };
 
