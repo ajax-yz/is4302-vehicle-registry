@@ -106,9 +106,11 @@ const AdminPage = (props) => {
           </Grid>
         </Grid>
 
-        <Grid item lg={12} sm={12} xs={12}>
-          <AdminTable isRegistryOwner={isRegistryOwner} />
-        </Grid>
+        {isRegistryOwner ? (
+          <Grid item lg={12} sm={12} xs={12}>
+            <AdminTable isRegistryOwner={isRegistryOwner} />
+          </Grid>
+        ) : null}
         <Grid item lg={12} sm={12} xs={12}>
           <OwnerTable />
         </Grid>
@@ -126,7 +128,6 @@ const AddVehicleCom = () => {
   const { drizzle } = useDrizzle();
 
   const addVehicle = async (data) => {
-    console.log("data =", data);
     const body1 = {};
     const body2 = {};
     const bodyKeys1 = [
@@ -153,7 +154,6 @@ const AddVehicleCom = () => {
         ownerAddress,
       ),
     ]);
-    console.log("resp =", resp);
   };
 
   return (

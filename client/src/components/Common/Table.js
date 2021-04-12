@@ -9,20 +9,31 @@ const TableCard = ({
   columns,
   cardWidth,
   clickRow,
-  hasDelete,
   hasAck,
+  deleteData,
   viewData,
   extraComponent,
+  rowsPerPage = 5,
 }) => {
-  console.log("data =", data);
   const tableData = data.map((row) => Object.values(row));
+  const booleanKeys = ["isDealer"];
   const tableColumns = columns.map((key) => {
     const headerName = key[0].toUpperCase() + key.substring(1);
+    if (booleanKeys.indexOf(key) != -1) {
+      return {
+        name: headerName,
+        options: {
+          customBodyRender: (row, dataIndex, rowIndex) => {
+            return <span>{row ? "TRUE" : "FALSE"}</span>;
+          },
+        },
+      };
+    }
     return {
       name: headerName,
     };
   });
-  if (hasDelete || hasAck || viewData) {
+  if (deleteData || hasAck || viewData) {
     // if usecase requires user to be able to delete rows
     tableColumns.push({
       name: "Action",
@@ -33,8 +44,12 @@ const TableCard = ({
           };
           return (
             <>
-              {hasDelete ? (
-                <Button variant="outlined" color="secondary" onClick={onClick}>
+              {deleteData ? (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={() => deleteData(data[row])}
+                >
                   Delete
                 </Button>
               ) : null}
@@ -80,7 +95,11 @@ const TableCard = ({
         components={{ TableToolbar: toolbar }}
         data={tableData}
         columns={tableColumns}
-        options={{ selectableRowsHideCheckboxes: true }}
+        options={{
+          selectableRowsHideCheckboxes: true,
+          rowsPerPage,
+          rowsPerPageOptions: [5, 10],
+        }}
       />
     </Grid>
   );

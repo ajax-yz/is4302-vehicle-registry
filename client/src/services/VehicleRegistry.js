@@ -11,7 +11,7 @@ class VehicleRegistryService {
           strConvert(values.companyRegNo),
           strConvert(values.physicalAddress),
           strConvert(values.dateOfReg),
-          values.isDealer,
+          values.isDealer ? true : false,
         )
         .send();
 
@@ -32,14 +32,14 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .retrieveOwnerDealerInfo(ownerDealerAddress)
         .call();
-      console.log("res =", res);
       if (res) {
         const info = {
+          ownerDealerAddress,
           name: hexConvert(res[0]),
           contact: res[1],
           companyRegNo: hexConvert(res[2]),
           physicalAddress: hexConvert(res[3]),
-          dateOfReg: res[4],
+          dateOfReg: hexConvert(res[4]),
           isDealer: res[5],
         };
         return info;
@@ -81,7 +81,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .removeDealer(dealerAddress)
         .send();
-      console.log("res =", res);
       if (res) {
         return true;
       } else {
@@ -124,9 +123,9 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .retrieveWorkshopInfo(workshopAddress)
         .call();
-      console.log("res =", res);
       if (res) {
         const info = {
+          workshopAddress,
           workshopName: hexConvert(res[0]),
           workshopRegNo: hexConvert(res[1]),
           physicalAddress: hexConvert(res[2]),
@@ -172,7 +171,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .removeWorkshop(workshopAddress)
         .send();
-      console.log("res =", res);
       if (res) {
         return true;
       } else {
@@ -213,7 +211,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAdminInfo(adminAddress)
         .call();
-      console.log("res =", res);
       if (res) {
         const info = {
           adminAddress: adminAddress,
@@ -258,7 +255,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .removeAdmin(adminAddress)
         .send();
-      console.log("res =", res);
       if (res) {
         return true;
       } else {
@@ -270,14 +266,11 @@ class VehicleRegistryService {
     }
   }
 
-  // ==================================== Authorize FNS ====================================  
+  // ==================================== Authorize FNS ====================================
   static async authorizeAccess(drizzle, values) {
-    try{  
+    try {
       const success = await drizzle.contracts.VehicleRegistry.methods
-        .authorizeAccess(
-          values.vehicleId,
-          values.authorizedAddress,
-        )
+        .authorizeAccess(values.vehicleId, values.authorizedAddress)
         .send();
 
       if (success) {
@@ -295,7 +288,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAuthorizedAddresses(vehicleId)
         .call();
-      console.log("res =", res);
       if (res) {
         const info = {
           noOfAuthorizedParties: res[0], //no of authorized parties for the given vehicleId
@@ -313,12 +305,8 @@ class VehicleRegistryService {
   static async removeAuthorization(drizzle, values) {
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .removeAuthorization(
-          values.vehicleId,
-          values.authorizedAddress,
-        )
+        .removeAuthorization(values.vehicleId, values.authorizedAddress)
         .send();
-      console.log("res =", res);
       if (res) {
         return true;
       } else {
@@ -330,7 +318,7 @@ class VehicleRegistryService {
     }
   }
 
-// ==================================== VEHICLE INFO FNS ====================================  
+  // ==================================== VEHICLE INFO FNS ====================================
   static async retrieveAllVehiclesOwn(drizzle, ownerDealerAddress) {
     try {
       const vehIds = await drizzle.contracts.VehicleRegistry.methods
@@ -433,7 +421,7 @@ class VehicleRegistryService {
     }
   }
 
-// ============================ functions to be checked and added ==============
+  // ============================ functions to be checked and added ==============
   static async addServicingRecord(drizzle, values) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
     try {
@@ -466,7 +454,6 @@ class VehicleRegistryService {
       const res = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAllVehIdsServicedBy(workshopAddress)
         .call();
-      console.log("res =", res);
       if (res) {
         // const info = {
         //   name: hexConvert(res[0]),
@@ -487,9 +474,6 @@ class VehicleRegistryService {
   }
 
   // ==================================== VEHICLES ====================================
-
-  
-
 
   static async registerVehicleToOwner1(drizzle, values, ownerAddress) {
     const strConvert = drizzle.web3.utils.utf8ToHex;
