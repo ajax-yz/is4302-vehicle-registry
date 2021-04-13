@@ -2,6 +2,7 @@ import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Button, Snackbar } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import React, { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
 import { workshopColumns } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import ModalForm from "../Common/ModalForm";
@@ -11,6 +12,7 @@ import TableCard from "../Common/Table";
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
 const WorkshopTable = () => {
+  const history = useHistory();
   const [workshops, setWorkshopList] = useState([]);
   const { drizzle } = useDrizzle();
   const state = useDrizzleState((state) => state);
@@ -54,6 +56,11 @@ const WorkshopTable = () => {
     }
   };
 
+  const viewWorkshop = async (data) => {
+    console.log("data =", data);
+    history.push(`/app/workshop/${data.workshopAddress}`);
+  };
+
   const deleteWorkshop = async (workshop) => {
     const resp = await VehicleRegistryService.removeWorkshop(
       drizzle,
@@ -77,7 +84,7 @@ const WorkshopTable = () => {
         columns={workshopColumns}
         cardWidth={"100%"}
         deleteData={deleteWorkshop}
-        onClick={(_data) => console.log(_data)}
+        viewData={viewWorkshop}
         extraComponent={
           <RegisterButton
             submitRegister={registerWorkshop}

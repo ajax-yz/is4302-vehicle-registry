@@ -17,7 +17,13 @@ import WorkshopTable from "../../components/Admin/WorkshopTable";
 
 // end components
 
-import { adminColumns, ownerColumns, vehicleColumns } from "../../constants";
+import {
+  accidentColumns,
+  adminColumns,
+  ownerColumns,
+  servicingColumns,
+  vehicleColumns,
+} from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 
 // styles
@@ -37,8 +43,16 @@ const AdminPage = (props) => {
   var classes = useStyles();
 
   const [admin, setAdmin] = useState({});
-  const isRegistryOwner = true;
-  const retrieveAdmmin = async () => {
+  const [isRegistryOwner, setIsRegistryOwner] = useState(false);
+  const checkIsRegistryOwner = async () => {
+    const ownerAddress = await drizzle.contracts.VehicleRegistry.methods
+      .vehicleRegistryOwner()
+      .call();
+    if (ownerAddress === account) {
+      setIsRegistryOwner(true);
+    }
+  };
+  const retrieveAdmin = async () => {
     const results = await VehicleRegistryService.retrieveAdminInfo(
       drizzle,
       account,
@@ -48,33 +62,41 @@ const AdminPage = (props) => {
   };
 
   const getAllAdmins = async () => {
-    const admins = await drizzle.contracts.VehicleRegistry.methods
-      .admins()
-      .call();
-    if (admins) {
-      setAdminList(admins);
+    if (isRegistryOwner) {
+      const admins = await drizzle.contracts.VehicleRegistry.methods
+        .admins()
+        .call();
+      if (admins) {
+        setAdminList(admins);
+      }
     }
   };
 
   useEffect(() => {
-    retrieveAdmmin();
+    retrieveAdmin();
+    checkIsRegistryOwner().then(() => {
+      getAllAdmins();
+    });
+
     // getAllAdmins();
   }, [state.drizzleStatus.initialized]);
 
-  const registerAdmin = (body) => {
-    return VehicleRegistryService.registerAdmin(drizzle, body);
+  const addAccidentRecord = (body) => {
+    return VehicleRegistryService.addAccidentRecord(drizzle, {
+      vehicleId: body.vehicleId,
+      accidentDateLocation: body.accidentDateLocation,
+      driverName: body.driverName,
+      timeOfAccident: body.timeOfAccident,
+      descriptionOfAccident: body.descriptionOfAccident,
+    });
   };
 
-  const registerOwner = (body) => {
-    return VehicleRegistryService.registerOwnerDealer(drizzle, {
-      ownerDealerAddress: body.ownerDealerAddress,
-      name: body.name,
-      contact: body.contact,
-      companyRegNo: body.companyRegNo,
-      physicalAddress: body.physicalAddress,
-      dateOfReg: body.dateOfReg,
-      isDealer: body.isDealer,
-    });
+  const updateVehCOEReg = (data) => {
+    return VehicleRegistryService.updateVehCOEReg(drizzle, data);
+  };
+
+  const updateVehLicensePlate = (data) => {
+    return VehicleRegistryService.updateVehLicensePlate(drizzle, data);
   };
 
   console.log("adminList =", adminList);
@@ -84,22 +106,56 @@ const AdminPage = (props) => {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={2}>
-            <Grid item lg={10} sm={8} xs={12}>
+            <Grid item lg={8} sm={8} xs={12}>
               <ViewCard data={admin} title={"User Details"} />
             </Grid>
-            <Grid item lg={2} sm={4} xs={12}>
+            <Grid item lg={4} sm={4} xs={12}>
               <Widget
-                title="Vehicle Functions"
+                title="Admin Functions"
                 upperTitle
                 className={classes.card}
                 bodyClass={classes.fullHeightBody}
               >
-                <Grid item xs={16}>
+                <Grid item xs={12}>
                   <Typography color="text" colorBrightness="secondary" noWrap>
                     Register Vehicle to Owner
                   </Typography>
 
                   <AddVehicleCom />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Typography color="text" colorBrightness="secondary" noWrap>
+                    Add Accident Record
+                  </Typography>
+
+                  <RegisterButton
+                    submitRegister={addAccidentRecord}
+                    registerText={"Add Accident Record"}
+                    keys={[
+                      "vehicleId",
+                      ...accidentColumns.accident1,
+                      ...accidentColumns.accident2,
+                    ]}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <div>Vehicle Functions</div>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ marginRight: "8px" }}>
+                      <RegisterButton
+                        submitRegister={updateVehCOEReg}
+                        registerText={"Update Vehicle COE"}
+                        keys={["vehicleId", "effectiveRegDate", "quotaPrem"]}
+                      />
+                    </div>
+                    <RegisterButton
+                      submitRegister={updateVehLicensePlate}
+                      registerText={"Update License Plate"}
+                      keys={["vehicleId", "newLicensePlate"]}
+                    />
+                  </div>
                 </Grid>
               </Widget>
             </Grid>
@@ -154,29 +210,32 @@ const AddVehicleCom = () => {
         ownerAddress,
       ),
     ]);
+
+    return resp;
+  };
+
+  const deregisterVehicle = (data) => {
+    return VehicleRegistryService.deregisterVehicle(drizzle, data);
   };
 
   return (
-    <div>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setVisible(!visible)}
-      >
-        Add Vehicle
-      </Button>
-
-      <ModalForm
-        title={"Add Vehicle"}
-        visible={visible}
-        toggleVisible={() => setVisible(!visible)}
-        onSubmit={addVehicle}
-        keys={[
-          ...vehicleColumns.details1,
-          ...vehicleColumns.details1p2,
-          ...vehicleColumns.details2,
-          ...vehicleColumns.ownerAddress,
-        ]}
+    <div style={{ display: "flex" }}>
+      <div style={{ marginRight: "8px" }}>
+        <RegisterButton
+          submitRegister={addVehicle}
+          registerText={"Add Vehicle"}
+          keys={[
+            ...vehicleColumns.details1,
+            ...vehicleColumns.details1p2,
+            ...vehicleColumns.details2,
+            ...vehicleColumns.ownerAddress,
+          ]}
+        />
+      </div>
+      <RegisterButton
+        submitRegister={deregisterVehicle}
+        registerText={"Deregister Vehicle"}
+        keys={["vehicleId", "ownerDealerAddress"]}
       />
     </div>
   );

@@ -42,9 +42,8 @@ export const accidentColumns = {
     "driverName",
     "timeOfAccident",
     "descriptionOfAccident",
-    "insuranceCoName",
   ],
-  accident2: ["appointedWorkshopNo", "servicingId", "remarks", "claimIssued"],
+  accident2: ["appointedWorkshopNo", "servicingId", "remarks"],
 };
 
 export const servicingColumns = {
@@ -55,7 +54,7 @@ export const servicingColumns = {
     "currentMileage",
     "workDone",
   ],
-  history2: ["typeOfWorkDone", "totalCharges", "acknowledgedByOwner"],
+  history2: ["typeOfWorkDone", "totalCharges"],
 };
 
 export const adminColumns = [

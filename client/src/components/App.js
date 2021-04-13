@@ -60,7 +60,7 @@ const App = () => {
   // length == 1 means user is logged in on meta mask (Includes correct and incorrect accounts). Length > 1 means user not logged in.
   const isLoggedInOnMetaMask = Object.keys(drizzleState.accounts).length === 1;
   if (userRole == null) {
-    return <div> Loading...</div>;
+    return <Login isLoggedIn={isLoggedInOnMetaMask} />;
   }
   return (
     <HashRouter>

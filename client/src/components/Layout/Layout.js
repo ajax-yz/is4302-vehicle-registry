@@ -66,7 +66,7 @@ function Layout(props) {
               path="/app/dashboard"
               component={Dashboard}
               role={role}
-              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR]}
             />
             {/* <PrivateRoute
               path="/app/administrator/admin-info"
@@ -97,7 +97,7 @@ function Layout(props) {
               component={AdminPage}
               isRegistryOwner={props.isRegistryOwner}
               role={role}
-              // allowedRole={ROLES_ENUM.ADMINISTRATOR}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR]}
             />
             <PrivateRoute
               path="/app/owner/:ownerAddress?"
@@ -112,10 +112,10 @@ function Layout(props) {
               // allowedRole={ROLES_ENUM.DEALER}
             />
             <PrivateRoute
-              path="/app/workshop"
+              path="/app/workshop/:workshopAddress?"
               component={WorkshopPage}
               role={role}
-              // allowedRole={ROLES_ENUM.WORKSHOP}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR, ROLES_ENUM.WORKSHOP]}
             />
             <PrivateRoute
               path="/app/setSR"
@@ -209,12 +209,13 @@ const PrivateRoute = ({
   component,
   role,
   path,
-  allowedRole,
+  allowedRoles,
   isRegistryOwner,
   ...rest
 }) => {
   // const isAuthenticated = role === allowedRole;
-  const isAuthenticated = allowedRole ? role === allowedRole : true;
+  const isAuthenticated = allowedRoles ? allowedRoles.indexOf(role) > -1 : true;
+  console.log("isauthenticated =", isAuthenticated);
   const rolePath = role.split(" ")[0].toLowerCase();
   // const isAuthenticated = true;
 
@@ -231,8 +232,8 @@ const PrivateRoute = ({
         ) : (
           <Redirect
             to={{
-              pathname: path,
-              // pathname: `/app/${rolePath}`,
+              // pathname: path,
+              pathname: `/app/${rolePath}`,
               state: {
                 from: props.location,
               },
