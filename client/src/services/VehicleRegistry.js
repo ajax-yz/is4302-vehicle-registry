@@ -324,7 +324,6 @@ class VehicleRegistryService {
       const vehIds = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAllVehiclesOwn(ownerDealerAddress)
         .call();
-      console.log("vehIds =", vehIds);
       if (vehIds) {
         const vehicles = await Promise.all(
           vehIds.map(async (id) => {
@@ -341,7 +340,6 @@ class VehicleRegistryService {
             };
           }),
         );
-        console.log("veh =", vehicles);
         return vehicles;
       } else {
         return [];
@@ -379,7 +377,6 @@ class VehicleRegistryService {
           engineNo: hexConvert(res[3]),
           chassisNo: hexConvert(res[4]),
         };
-        console.log("details 1=", details1);
         return details1;
       } else {
         return false;
@@ -401,7 +398,6 @@ class VehicleRegistryService {
           originalRegDate: hexConvert(res[1]),
           effectiveRegDate: hexConvert(res[2]),
         };
-        console.log("details1p2 =", details1p2);
         return details1p2;
       } else {
         return false;
@@ -572,7 +568,6 @@ class VehicleRegistryService {
         vehIds.map((id, i) => {
           _ids[id] = accidentIds[i];
         });
-        console.log("accidentIds =", accidentIds);
         const recordsToReturn = [];
         await Promise.all(
           vehIds.map(async (vehId) => {
@@ -591,7 +586,6 @@ class VehicleRegistryService {
             );
           }),
         );
-        // console.log("recordsToReturn =", recordsToReturn);
         return recordsToReturn;
       } else {
         return [];
@@ -711,8 +705,6 @@ class VehicleRegistryService {
             );
           }),
         );
-        console.log("dataToReturn =", dataToReturn);
-        // console.log("veh =", vehicles);
         return dataToReturn;
       } else {
         return [];
@@ -759,7 +751,6 @@ class VehicleRegistryService {
       const accidentIds = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAllAccidentRecordsOn(vehicleId)
         .call();
-      console.log("accidentIds =", accidentIds);
 
       const accidentRecords = await Promise.all(
         accidentIds.map(async (aId) => {
@@ -841,16 +832,13 @@ class VehicleRegistryService {
       const vehIds = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAllVehIdsServicedByWorkshop(workshopAddress)
         .call();
-      const accidentRecords = await Promise.all(
+      await Promise.all(
         vehIds.map(async (vId) => {
           const data = await this.retrieveOneVehicleAccidentRecords(
             drizzle,
             vId,
           );
-          dataToReturn.push({
-            vehicleId: vId,
-            ...data,
-          });
+          return data;
         }),
       );
       if (dataToReturn) {
@@ -872,7 +860,6 @@ class VehicleRegistryService {
       const vehIds = await drizzle.contracts.VehicleRegistry.methods
         .retrieveAllVehIdsServicedByWorkshop(workshopAddress)
         .call();
-      console.log("vehIds =", vehIds);
 
       // retrieveVehServicingRecordsByWorkshop
       const servicingIds = await Promise.all(
@@ -883,7 +870,6 @@ class VehicleRegistryService {
         }),
       );
 
-      console.log("servicingIds=", servicingIds);
       // _ids = { [vehId]: vehServicingIds }
       const _ids = {};
       vehIds.map((id, i) => {
@@ -1048,6 +1034,41 @@ class VehicleRegistryService {
 
       if (res) {
         return res;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async swapVehLicensePlate(drizzle, vehicleId, otherVehicleId) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .swapVehLicensePlate(vehicleId, otherVehicleId)
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async isAddressRegisteredOwner(drizzle, address) {
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .isAddressRegisteredOwner(address)
+        .call();
+
+      if (success) {
+        return true;
       } else {
         return false;
       }

@@ -47,12 +47,12 @@ const AddOwnerCard = () => {
       dateOfReg,
       isDealer: false,
     });
-    console.log(response);
+    // console.log(response);
     const testfn = await VehicleRegistryService.retrieveOwnerDealerInfo(
       drizzle,
       ownerDealerAddress,
     );
-    console.log(testfn);
+    // console.log(testfn);
     const testupdate = await VehicleRegistryService.updateOwnerDealerInfo(
       drizzle,
       {
@@ -65,14 +65,14 @@ const AddOwnerCard = () => {
         isDealer: false,
       },
     );
-    console.log(testupdate);
+    // console.log(testupdate);
   };
   const remove = async () => {
     const testrem = await VehicleRegistryService.removeAdmin(
       drizzle,
       "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
     );
-    console.log("rem admin", testrem);
+    // console.log("rem admin", testrem);
   };
 
   // address = 0x58Ff09a4aFBf3cDD9791Bc603F4630D2c3fb3857
@@ -153,7 +153,7 @@ const AddVehicleCom = () => {
   const { drizzle } = useDrizzle();
 
   const addVehicle = async (data) => {
-    console.log("data =", data);
+    // console.log("data =", data);
     const body1 = {};
     const body2 = {};
     const bodyKeys1 = [
@@ -180,7 +180,7 @@ const AddVehicleCom = () => {
         ownerAddress,
       ),
     ]);
-    console.log("resp =", resp);
+    // console.log("resp =", resp);
   };
 
   return (
@@ -214,7 +214,7 @@ const AddWorkshopCard = () => {
   const { drizzle } = useDrizzle();
 
   const addWorkshop = async (data) => {
-    console.log("data =", data);
+    // console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = [
       "workshopAddress",
@@ -232,7 +232,7 @@ const AddWorkshopCard = () => {
     const resp = await Promise.all([
       VehicleRegistryService.registerWorkshop(drizzle, body1),
     ]);
-    console.log("resp =", resp);
+    // console.log("resp =", resp);
   };
 
   return (
@@ -267,7 +267,7 @@ const AddAdminCard = () => {
   const { drizzle } = useDrizzle();
 
   const addAdmin = async (data) => {
-    console.log("data =", data);
+    // console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = ["adminAddress", "adminName", "dateJoined", "contact"];
     bodyKeys1.map((key) => {
@@ -278,19 +278,19 @@ const AddAdminCard = () => {
     const resp = await Promise.all([
       VehicleRegistryService.registerAdmin(drizzle, body1),
     ]);
-    console.log("resp =", resp);
+    // console.log("resp =", resp);
     const testretad = await VehicleRegistryService.retrieveAdminInfo(
       drizzle,
       body1["adminAddress"],
     );
-    console.log(testretad);
+    // console.log(testretad);
     const testadupdate = await VehicleRegistryService.updateAdminInfo(drizzle, {
       adminAddress: body1["adminAddress"],
       adminName: body1["adminName"],
       dateJoined: body1["dateJoined"],
       contact: 239,
     });
-    console.log(testadupdate);
+    // console.log(testadupdate);
   };
 
   return (

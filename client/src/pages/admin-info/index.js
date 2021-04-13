@@ -13,14 +13,14 @@ const AdminInfoPage = () => {
   const account = state.accounts[0];
   const { drizzle } = useDrizzle();
   const [adminInfo, setAdminInfo] = useState([]);
-  console.log("account admininfo = ", account);
+  // console.log("account admininfo = ", account);
 
   const retrieveAdminInfo = async () => {
     const info = await VehicleRegistry.retrieveAdminInfo(drizzle, account);
-    console.log("retrieved admin info", info);
+    // console.log("retrieved admin info", info);
     const infoarray = Object.values(info);
-    console.log("infoarray = ", infoarray);
-    console.log("type of info", typeof info);
+    // console.log("infoarray = ", infoarray);
+    // console.log("type of info", typeof info);
     setAdminInfo(infoarray);
   };
 
@@ -36,7 +36,7 @@ const AdminInfoPage = () => {
         columns={["AdminId", ...adminColumns.admin1]}
         cardWidth={"100%"}
         hasAck={true}
-        onClick={(_data) => console.log(_data)}
+        // onClick={(_data) => console.log(_data)}
       />
     </Grid>
   );

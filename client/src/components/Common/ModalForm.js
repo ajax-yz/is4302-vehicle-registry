@@ -17,14 +17,21 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const ModalForm = ({ visible, toggleVisible, onSubmit, keys, title }) => {
+const ModalForm = ({
+  visible,
+  toggleVisible,
+  onSubmit,
+  keys,
+  title,
+  defaultValues,
+}) => {
   const classes = useStyles();
   const [formData, setFormData] = useState({});
 
   useEffect(() => {
     const formD = {};
-    keys.map((key) => {
-      formD[key] = "";
+    keys.map((key, i) => {
+      formD[key] = defaultValues ? defaultValues[i] : "";
     });
     setFormData(formD);
   }, [keys]);

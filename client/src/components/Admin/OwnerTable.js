@@ -2,7 +2,7 @@ import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Snackbar } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import React, { useState, useEffect } from "react";
-import { ownerColumns } from "../../constants";
+import { ownerColumns, ownerDefaultValues } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import RegisterButton from "../Common/RegisterButton";
 import TableCard from "../Common/Table";
@@ -69,7 +69,6 @@ const OwnerTable = () => {
   };
 
   const viewOwner = async (owner) => {
-    console.log("viewowner =", owner);
     history.push(`/app/owner/${owner.ownerDealerAddress}`);
   };
 
@@ -90,6 +89,7 @@ const OwnerTable = () => {
             submitRegister={registerOwner}
             registerText={"Add Owner"}
             keys={ownerColumns}
+            defaultValues={ownerDefaultValues}
           />
         }
       />

@@ -19,10 +19,12 @@ import WorkshopTable from "../../components/Admin/WorkshopTable";
 
 import {
   accidentColumns,
+  defaultAccidentValues,
   adminColumns,
   ownerColumns,
   servicingColumns,
   vehicleColumns,
+  defaultVehicleValues,
 } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 
@@ -57,14 +59,14 @@ const AdminPage = (props) => {
       drizzle,
       account,
     );
-    console.log("results", results);
+    // console.log("results", results);
     setAdmin(results);
   };
 
   const getAllAdmins = async () => {
     if (isRegistryOwner) {
       const admins = await drizzle.contracts.VehicleRegistry.methods
-        .admins()
+        .getAllActiveAdmins()
         .call();
       if (admins) {
         setAdminList(admins);
@@ -99,7 +101,7 @@ const AdminPage = (props) => {
     return VehicleRegistryService.updateVehLicensePlate(drizzle, data);
   };
 
-  console.log("adminList =", adminList);
+  // console.log("adminList =", adminList);
   return (
     <>
       <PageTitle title="Admin" />
@@ -137,6 +139,7 @@ const AdminPage = (props) => {
                       ...accidentColumns.accident1,
                       ...accidentColumns.accident2,
                     ]}
+                    defaultValues={defaultAccidentValues}
                   />
                 </Grid>
 
@@ -148,12 +151,14 @@ const AdminPage = (props) => {
                         submitRegister={updateVehCOEReg}
                         registerText={"Update Vehicle COE"}
                         keys={["vehicleId", "effectiveRegDate", "quotaPrem"]}
+                        defaultValues={["", "10-04-2021", "40000"]}
                       />
                     </div>
                     <RegisterButton
                       submitRegister={updateVehLicensePlate}
                       registerText={"Update License Plate"}
                       keys={["vehicleId", "newLicensePlate"]}
+                      defaultValues={["", "SR2110J"]}
                     />
                   </div>
                 </Grid>
@@ -230,6 +235,7 @@ const AddVehicleCom = () => {
             ...vehicleColumns.details2,
             ...vehicleColumns.ownerAddress,
           ]}
+          defaultValues={defaultVehicleValues}
         />
       </div>
       <RegisterButton
@@ -246,7 +252,7 @@ const AddWorkshopCard = () => {
   const { drizzle } = useDrizzle();
 
   const addWorkshop = async (data) => {
-    console.log("data =", data);
+    // console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = [
       "workshopAddress",
@@ -264,7 +270,7 @@ const AddWorkshopCard = () => {
     const resp = await Promise.all([
       VehicleRegistryService.registerWorkshop(drizzle, body1),
     ]);
-    console.log("resp =", resp);
+    // console.log("resp =", resp);
   };
 
   return (

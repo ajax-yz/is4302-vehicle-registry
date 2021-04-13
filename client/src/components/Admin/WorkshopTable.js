@@ -3,7 +3,7 @@ import { Button, Snackbar } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import React, { useEffect, useState } from "react";
 import { useHistory } from "react-router-dom";
-import { workshopColumns } from "../../constants";
+import { workshopColumns, defaultWorkshopColumns } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import ModalForm from "../Common/ModalForm";
 import RegisterButton from "../Common/RegisterButton";
@@ -57,7 +57,6 @@ const WorkshopTable = () => {
   };
 
   const viewWorkshop = async (data) => {
-    console.log("data =", data);
     history.push(`/app/workshop/${data.workshopAddress}`);
   };
 
@@ -90,6 +89,7 @@ const WorkshopTable = () => {
             submitRegister={registerWorkshop}
             registerText={"Add Workshop"}
             keys={workshopColumns}
+            defaultValues={defaultWorkshopColumns}
           />
         }
         // extraComponent={<AddWorkshopCard />}

@@ -22,13 +22,13 @@ const App = () => {
   const [isRegistryOwner, setRegistryOwner] = useState(false);
   const drizzleState = useDrizzleState((state) => state);
   const account = drizzleState.accounts[0];
-  console.log("drizzlestate.accounts =", drizzleState.accounts);
+  // console.log("drizzlestate.accounts =", drizzleState.accounts);
   const accountsLength = Object.keys(drizzleState.accounts).length;
   const { drizzle } = useDrizzle();
 
   const getRole = async () => {
-    console.log("drizzle =", drizzle);
-    console.log("drizzleState =", drizzleState);
+    // console.log("drizzle =", drizzle);
+    // console.log("drizzleState =", drizzleState);
 
     const roleBytes = await drizzle.contracts.VehicleRegistry.methods
       .roleOfAddress(account)
@@ -36,8 +36,8 @@ const App = () => {
     if (roleBytes) {
       const role = drizzle.web3.utils.toUtf8(roleBytes);
       setUserRole(role);
-      console.log("accountt =", account);
-      console.log("role =", role);
+      // console.log("accountt =", account);
+      // console.log("role =", role);
     }
   };
 
@@ -92,7 +92,7 @@ const App = () => {
 const PrivateRoute = ({ component, role, isRegistryOwner, ...rest }) => {
   // const isAuthenticated = allRoles.indexOf(role) != -1;
   const isAuthenticated = true;
-  console.log("test ");
+  // console.log("test ");
   return (
     <Route
       {...rest}

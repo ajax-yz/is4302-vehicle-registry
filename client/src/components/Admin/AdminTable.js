@@ -2,7 +2,7 @@ import { drizzleReactHooks } from "@drizzle/react-plugin";
 import { Snackbar } from "@material-ui/core";
 import { Alert } from "@material-ui/lab";
 import React, { useEffect, useState } from "react";
-import { adminColumns } from "../../constants";
+import { adminColumns, adminDefaultValues } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import RegisterButton from "../Common/RegisterButton";
 import TableCard from "../Common/Table";
@@ -84,6 +84,7 @@ const AdminTable = () => {
             submitRegister={registerAdmin}
             registerText={"Register Admin"}
             keys={adminColumns}
+            defaultValues={adminDefaultValues}
           />
         }
       />

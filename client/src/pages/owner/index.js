@@ -23,8 +23,6 @@ const OwnerPage = ({ role }) => {
   const history = useHistory();
   const state = useDrizzleState((state) => state);
   const { ownerAddress } = useParams();
-  console.log("ownerAddress =", ownerAddress);
-  console.log("role =", role);
 
   // current user account
   const account = state.accounts[0];
@@ -42,7 +40,6 @@ const OwnerPage = ({ role }) => {
       drizzle,
       ownerAddr,
     );
-    console.log("results", results);
     setUserInfo(results);
   };
 
@@ -52,13 +49,12 @@ const OwnerPage = ({ role }) => {
       ownerAddr,
     );
     setUserVehicles(vehicles);
-    console.log("vehicles =", vehicles);
   };
 
   const retrieveAccidents = async () => {
     const accidents = await VehicleRegistryService.retrieveAllAccidentHistory(
       drizzle,
-      account,
+      ownerAddr,
     );
     setUserAccidents(accidents);
   };
@@ -66,7 +62,7 @@ const OwnerPage = ({ role }) => {
   const retrieveServicing = async () => {
     const servicing = await VehicleRegistryService.retrieveAllServicingHistory(
       drizzle,
-      account,
+      ownerAddr,
     );
     setUserServicing(servicing);
   };
@@ -85,7 +81,6 @@ const OwnerPage = ({ role }) => {
         authorizedAddress: "0x08591F9105C01C5940DCBC33f3279a7EBa1F2676",
       },
     );
-    console.log("rem auth", testremauth);
   };
   return (
     <>
@@ -179,7 +174,6 @@ const Authorize = () => {
   const { drizzle } = useDrizzle();
 
   const authorize = async (data) => {
-    console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = ["vehicleId", "authorizedAddress"];
     bodyKeys1.map((key) => {
@@ -190,12 +184,10 @@ const Authorize = () => {
     const resp = await Promise.all([
       VehicleRegistryService.authorizeAccess(drizzle, body1),
     ]);
-    console.log("resp =", resp);
     const testauth = await VehicleRegistryService.retrieveAuthorizedAddresses(
       drizzle,
       body1["vehicleId"],
     );
-    console.log(testauth);
   };
 
   const removeAuthorization = (data) => {
