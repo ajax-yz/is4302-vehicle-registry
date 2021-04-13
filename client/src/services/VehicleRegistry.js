@@ -449,6 +449,7 @@ class VehicleRegistryService {
           strConvert(values.currentMileage),
           strConvert(values.workDone),
           strConvert(values.totalCharges),
+          0,
         )
         .send();
 
@@ -469,14 +470,6 @@ class VehicleRegistryService {
         .retrieveAllVehIdsServicedBy(workshopAddress)
         .call();
       if (res) {
-        // const info = {
-        //   name: hexConvert(res[0]),
-        //   contact: res[1],
-        //   companyRegNo: hexConvert(res[2]),
-        //   physicalAddress: hexConvert(res[3]),
-        //   isDealer: res[4],
-        //   noOfVehiclesOwn: res[5],
-        // };
         return res;
       } else {
         return false;
@@ -540,6 +533,24 @@ class VehicleRegistryService {
     }
   }
 
+  static async deregisterVehicle(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .deregisterVehicle(values.vehicleId, values.ownerDealerAddress)
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
   // ==================================== ACCIDENT RECORDS ====================================
   static async retrieveAllAccidentHistory(drizzle, ownerAddress) {
     try {
@@ -550,9 +561,9 @@ class VehicleRegistryService {
         // AccidenIds is an array of accidentId arrays for each veh
         const accidentIds = await Promise.all(
           vehIds.map(async (vehId) => {
-            return drizzle.contracts.VehicleRegistry.methods.retrieveAllAccidentRecordsOn(
-              vehId,
-            );
+            return drizzle.contracts.VehicleRegistry.methods
+              .retrieveAllAccidentRecordsOn(vehId)
+              .call();
           }),
         );
 
@@ -562,30 +573,26 @@ class VehicleRegistryService {
           _ids[id] = accidentIds[i];
         });
         console.log("accidentIds =", accidentIds);
-        const accidentRecords = await Promise.all(
+        const recordsToReturn = [];
+        await Promise.all(
           vehIds.map(async (vehId) => {
-            const accidentRecordsForOneVehicle = _ids[vehId].map(
-              async (accidentId) => {
+            await Promise.all(
+              _ids[vehId].map(async (accidentId) => {
                 const data = await Promise.all([
-                  this.retrieveAccidentHistory1(drizzle, vehId, accidentId),
-                  this.retrieveAccidentHistory2(drizzle, vehId, accidentId),
+                  this.retrieveAccidentRecord1(drizzle, vehId, accidentId),
+                  this.retrieveAccidentRecord2(drizzle, vehId, accidentId),
                 ]);
-                return {
+                recordsToReturn.push({
+                  vehicleId: vehId,
                   ...data[0],
                   ...data[1],
-                  vehicleId: vehId,
-                };
-              },
+                });
+              }),
             );
-            console.log(
-              "accidentRecordsForOneVehicle= ",
-              accidentRecordsForOneVehicle,
-            );
-            return accidentRecordsForOneVehicle;
           }),
         );
-        // console.log("veh =", vehicles);
-        return accidentRecords;
+        // console.log("recordsToReturn =", recordsToReturn);
+        return recordsToReturn;
       } else {
         return [];
       }
@@ -595,11 +602,11 @@ class VehicleRegistryService {
     }
   }
 
-  static async retrieveAccidentHistory1(drizzle, vehicleId, accidentId) {
+  static async retrieveAccidentRecord1(drizzle, vehicleId, accidentId) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveAccidentHistory1(vehicleId, accidentId)
+        .retrieveAccidentRecord1(vehicleId, accidentId)
         .call();
       if (res) {
         const history1 = {
@@ -607,7 +614,6 @@ class VehicleRegistryService {
           driverName: hexConvert(res[1]),
           timeOfAccident: hexConvert(res[2]),
           descriptionOfAccident: hexConvert(res[3]),
-          insuranceCoName: hexConvert(res[4]),
         };
         return history1;
       } else {
@@ -619,11 +625,11 @@ class VehicleRegistryService {
     }
   }
 
-  static async retrieveAccidentHistory2(drizzle, vehicleId, accidentId) {
+  static async retrieveAccidentRecord2(drizzle, vehicleId, accidentId) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveAccidentHistory2(vehicleId, accidentId)
+        .retrieveAccidentRecord2(vehicleId, accidentId)
         .call();
       if (res) {
         const history2 = {
@@ -633,6 +639,30 @@ class VehicleRegistryService {
           claimIssued: res[3],
         };
         return history2;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async addAccidentRecord(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .addAccidentRecord(
+          values.vehicleId,
+          strConvert(values.accidentDateLocation),
+          strConvert(values.driverName),
+          strConvert(values.timeOfAccident),
+          strConvert(values.descriptionOfAccident),
+        )
+        .send();
+
+      if (success) {
+        return true;
       } else {
         return false;
       }
@@ -652,9 +682,9 @@ class VehicleRegistryService {
         // AccidenIds is an array of accidentId arrays for each veh
         const servicingIds = await Promise.all(
           vehIds.map(async (vehId) => {
-            return drizzle.contracts.VehicleRegistry.methods.retrieveAllServicingRecordsOn(
-              vehId,
-            );
+            return drizzle.contracts.VehicleRegistry.methods
+              .retrieveAllServicingRecordsOn(vehId)
+              .call();
           }),
         );
 
@@ -663,31 +693,27 @@ class VehicleRegistryService {
         vehIds.map((id, i) => {
           _ids[id] = servicingIds[i];
         });
-        console.log("servicingIds ");
-        const servicingRecords = await Promise.all(
+        const dataToReturn = [];
+        await Promise.all(
           vehIds.map(async (vehId) => {
-            const servicingRecordsForOneVehicle = _ids[vehId].map(
-              async (servicingId) => {
+            await Promise.all(
+              _ids[vehId].map(async (servicingId) => {
                 const data = await Promise.all([
-                  this.retrieveServicingHistory1(drizzle, vehId, servicingId),
-                  this.retrieveServicingHistory2(drizzle, vehId, servicingId),
+                  this.retrieveServicingRecord1(drizzle, vehId, servicingId),
+                  this.retrieveServicingRecord2(drizzle, vehId, servicingId),
                 ]);
-                return {
+                dataToReturn.push({
+                  vehicleId: vehId,
                   ...data[0],
                   ...data[1],
-                  vehicleId: vehId,
-                };
-              },
+                });
+              }),
             );
-            console.log(
-              "servicingRecordsForOneVehicle= ",
-              servicingRecordsForOneVehicle,
-            );
-            return servicingRecordsForOneVehicle;
           }),
         );
+        console.log("dataToReturn =", dataToReturn);
         // console.log("veh =", vehicles);
-        return servicingRecords;
+        return dataToReturn;
       } else {
         return [];
       }
@@ -705,8 +731,8 @@ class VehicleRegistryService {
       const servicingRecords = await Promise.all(
         servicingIds.map(async (sId) => {
           const data = await Promise.all([
-            this.retrieveServicingHistory1(drizzle, vehicleId, sId),
-            this.retrieveServicingHistory2(drizzle, vehicleId, sId),
+            this.retrieveServicingRecord1(drizzle, vehicleId, sId),
+            this.retrieveServicingRecord2(drizzle, vehicleId, sId),
           ]);
 
           return {
@@ -738,8 +764,8 @@ class VehicleRegistryService {
       const accidentRecords = await Promise.all(
         accidentIds.map(async (aId) => {
           const data = await Promise.all([
-            this.retrieveAccidentHistory1(drizzle, vehicleId, aId),
-            this.retrieveAccidentHistory2(drizzle, vehicleId, aId),
+            this.retrieveAccidentRecord1(drizzle, vehicleId, aId),
+            this.retrieveAccidentRecord2(drizzle, vehicleId, aId),
           ]);
 
           return {
@@ -760,11 +786,11 @@ class VehicleRegistryService {
     }
   }
 
-  static async retrieveServicingHistory1(drizzle, vehicleId, servicingId) {
+  static async retrieveServicingRecord1(drizzle, vehicleId, servicingId) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveServicingHistory1(vehicleId, servicingId)
+        .retrieveServicingRecord1(vehicleId, servicingId)
         .call();
       if (res) {
         const history1 = {
@@ -784,11 +810,11 @@ class VehicleRegistryService {
     }
   }
 
-  static async retrieveServicingHistory2(drizzle, vehicleId, servicingId) {
+  static async retrieveServicingRecord2(drizzle, vehicleId, servicingId) {
     const hexConvert = drizzle.web3.utils.toUtf8;
     try {
       const res = await drizzle.contracts.VehicleRegistry.methods
-        .retrieveServicingHistory2(vehicleId, servicingId)
+        .retrieveServicingRecord2(vehicleId, servicingId)
         .call();
       if (res) {
         const history2 = {
@@ -797,6 +823,231 @@ class VehicleRegistryService {
           acknowledgedByOwner: res[2],
         };
         return history2;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async retrieveAllVehAccidentRecordsByWorkshop(
+    drizzle,
+    workshopAddress,
+  ) {
+    try {
+      const dataToReturn = [];
+      const vehIds = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllVehIdsServicedByWorkshop(workshopAddress)
+        .call();
+      const accidentRecords = await Promise.all(
+        vehIds.map(async (vId) => {
+          const data = await this.retrieveOneVehicleAccidentRecords(
+            drizzle,
+            vId,
+          );
+          dataToReturn.push({
+            vehicleId: vId,
+            ...data,
+          });
+        }),
+      );
+      if (dataToReturn) {
+        return dataToReturn;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.log("e=", e);
+      return [];
+    }
+  }
+
+  static async retrieveAllVehServiceRecordsByWorkshop(
+    drizzle,
+    workshopAddress,
+  ) {
+    try {
+      const vehIds = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveAllVehIdsServicedByWorkshop(workshopAddress)
+        .call();
+      console.log("vehIds =", vehIds);
+
+      // retrieveVehServicingRecordsByWorkshop
+      const servicingIds = await Promise.all(
+        vehIds.map(async (vehId) => {
+          return drizzle.contracts.VehicleRegistry.methods
+            .retrieveAllServicingRecordsOn(vehId)
+            .call();
+        }),
+      );
+
+      console.log("servicingIds=", servicingIds);
+      // _ids = { [vehId]: vehServicingIds }
+      const _ids = {};
+      vehIds.map((id, i) => {
+        _ids[id] = servicingIds[i];
+      });
+      const recordsToReturn = [];
+      await Promise.all(
+        vehIds.map(async (vehId) => {
+          await Promise.all(
+            _ids[vehId].map(async (servicingId) => {
+              const data = await Promise.all([
+                this.retrieveServicingRecord1(drizzle, vehId, servicingId),
+                this.retrieveServicingRecord2(drizzle, vehId, servicingId),
+              ]);
+              recordsToReturn.push({
+                vehicleId: vehId,
+                ...data[0],
+                ...data[1],
+              });
+              return {
+                vehicleId: vehId,
+                ...data[0],
+                ...data[1],
+              };
+            }),
+          );
+        }),
+      );
+
+      if (recordsToReturn) {
+        return recordsToReturn;
+      } else {
+        return [];
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return [];
+    }
+  }
+
+  static async transferVehicle(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .transferVehicle(
+          values.vehicleId,
+          values.newOwnerAddress,
+          strConvert(values.newOwnerName),
+          values.newOwnerContact,
+          strConvert(values.newOwnerPhysicalAddress),
+          strConvert(values.newOwnerDateOfReg),
+        )
+        .send();
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async updateVehCOEReg(drizzle, values) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .updateVehCOEReg(
+          values.vehicleId,
+          strConvert(values.effectiveRegDate),
+          values.quotaPrem,
+        )
+        .send();
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async updateVehLicensePlate(drizzle, values, vehicleId) {
+    const strConvert = drizzle.web3.utils.utf8ToHex;
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .updateVehLicensePlate(
+          values.vehicleId,
+          strConvert(values.newLicensePlate),
+        )
+        .send();
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async removeAuthorization(drizzle, values) {
+    try {
+      const success = await drizzle.contracts.VehicleRegistry.methods
+        .removeAuthorization(values.vehicleId, values.authorizedAddress)
+        .send();
+
+      if (success) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async retrieveNoOfTransfers(drizzle, vehicleId) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveNoOfTransfers(vehicleId)
+        .call();
+
+      if (res) {
+        return res;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async retrieveNoOfServicingRecords(drizzle, vehicleId) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveNoOfServicingRecords(vehicleId)
+        .call();
+
+      if (res) {
+        return res;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      console.log("e =", e);
+      return false;
+    }
+  }
+
+  static async retrieveNoOfAccidentRecords(drizzle, vehicleId) {
+    try {
+      const res = await drizzle.contracts.VehicleRegistry.methods
+        .retrieveNoOfAccidentRecords(vehicleId)
+        .call();
+
+      if (res) {
+        return res;
       } else {
         return false;
       }

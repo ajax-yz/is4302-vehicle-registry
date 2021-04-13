@@ -6,6 +6,7 @@ import TableCard from "../../components/Common/Table";
 import VehicleTable from "../../components/Common/VehicleTable";
 import { useHistory, useParams } from "react-router-dom";
 import PageTitle from "../../components/PageTitle/PageTitle";
+import RegisterButton from "../../components/Common/RegisterButton";
 import {
   accidentColumns,
   ROLES_ENUM,
@@ -107,18 +108,42 @@ const OwnerPage = ({ role }) => {
         }
       />
       <Grid container direction={"column"} spacing={4}>
-        <Grid item xs={12}>
+        <Grid item xs={12} style={{ maxHeight: "457px" }}>
           {/* Only show owner/dealer info if loggedIn user is admin or if owner is viewingg his own home page */}
           {!ownerAddress ||
           role === ROLES_ENUM.ADMINISTRATOR ||
           (ownerAddress && role === ROLES_ENUM.ADMINISTRATOR) ? (
-            <Grid container spacing={4}>
-              <Grid item lg={10} xs={10}>
+            <Grid container spacing={4} style={{ height: "100%" }}>
+              <Grid item lg={8} xs={8} style={{ height: "100%" }}>
                 <ViewCard data={userInfo} title={"User Details"} />
               </Grid>
-              <Grid item xs={2}>
-                <Authorize />
-              </Grid>
+              {role === ROLES_ENUM.OWNER || role === ROLES_ENUM.DEALER ? (
+                <Grid item xs={4}>
+                  <Card
+                    style={{
+                      width: "100%",
+                      minHeight: "284px",
+                      height: "100%",
+                    }}
+                  >
+                    <CardContent>
+                      <div
+                        style={{
+                          fontSize: "20px",
+                          fontWeight: "bold",
+                          padding: "4px ​4px 14px 4px",
+                          borderBottom: "1px solid #e8e8e8",
+                          marginBottom: "12px",
+                        }}
+                      >
+                        Owner Functions
+                      </div>
+                      <Authorize />
+                      <TransferVehicle />
+                    </CardContent>
+                  </Card>
+                </Grid>
+              ) : null}
             </Grid>
           ) : null}
         </Grid>
@@ -173,43 +198,94 @@ const Authorize = () => {
     console.log(testauth);
   };
 
-  return (
-    <Card style={{ width: "100%", minHeight: "284px", height: "100%" }}>
-      <CardContent>
-        <div
-          style={{
-            fontSize: "20px",
-            fontWeight: "bold",
-            padding: "4px ​4px 14px 4px",
-            borderBottom: "1px solid #e8e8e8",
-            marginBottom: "12px",
-          }}
-        >
-          Owner Functions
-        </div>
-        <div style={{ padding: "8px" }}>
-          <div style={{ marginBottom: "12px" }}>
-            You may authorize another owner to have access to your vehicle
-            records
-          </div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => setVisible(!visible)}
-          >
-            Authorize
-          </Button>
-        </div>
+  const removeAuthorization = (data) => {
+    return VehicleRegistryService.removeAuthorization(drizzle, data);
+  };
 
-        <ModalForm
-          title={"Authorize"}
-          visible={visible}
-          toggleVisible={() => setVisible(!visible)}
-          onSubmit={authorize}
-          keys={["vehicleId", "authorizedAddress"]}
-        />
-      </CardContent>
-    </Card>
+  return (
+    <>
+      <div style={{ padding: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
+          You may authorize or unauthorize another owner to have access to your
+          vehicle records
+        </div>
+        <div style={{ display: "flex" }}>
+          <div style={{ marginRight: "8px" }}>
+            <RegisterButton
+              registerSubmit={authorize}
+              registerText={"Authorize"}
+              keys={["vehicleId", "authorizedAddress"]}
+            />
+          </div>
+
+          <RegisterButton
+            registerSubmit={removeAuthorization}
+            registerText={"Remove Authorization"}
+            keys={["vehicleId", "authorizedAddress"]}
+          />
+        </div>
+        {/* <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setVisible(!visible)}
+        >
+          Authorize
+        </Button> */}
+      </div>
+
+      <ModalForm
+        title={"Authorize"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={authorize}
+        keys={["vehicleId", "authorizedAddress"]}
+      />
+    </>
+  );
+};
+
+const TransferVehicle = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const transfer = async (data) => {
+    const resp = await VehicleRegistryService.transferVehicle(drizzle, data);
+    if (resp) {
+      setVisible(false);
+    }
+  };
+
+  return (
+    <>
+      <div style={{ padding: "8px" }}>
+        <div style={{ marginBottom: "12px" }}>
+          You may transfer your vehicle ownership to another owner registered on
+          our network
+        </div>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setVisible(!visible)}
+        >
+          Transfer Vehicle Ownership
+        </Button>
+      </div>
+
+      <ModalForm
+        title={"Authorize"}
+        visible={visible}
+        toggleVisible={() => setVisible(!visible)}
+        onSubmit={transfer}
+        keys={[
+          "vehicleId",
+          "newOwnerAddress",
+          "newOwnerName",
+          "newOwnerContact",
+          "newOwnerPhysicalAddress",
+          "newOwnerDateOfReg",
+        ]}
+      />
+    </>
   );
 };
 

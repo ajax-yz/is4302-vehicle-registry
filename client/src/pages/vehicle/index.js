@@ -29,6 +29,7 @@ const VehiclePage = ({ role }) => {
   const [vehicleInfo, setVehicleInfo] = useState({});
   const [vehicleAccidents, setVehicleAccidents] = useState([]);
   const [vehicleServicing, setVehicleServicing] = useState([]);
+  const [extraData, setExtraData] = useState({});
 
   const retrieveVehicle = async () => {
     const results = await VehicleRegistryService.retrieveOneVehicleDetails(
@@ -37,6 +38,26 @@ const VehiclePage = ({ role }) => {
     );
     console.log("results vehicleId", results);
     setVehicleInfo(results);
+  };
+
+  const retrieveExtraData = async () => {
+    const numTransfers = await VehicleRegistryService.retrieveNoOfTransfers(
+      drizzle,
+      vehicleId,
+    );
+    const numServiceRecords = await VehicleRegistryService.retrieveNoOfServicingRecords(
+      drizzle,
+      vehicleId,
+    );
+    const numAccidentRecords = await VehicleRegistryService.retrieveNoOfAccidentRecords(
+      drizzle,
+      vehicleId,
+    );
+    setExtraData({
+      ["Number of Transfers"]: numTransfers,
+      ["Number of Service Records"]: numServiceRecords,
+      ["Number of Accident Records"]: numAccidentRecords,
+    });
   };
 
   const retrieveAccidents = async () => {
@@ -52,6 +73,7 @@ const VehiclePage = ({ role }) => {
       drizzle,
       vehicleId,
     );
+    console.log("servicing1 =", servicing);
     setVehicleServicing(servicing);
   };
 
@@ -59,6 +81,7 @@ const VehiclePage = ({ role }) => {
     retrieveVehicle();
     retrieveAccidents();
     retrieveServicing();
+    retrieveExtraData();
   }, []);
 
   return (
@@ -85,6 +108,8 @@ const VehiclePage = ({ role }) => {
             <ViewCard data={vehicleInfo} title={"Vehicle Details"} />
           </Grid>
         ) : null}
+
+        <ViewCard data={extraData} title={"Additional Information"} />
 
         <TableCard
           data={vehicleAccidents}

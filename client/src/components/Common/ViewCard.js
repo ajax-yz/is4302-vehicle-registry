@@ -16,7 +16,7 @@ const ViewCard = ({ data, title, extraComponent }) => {
   const keys = Object.keys(data);
   return (
     <Grid item style={{ width: "100%" }}>
-      <Card style={{ width: "100%", minHeight: "284px" }}>
+      <Card style={{ width: "100%", minHeight: "284px", height: "100%" }}>
         <CardContent>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div

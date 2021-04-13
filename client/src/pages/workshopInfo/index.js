@@ -1,63 +1,177 @@
 import { drizzleReactHooks } from "@drizzle/react-plugin";
-import { Grid, Button } from "@material-ui/core";
+import { Card, CardContent, Grid, Button } from "@material-ui/core";
 import React, { useEffect, useState } from "react";
 import Widget from "../../components/Widget";
 import PageTitle from "../../components/PageTitle";
 import ViewCard from "../../components/Common/ViewCard";
+import RegisterButton from "../../components/Common/RegisterButton";
+
 import TableCard from "../../components/Common/Table";
 import ModalForm from "../../components/Common/ModalForm";
-
+import { useParams, useHistory } from "react-router-dom";
+import { ROLES_ENUM } from "../../constants";
 import {
   accidentColumns,
   servicingColumns,
   vehicleColumns,
 } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
+import VehicleTable from "../../components/Common/VehicleTable";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
-const WorkshopPage = () => {
+const WorkshopPage = ({ role }) => {
+  const history = useHistory();
   const state = useDrizzleState((state) => state);
   const account = state.accounts[0];
   const { drizzle } = useDrizzle();
+  const { workshopAddress } = useParams();
+  const workshopAddr = workshopAddress ? workshopAddress : account;
+
   const [workshopInfo, setWorkshopInfo] = useState({});
 
   //   const data = {"address": account};
   //   setWorkshopInfo(data);
-  const [AllVehIdsServicedBy, setAllVehIdsServicedBy] = useState([]);
+  const [vehServicingRecords, setVehServicingRecords] = useState([]);
+  // Accident records of vehicles serviced by WS
+  const [vehAccidentRecords, setVehAccidentRecords] = useState([]);
   //   const [userAccidents, setUserAccidents] = useState([]);
   //   const [userServicing, setUserServicing] = useState([]);
 
   const retrieveWorkshop = async () => {
     const results = await VehicleRegistryService.retrieveWorkshopInfo(
       drizzle,
-      account,
+      workshopAddr,
     );
     console.log("results", results);
     setWorkshopInfo(results);
   };
 
-  const retrieveAllVehIdsServicedBy = async () => {
-    const vehicles = await VehicleRegistryService.retrieveAllVehIdsServicedBy(
+  const retrieveAllVehServiceRecordsByWorkshop = async () => {
+    const servicingRecords = await VehicleRegistryService.retrieveAllVehServiceRecordsByWorkshop(
       drizzle,
-      account,
+      workshopAddr,
     );
-    setAllVehIdsServicedBy(vehicles);
-    console.log("vehicles =", vehicles);
+    console.log("servicingRecords =", servicingRecords);
+    setVehServicingRecords(servicingRecords);
+  };
+
+  const retrieveAccidentsOfVehiclesServiced = async () => {
+    const accidents = await VehicleRegistryService.retrieveAllVehAccidentRecordsByWorkshop(
+      drizzle,
+      workshopAddr,
+    );
+    console.log("accidents =", accidents);
+    setVehAccidentRecords(accidents);
+  };
+
+  const addServicingRecord = (body) => {
+    return VehicleRegistryService.addServicingRecord(drizzle, {
+      vehicleId: body.vehicleId,
+      dateCompleted: body.dateCompleted,
+      workshopRegNo: body.workshopRegNo,
+      typeOfWorkDone: body.typeOfWorkDone,
+      appointedMechanic: body.appointedMechanic,
+      currentMileage: body.currentMileage,
+      workDone: body.workDone,
+      totalCharges: body.totalCharges,
+    });
   };
 
   useEffect(() => {
     //       setWorkshopInfo(data);
     retrieveWorkshop();
-    retrieveAllVehIdsServicedBy();
+    retrieveAllVehServiceRecordsByWorkshop();
+    retrieveAccidentsOfVehiclesServiced();
     //     // retrieveAccidents();
     //     // retrieveServicing();
   }, []);
   return (
     <>
-      <PageTitle title="Workshop" button={<UpdateWorkshopCard />} />
+      <PageTitle
+        title="Workshop"
+        backButton={
+          workshopAddress ? (
+            <div>
+              <Button
+                variant="contained"
+                size="small"
+                color="primary"
+                style={{ marginRight: "12px" }}
+                onClick={() => history.goBack()}
+              >
+                Back
+              </Button>
+            </div>
+          ) : null
+        }
+        button={<UpdateWorkshopCard />}
+      />
       <Grid container direction={"column"} spacing={4}>
-        <ViewCard data={workshopInfo} title={"Workshop Details"} />
+        <Grid item xs={12}>
+          <Grid container spacing={4}>
+            <Grid item lg={10} xs={10}>
+              <ViewCard data={workshopInfo} title={"Workshop Details"} />
+            </Grid>
+            {role === ROLES_ENUM.WORKSHOP ? (
+              <Grid item xs={2}>
+                <Card
+                  style={{ width: "100%", minHeight: "284px", height: "100%" }}
+                >
+                  <CardContent>
+                    <div
+                      style={{
+                        fontSize: "20px",
+                        fontWeight: "bold",
+                        padding: "4px ​4px 14px 4px",
+                        borderBottom: "1px solid #e8e8e8",
+                        marginBottom: "12px",
+                      }}
+                    >
+                      Workshop Functions
+                    </div>
+                    <div style={{ padding: "8px" }}>
+                      <div style={{ marginBottom: "12px" }}>
+                        You may add a servicing record
+                      </div>
+                      <RegisterButton
+                        submitRegister={addServicingRecord}
+                        registerText={"Add Servicing Record"}
+                        keys={[
+                          "vehicleId",
+                          ...servicingColumns.history1,
+                          ...servicingColumns.history2,
+                        ]}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ) : null}
+
+            <TableCard
+              data={vehAccidentRecords}
+              title={"Accident Records"}
+              columns={[
+                "vehicleId",
+                ...accidentColumns.accident1,
+                ...accidentColumns.accident2,
+              ]}
+              cardWidth={"100%"}
+            />
+
+            <TableCard
+              data={vehServicingRecords}
+              title={"All Servicing Records"}
+              columns={[
+                "vehicleId",
+                ...servicingColumns.history1,
+                ...servicingColumns.history2,
+              ]}
+              cardWidth={"100%"}
+            />
+          </Grid>
+        </Grid>
         {/* <UpdateWorkshopCard /> */}
       </Grid>
     </>
