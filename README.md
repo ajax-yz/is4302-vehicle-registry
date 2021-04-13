@@ -2,6 +2,15 @@
 
 IS4302 Project
 
+IS4302 Group 11
+
+Team members:
+Arcillas Brian Joshua Pelaez (A0167854N)
+Woo Keng Thong (A0167991L)
+Justin Eng Wei Jie (A0167946L)
+Gnanapoongkothai Annamalai (A0225284E)
+Chen Yizhao (A0168759E)
+
 ### Installation commands
 
 #### In "is4302-vehicle-registry/client" folder:
