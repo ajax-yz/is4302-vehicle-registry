@@ -9,7 +9,12 @@ import ModalForm from "./ModalForm";
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 
-const RegisterButton = ({ submitRegister, registerText, keys }) => {
+const RegisterButton = ({
+  submitRegister,
+  registerText,
+  keys,
+  defaultValues,
+}) => {
   const [visible, setVisible] = useState(false);
   const { drizzle } = useDrizzle();
 
@@ -21,7 +26,6 @@ const RegisterButton = ({ submitRegister, registerText, keys }) => {
 
     const resp = await submitRegister(body1);
     if (resp) {
-      console.log("submit =", resp);
       setVisible(false);
     }
   };
@@ -38,6 +42,7 @@ const RegisterButton = ({ submitRegister, registerText, keys }) => {
 
       <ModalForm
         title={registerText}
+        defaultValues={defaultValues}
         visible={visible}
         toggleVisible={() => setVisible(!visible)}
         onSubmit={registerSubmit}

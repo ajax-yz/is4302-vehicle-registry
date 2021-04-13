@@ -14,6 +14,7 @@ import {
   accidentColumns,
   servicingColumns,
   vehicleColumns,
+  defaultServicingValues,
 } from "../../constants";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import VehicleTable from "../../components/Common/VehicleTable";
@@ -43,7 +44,6 @@ const WorkshopPage = ({ role }) => {
       drizzle,
       workshopAddr,
     );
-    console.log("results", results);
     setWorkshopInfo(results);
   };
 
@@ -52,7 +52,6 @@ const WorkshopPage = ({ role }) => {
       drizzle,
       workshopAddr,
     );
-    console.log("servicingRecords =", servicingRecords);
     setVehServicingRecords(servicingRecords);
   };
 
@@ -61,7 +60,6 @@ const WorkshopPage = ({ role }) => {
       drizzle,
       workshopAddr,
     );
-    console.log("accidents =", accidents);
     setVehAccidentRecords(accidents);
   };
 
@@ -142,6 +140,7 @@ const WorkshopPage = ({ role }) => {
                           ...servicingColumns.history1,
                           ...servicingColumns.history2,
                         ]}
+                        defaultValues={defaultServicingValues}
                       />
                     </div>
                   </CardContent>
@@ -182,7 +181,6 @@ const UpdateWorkshopCard = () => {
   const { drizzle } = useDrizzle();
 
   const updateWorkshop = async (data) => {
-    console.log("data =", data);
     const body1 = {};
     const bodyKeys1 = [
       "workshopAddress",
@@ -200,7 +198,6 @@ const UpdateWorkshopCard = () => {
     const resp = await Promise.all([
       VehicleRegistryService.updateWorkshopInfo(drizzle, body1),
     ]);
-    console.log("resp =", resp);
   };
 
   return (

@@ -21,12 +21,11 @@ const AllVehicleInfo = () => {
   const [userAccidents, setUserAccidents] = useState([]);
   const [userServicing, setUserServicing] = useState([]);
 
- /* const retrieveOwner = async () => {
+  /* const retrieveOwner = async () => {
     const results = await VehicleRegistryService.retrieveOwnerDealerInfo(
       drizzle,
       account,
     );
-    console.log("resuls", results);
     setUserInfo(results);
   };*/
 
@@ -36,10 +35,9 @@ const AllVehicleInfo = () => {
       account,
     );
     setUserVehicles(vehicles);
-    console.log("vehicles =", vehicles);
   };
 
-/*  const retrieveAccidents = async () => {
+  /*  const retrieveAccidents = async () => {
     const accidents = await VehicleRegistryService.retrieveAllAccidentHistory(
       drizzle,
       account,
@@ -57,7 +55,7 @@ const AllVehicleInfo = () => {
   useEffect(() => {
     /*retrieveOwner();*/
     retrieveVehicles();
-   /* retrieveAccidents();
+    /* retrieveAccidents();
     retrieveServicing();*/
   }, []);
   return (
@@ -73,9 +71,7 @@ const AllVehicleInfo = () => {
         ]}
         cardWidth={"100%"}
         hasAck={true}
-        onClick={(_data) => console.log(_data)}
       />
-
     </Grid>
   );
 };

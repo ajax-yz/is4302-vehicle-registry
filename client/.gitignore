@@ -20,7 +20,7 @@
 .env.production.local
 .idea
 .eslintcache
-
+/docs
 # contracts
 /src/contracts
 

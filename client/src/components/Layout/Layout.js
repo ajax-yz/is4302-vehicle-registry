@@ -44,7 +44,6 @@ import { ROLES_ENUM } from "../../constants";
 import MiscPage from "../../pages/misc";
 
 function Layout(props) {
-  console.log("layout prrops=-", props);
   var classes = useStyles();
 
   // global
@@ -103,14 +102,18 @@ function Layout(props) {
               path="/app/owner/:ownerAddress?"
               component={OwnerPage}
               role={role}
-              // allowedRole={ROLES_ENUM.OWNER}
+              allowedRoles={[
+                ROLES_ENUM.ADMINISTRATOR,
+                ROLES_ENUM.OWNER,
+                ROLES_ENUM.DEALER,
+              ]}
             />
-            <PrivateRoute
+            {/* <PrivateRoute
               path="/app/dealer"
               component={Notifications}
               role={role}
               // allowedRole={ROLES_ENUM.DEALER}
-            />
+            /> */}
             <PrivateRoute
               path="/app/workshop/:workshopAddress?"
               component={WorkshopPage}
@@ -215,7 +218,6 @@ const PrivateRoute = ({
 }) => {
   // const isAuthenticated = role === allowedRole;
   const isAuthenticated = allowedRoles ? allowedRoles.indexOf(role) > -1 : true;
-  console.log("isauthenticated =", isAuthenticated);
   const rolePath = role.split(" ")[0].toLowerCase();
   // const isAuthenticated = true;
 

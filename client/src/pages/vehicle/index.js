@@ -36,7 +36,6 @@ const VehiclePage = ({ role }) => {
       drizzle,
       vehicleId,
     );
-    console.log("results vehicleId", results);
     setVehicleInfo(results);
   };
 
@@ -73,7 +72,6 @@ const VehiclePage = ({ role }) => {
       drizzle,
       vehicleId,
     );
-    console.log("servicing1 =", servicing);
     setVehicleServicing(servicing);
   };
 

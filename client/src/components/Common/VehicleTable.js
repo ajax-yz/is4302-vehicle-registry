@@ -8,7 +8,6 @@ const VehicleTable = ({ userVehicles }) => {
   const history = useHistory();
 
   const viewVehicle = (data) => {
-    console.log("data =", data);
     history.push(`/app/vehicle/${data.vehicleId}`);
   };
   return (
