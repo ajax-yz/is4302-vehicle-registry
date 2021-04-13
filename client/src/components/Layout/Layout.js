@@ -25,21 +25,35 @@ import Notifications from "../../pages/notifications";
 import Tables from "../../pages/tables";
 import Icons from "../../pages/icons";
 import Charts from "../../pages/charts";
+import AdminPage from "../../pages/admin";
+import VehiclePage from "../../pages/vehicle";
+
+// import AdminInfoPage from "../../pages/admin-info";
+import OwnerPage from "../../pages/owner";
+import WorkshopPage from "../../pages/workshopInfo";
+import WorkshopSetSR from "../../pages/wSetSR";
+// import AllVehicleInfo from "../../pages/admin-tables/vehicle-table";
+// import AccidentInfoPage from "../../pages/admin-tables/accident-table";
+// import ServicingInfoPage from "../../pages/admin-tables/servicing-table";
 
 // context
 import { useLayoutState } from "../../context/LayoutContext";
+
+// constants
+import { ROLES_ENUM } from "../../constants";
+import MiscPage from "../../pages/misc";
 
 function Layout(props) {
   var classes = useStyles();
 
   // global
   var layoutState = useLayoutState();
-
+  const role = props.role;
   return (
     <div className={classes.root}>
       <>
         <Header history={props.history} />
-        <Sidebar />
+        <Sidebar role={role} />
         <div
           className={classnames(classes.content, {
             [classes.contentShift]: layoutState.isSidebarOpened,
@@ -47,15 +61,90 @@ function Layout(props) {
         >
           <div className={classes.fakeToolbar} />
           <Switch>
-            <Route path="/app/dashboard" component={Dashboard} />
-            <Route path="/app/typography" component={Typography} />
-            <Route path="/app/tables" component={Tables} />
-            <Route path="/app/notifications" component={Notifications} />
+            <PrivateRoute
+              path="/app/dashboard"
+              component={Dashboard}
+              role={role}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR]}
+            />
+            {/* <PrivateRoute
+              path="/app/administrator/admin-info"
+              component={AdminInfoPage}
+              role={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            /> */}
+            {/* <PrivateRoute
+              path="/app/administrator/admin-tables/vehicle-table"
+              component={AllVehicleInfo}
+              role={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/administrator/admin-tables/accident-table"
+              component={AccidentInfoPage}
+              role={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            <PrivateRoute
+              path="/app/administrator/admin-tables/servicing-table"
+              component={ServicingInfoPage}
+              role={role}
+              allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            /> */}
+            <PrivateRoute
+              path="/app/administrator"
+              component={AdminPage}
+              isRegistryOwner={props.isRegistryOwner}
+              role={role}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR]}
+            />
+            <PrivateRoute
+              path="/app/owner/:ownerAddress?"
+              component={OwnerPage}
+              role={role}
+              allowedRoles={[
+                ROLES_ENUM.ADMINISTRATOR,
+                ROLES_ENUM.OWNER,
+                ROLES_ENUM.DEALER,
+              ]}
+            />
+            {/* <PrivateRoute
+              path="/app/dealer"
+              component={Notifications}
+              role={role}
+              // allowedRole={ROLES_ENUM.DEALER}
+            /> */}
+            <PrivateRoute
+              path="/app/workshop/:workshopAddress?"
+              component={WorkshopPage}
+              role={role}
+              allowedRoles={[ROLES_ENUM.ADMINISTRATOR, ROLES_ENUM.WORKSHOP]}
+            />
+            <PrivateRoute
+              path="/app/setSR"
+              component={WorkshopSetSR}
+              role={role}
+              // allowedRole={ROLES_ENUM.WORKSHOP}
+            />
+            <PrivateRoute
+              path="/app/vehicle/:vehicleId"
+              component={VehiclePage}
+              isRegistryOwner={props.isRegistryOwner}
+              role={role}
+              // allowedRole={ROLES_ENUM.ADMINISTRATOR}
+            />
+            {/* <PrivateRoute
+              path="/app/insurance"
+              component={Notifications}
+              role={role}
+              // allowedRole={ROLES_ENUM.INSURANCE}
+            /> */}
             <Route
               exact
               path="/app/ui"
               render={() => <Redirect to="/app/ui/icons" />}
             />
+            <Route exact path="/app/misc" component={MiscPage} />
             <Route path="/app/ui/icons" component={Icons} />
             <Route path="/app/ui/charts" component={Charts} />
           </Switch>
@@ -118,5 +207,44 @@ function Layout(props) {
     </div>
   );
 }
+
+const PrivateRoute = ({
+  component,
+  role,
+  path,
+  allowedRoles,
+  isRegistryOwner,
+  ...rest
+}) => {
+  // const isAuthenticated = role === allowedRole;
+  const isAuthenticated = allowedRoles ? allowedRoles.indexOf(role) > -1 : true;
+  const rolePath = role.split(" ")[0].toLowerCase();
+  // const isAuthenticated = true;
+
+  return (
+    <Route
+      {...rest}
+      render={(props) =>
+        isAuthenticated ? (
+          React.createElement(component, {
+            ...props,
+            role,
+            isRegistryOwner,
+          })
+        ) : (
+          <Redirect
+            to={{
+              // pathname: path,
+              pathname: `/app/${rolePath}`,
+              state: {
+                from: props.location,
+              },
+            }}
+          />
+        )
+      }
+    />
+  );
+};
 
 export default withRouter(Layout);

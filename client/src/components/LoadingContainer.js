@@ -1,11 +1,10 @@
-import React from 'react';
 import { drizzleReactHooks } from "@drizzle/react-plugin";
-
+import React from 'react';
 const { useDrizzleState } = drizzleReactHooks;
 
 
-function LoadingContainer({children}) {
-    const drizzleStatus = useDrizzleState(state => state.drizzleStatus);
+const LoadingContainer = ({children}) => {
+  const drizzleStatus = useDrizzleState(state => state.drizzleStatus);
 
     if (drizzleStatus.initialized === false) {
         return "Loading...";

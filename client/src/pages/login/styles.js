@@ -11,6 +11,18 @@ export default makeStyles(theme => ({
     top: 0,
     left: 0,
   },
+  loginContainer: {
+    backgroundColor: theme.palette.primary.main,
+    marginLeft: 'auto',
+    marginRight: 'auto',
+    width: '100%',
+    height: '100%',
+    display: 'flex',
+    justifyContent: 'center',
+    color: 'white',
+    alignItems: 'center',
+    flexDirection: "column"
+  },
   logotypeContainer: {
     backgroundColor: theme.palette.primary.main,
     width: "60%",

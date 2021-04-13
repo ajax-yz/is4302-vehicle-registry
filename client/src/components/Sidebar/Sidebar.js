@@ -28,61 +28,60 @@ import {
   useLayoutDispatch,
   toggleSidebar,
 } from "../../context/LayoutContext";
+import { ROLES_ENUM } from "../../constants";
 
 const structure = [
-  { id: 0, label: "Dashboard", link: "/app/dashboard", icon: <HomeIcon /> },
+  {
+    id: 0,
+    label: "Dashboard",
+    link: "/app/dashboard",
+    icon: <HomeIcon />,
+    allowedRoles: [ROLES_ENUM.ADMINISTRATOR],
+  },
   {
     id: 1,
-    label: "Typography",
-    link: "/app/typography",
+    label: "Administrator",
+    link: "/app/administrator",
     icon: <TypographyIcon />,
+    allowedRoles: [ROLES_ENUM.ADMINISTRATOR],
   },
-  { id: 2, label: "Tables", link: "/app/tables", icon: <TableIcon /> },
+  {
+    id: 2,
+    label: "Owner",
+    link: "/app/owner",
+    icon: <NotificationsIcon />,
+    allowedRoles: [ROLES_ENUM.OWNER, ROLES_ENUM.DEALER],
+  },
   {
     id: 3,
-    label: "Notifications",
-    link: "/app/notifications",
-    icon: <NotificationsIcon />,
+    label: "Workshop",
+    link: "/app/workshop",
+    icon: <HomeIcon />,
+    allowedRoles: [ROLES_ENUM.WORKSHOP],
   },
-  {
-    id: 4,
-    label: "UI Elements",
-    link: "/app/ui",
-    icon: <UIElementsIcon />,
-    children: [
-      { label: "Icons", link: "/app/ui/icons" },
-      { label: "Charts", link: "/app/ui/charts" },
-      { label: "Maps", link: "/app/ui/maps" },
-    ],
-  },
-  { id: 5, type: "divider" },
-  { id: 6, type: "title", label: "HELP" },
-  { id: 7, label: "Library", link: "", icon: <LibraryIcon /> },
-  { id: 8, label: "Support", link: "", icon: <SupportIcon /> },
-  { id: 9, label: "FAQ", link: "", icon: <FAQIcon /> },
-  { id: 10, type: "divider" },
-  { id: 11, type: "title", label: "PROJECTS" },
-  {
-    id: 12,
-    label: "My recent",
-    link: "",
-    icon: <Dot size="small" color="warning" />,
-  },
-  {
-    id: 13,
-    label: "Starred",
-    link: "",
-    icon: <Dot size="small" color="primary" />,
-  },
-  {
-    id: 14,
-    label: "Background",
-    link: "",
-    icon: <Dot size="small" color="secondary" />,
-  },
+  // {
+  //   id: 5,
+  //   label: "Add Servicing Record",
+  //   link: "/app/setSR",
+  //   icon: <UIElementsIcon />,
+  //   allowedRoles: [ROLES_ENUM.WORKSHOP],
+  // },
+  // {
+  //   id: 6,
+  //   label: "Insurance",
+  //   link: "/app/insurance",
+  //   icon: <UIElementsIcon />,
+  //   allowedRoles: [ROLES_ENUM.INSURANCE],
+  // },
+  // {
+  //   id: 7,
+  //   label: "Misc (to be deleted)",
+  //   link: "/app/misc",
+  //   icon: <UIElementsIcon />,
+  // },
 ];
 
-function Sidebar({ location }) {
+const Sidebar = ({ location, role }) => {
   var classes = useStyles();
   var theme = useTheme();
 
@@ -93,7 +92,7 @@ function Sidebar({ location }) {
   // local
   var [isPermanent, setPermanent] = useState(true);
 
-  useEffect(function() {
+  useEffect(function () {
     window.addEventListener("resize", handleWindowWidthChange);
     handleWindowWidthChange();
     return function cleanup() {
@@ -127,14 +126,26 @@ function Sidebar({ location }) {
         </IconButton>
       </div>
       <List className={classes.sidebarList}>
-        {structure.map(link => (
-          <SidebarLink
-            key={link.id}
-            location={location}
-            isSidebarOpened={isSidebarOpened}
-            {...link}
-          />
-        ))}
+        {structure.map((link) => {
+          // return (
+          //   <SidebarLink
+          //     key={link.id}
+          //     location={location}
+          //     isSidebarOpened={isSidebarOpened}
+          //     {...link}
+          //   />
+          // );
+          if (link.allowedRoles.indexOf(role) > -1) {
+            return (
+              <SidebarLink
+                key={link.id}
+                location={location}
+                isSidebarOpened={isSidebarOpened}
+                {...link}
+              />
+            );
+          }
+        })}
       </List>
     </Drawer>
   );
@@ -151,6 +162,6 @@ function Sidebar({ location }) {
       setPermanent(true);
     }
   }
-}
+};
 
 export default withRouter(Sidebar);

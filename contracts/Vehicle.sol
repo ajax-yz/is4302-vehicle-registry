@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 import "./ERC721Full.sol";
 
 contract Vehicle is ERC721Full {
-
     // Using OpenZeppelin Counter
     using Counters for Counters.Counter;
     Counters.Counter private _vehicleIds;
@@ -12,7 +11,7 @@ contract Vehicle is ERC721Full {
 
     address _owner = msg.sender;
 
-    enum typeOfServicing {modification, maintenance, repair}
+    enum typeOfServicing {modification, maintenance, repair, accident}
 
     // ---------------------------- Structs ---------------------------- //
 
@@ -31,9 +30,7 @@ contract Vehicle is ERC721Full {
 
     struct VehRegDetails2 {
         uint256 noOfTransfers; // 0
-        // bytes32 primaryColour; // White (Removed to prevent stack too deep)
         bytes32 engineCap; // 1,598 cc
-        // bytes32 maxPowerOutput; // 129 bhp (Removed to prevent stack too deep error)
         bytes32 coeCat; // A - Car up to 1600cc & 97kW (130bhp)
         uint256 quotaPrem; // $33,520
         bytes32 owner; // Jonathan Tan
@@ -54,14 +51,12 @@ contract Vehicle is ERC721Full {
         uint256 servicingId; // 1 means it is the first servicing record
         bytes32 dateCompleted; // 11 December 2020
         bytes32 workshopRegNo; // 35766600C
-        // uint256 invoiceNo; // 5445445 (Removed to avoid stack too deep)
-        typeOfServicing typeOfWorkDone; // Modification/Maintenance/Repair
+        typeOfServicing typeOfWorkDone; // Modification/Maintenance/Repair/Accident
         bytes32 appointedMechanic; // Dominic Toretto
-        // uint256 contactNo; // 93334302 (Removed to avoid stack too deep)
         bytes32 currentMileage; // 20,000 km
         bytes32 workDone; // Engine oil, oil filter, brake fluid, washer fluid, wheel alignment and balancing. Regular maintenance, recommended to change tyres for the next servicing
         bytes32 totalCharges; // $189.43 (Solidity uint does not accept decimals)
-        bool acknowledgedByOwner; // To check whether owner acknowledged the servicing
+        uint256 accidentId; // Related to which accident record
         // bytes32 remarks; // Combined with work done: Regular maintenance, recommended to change tyres for the next servicing
     }
 
@@ -70,23 +65,21 @@ contract Vehicle is ERC721Full {
         bytes32 accidentDateLocation; // 11 January 2021, South Buona Vista Road
         bytes32 driverName; // Jonathan Tan
         bytes32 timeOfAccident; // 11:59 PM
-        // bytes32 location; // Combined with date (Stack too deep)
         bytes32 descriptionOfAccident; // Driver lost control of the vehicle and crashed against the tree. Front bumper, headlights, hood, radiator badly damaged
-        bytes32 insuranceCoName; // NTUC Income
         // bytes32 descriptionOfDamages; // Combined wwith description of accident: Front bumper, headlights, hood, radiator badly damaged
         bytes32 appointedWorkshopNo; // 35766600C
         uint256 servicingId; // 2 [Invoice No (removed) changed to servicing id]
         bytes32 remarks; // Accident reported to the police, and filed insurance claim
-        bool claimIssued; // Check whether claim has been issued
+        bool repaired; // Check whether repair work has been done
     }
-    
+
     // ---------------------------- Mappings ---------------------------- //
 
     // vehicleNoId[vehicle no] = vehicle id (Unique)
     // E.g. vehicleNoId[SOC4302S] = 1
     mapping(bytes32 => uint256) vehicleNoId;
 
-    // vehRegRecords1[vehicle id] = vehicle reg details 
+    // vehRegRecords1[vehicle id] = vehicle reg details
     mapping(uint256 => VehRegDetails1) vehRegRecords1;
     mapping(uint256 => VehRegDetails2) vehRegRecords2;
 
@@ -105,7 +98,7 @@ contract Vehicle is ERC721Full {
 
     // noOfAccidentRecords[vehicle id] = 5 (5 accident records exists for this license plate)
     mapping(uint256 => uint256) noOfAccidentRecords;
-    
+
     // vehAccidentIds[Vehicle ID] = uint256[] array of accident ids;
     mapping(uint256 => uint256[]) vehAccidentIds;
 
@@ -115,66 +108,115 @@ contract Vehicle is ERC721Full {
     // ---------------------------- Events ---------------------------- //
 
     event vehRegDetails1Added(uint256 vehicleId);
-    event vehRegDetails1Returned(uint256 vehicleId);
-    event vehRegDetails1Part2Returned(uint256 vehicleId);
+    event vehRegDetails1Returned(
+        uint256 vehicleId,
+        bytes32 vehicleNo,
+        bytes32 makeModel
+    );
+    event vehRegDetails1Part2Returned(
+        uint256 vehicleId,
+        uint256 omv,
+        bytes32 originalRegDate,
+        bytes32 effectiveRegDate
+    );
     event vehRegDetails1Updated(uint256 vehicleId, bytes32 newEffectiveDate);
 
     event vehRegDetails2Added(uint256 vehicleId);
-    event vehRegDetails2Returned(uint256 vehicleId);
+    event vehRegDetails2Returned(
+        uint256 vehicleId,
+        bytes32 ownerName,
+        bytes32 engineCap
+    );
     event vehRegDetails2Updated(uint256 vehicleId, uint256 quotaPrem);
 
     event licensePlateChanged(uint256 vehicleId, bytes32 newLicensePlate);
-    event licensePlateSwapped(bytes32 myNewLicensePlate, bytes32 myOldLicensePlate);
+    event licensePlateSwapped(
+        bytes32 myNewLicensePlate,
+        bytes32 myOldLicensePlate
+    );
     event vehicleDeregistered(uint256 vehicleId);
 
     event vehOwnerDetailsRecorded(uint256 vehicleId, uint256 ownerId);
-    event vehOwnershipHistoryRetrieved(uint256 vehicleId, bytes32 owner, uint256 contact, bytes32 ownerPhysicalAddress, address ownerAddress);
+    event vehOwnershipHistoryRetrieved(
+        uint256 vehicleId,
+        bytes32 owner,
+        uint256 contact,
+        bytes32 ownerPhysicalAddress,
+        address ownerAddress
+    );
     event vehOwnerDetailsUpdated(uint256 vehicleId, uint256 ownerId);
 
-    event vehServicingDetailsRecorded(uint256 vehicleId, uint256 servicingId);
-    event vehServicingRecordsRetrieved(uint256 vehicleId);
-    event vehServicingDetailsAcknowledged(uint256 vehicleId, uint256 servicingId);
-    event vehServicingHistoryRetrieved(uint256 vehicleId, uint256 servicingId);
-    event vehServicingHistory2Retrieved(uint256 vehicleId, uint256 servicingId);
+    event vehServicingDetailsRecorded(
+        uint256 vehicleId,
+        uint256 newServicingId
+    );
+    event allVehServicingRecordsRetrieved(uint256 vehicleId);
+    event vehServicingRecordRetrieved(uint256 vehicleId, uint256 servicingId);
+    event vehServicingRecord2Retrieved(uint256 vehicleId, uint256 servicingId);
 
-    event vehAccidentDetailsRecorded(uint256 vehicleId, uint256 accidentId);
-    event vehAccidentRecordsRetrieved(uint256 vehicleId);
-    event vehInsuranceClaimIssued(uint256 vehicleId, uint256 accidentId);
-    event vehAccidentHistoryRetrieved(uint256 vehicleId, uint256 accidentId);
-    event vehAccidentHistory2Retrieved(uint256 vehicleId, uint256 accidentId);
+    event vehAccidentDetailsRecorded(uint256 vehicleId, uint256 newAccidentId);
+    event allVehAccidentRecordsRetrieved(uint256 vehicleId);
+    event vehAccidentRecordRetrieved(uint256 vehicleId, uint256 accidentId);
+    event vehAccidentRecord2Retrieved(uint256 vehicleId, uint256 accidentId);
 
-    event vehTransferInfoUpdated(uint256 vehicleId, address currentOwnerAddress, address newOwnerAddress);
+    event servicingToAccidentLinked(
+        uint256 vehicleId,
+        uint256 accidentId,
+        uint256 newServicingId
+    );
+    event vehTransferInfoUpdated(
+        uint256 vehicleId,
+        address currentOwnerAddress,
+        address newOwnerAddress
+    );
 
-    
     // ---------------------------- Modifiers ---------------------------- //
 
     modifier onlyOwner() {
-        require(msg.sender == _owner, "Only the owner can carry out this function");
+        require(
+            msg.sender == _owner,
+            "Only the owner can carry out this function"
+        );
         _;
     }
 
     modifier vehicleRegDetails1Exists(uint256 vehicleId) {
-        require (vehRegRecords1[vehicleId].registered, 'Vehicle ID Invalid: No Vehicle Registered to this ID');
+        require(
+            vehRegRecords1[vehicleId].registered,
+            "Vehicle ID Invalid: No Vehicle Registered to this ID"
+        );
         _;
     }
 
     modifier vehicleRegDetails2Exists(uint256 vehicleId) {
-        require (vehRegRecords2[vehicleId].registered, 'Vehicle ID Invalid: No Vehicle Registered to this ID');
+        require(
+            vehRegRecords2[vehicleId].registered,
+            "Vehicle ID Invalid: No Vehicle Registered to this ID"
+        );
         _;
     }
 
     modifier ownershipDetailsExists(uint256 vehicleId, uint256 ownerId) {
-        require (vehOwnerRecords[vehicleId][ownerId].exists, 'Owner ID Invalid: Please enter a valid owner id');
+        require(
+            vehOwnerRecords[vehicleId][ownerId].exists,
+            "Owner ID Invalid: Please enter a valid owner id"
+        );
         _;
     }
 
     modifier vehicleServicingIdExists(uint256 vehicleId, uint256 servicingId) {
-        require(servicingId < noOfServicingRecords[vehicleId], 'Invalid Servicing ID: Servicing ID does not exists');
+        require(
+            servicingId <= noOfServicingRecords[vehicleId],
+            "Invalid Servicing ID: Servicing ID does not exists"
+        );
         _;
     }
 
     modifier vehicleAccidentIdExists(uint256 vehicleId, uint256 accidentId) {
-        require(accidentId < noOfAccidentRecords[vehicleId], 'Invalid Accident ID: Accident ID does not exists');
+        require(
+            accidentId <= noOfAccidentRecords[vehicleId],
+            "Invalid Accident ID: Accident ID does not exists"
+        );
         _;
     }
 
@@ -194,7 +236,6 @@ contract Vehicle is ERC721Full {
         bytes32 originalRegDate,
         bytes32 effectiveRegDate
     ) external returns (uint256) {
-
         VehRegDetails1 memory newVehRegDetails1 =
             VehRegDetails1(
                 vehicleNo,
@@ -221,7 +262,6 @@ contract Vehicle is ERC721Full {
      * Function 2: 2nd part of add reg veh details
      * Comments:
      */
-
     function addRegisteredVeh2(
         uint256 noOfTransfers,
         bytes32 engineCap,
@@ -230,9 +270,10 @@ contract Vehicle is ERC721Full {
         bytes32 owner,
         address ownerAddress
     ) external returns (uint256) {
-
-        require(vehRegRecords1[_vehicleIds.current()].registered, 
-            'Vehicle Registration Details Part 1 Not Completed Yet');
+        require(
+            vehRegRecords1[_vehicleIds.current()].registered,
+            "Vehicle Registration Details Part 1 Not Completed Yet"
+        );
 
         VehRegDetails2 memory newVehRegDetails2 =
             VehRegDetails2(
@@ -262,7 +303,9 @@ contract Vehicle is ERC721Full {
      * Comments:
      */
     function retrieveVehInfo1(uint256 vehicleId)
-        external vehicleRegDetails1Exists(vehicleId) returns (
+        external
+        vehicleRegDetails1Exists(vehicleId)
+        returns (
             bytes32,
             bytes32,
             uint256,
@@ -270,17 +313,16 @@ contract Vehicle is ERC721Full {
             bytes32
         )
     {
+        bytes32 vehicleNo = vehRegRecords1[vehicleId].vehicleNo;
+        bytes32 makeModel = vehRegRecords1[vehicleId].makeModel;
+        uint256 manufacturingYear = vehRegRecords1[vehicleId].manufacturingYear;
+        bytes32 engineNo = vehRegRecords1[vehicleId].engineNo;
+        bytes32 chassisNo = vehRegRecords1[vehicleId].chassisNo;
 
-        // Emit event for testing purpose
-        emit vehRegDetails1Returned(vehicleId);
+        // Emit event
+        emit vehRegDetails1Returned(vehicleId, vehicleNo, makeModel);
 
-        return (
-            vehRegRecords1[vehicleId].vehicleNo,
-            vehRegRecords1[vehicleId].makeModel,
-            vehRegRecords1[vehicleId].manufacturingYear,
-            vehRegRecords1[vehicleId].engineNo,
-            vehRegRecords1[vehicleId].chassisNo
-        );
+        return (vehicleNo, makeModel, manufacturingYear, engineNo, chassisNo);
     }
 
     /**
@@ -288,21 +330,26 @@ contract Vehicle is ERC721Full {
      * Comments: To avoid stack too deep issue
      */
     function retrieveVehInfo1Part2(uint256 vehicleId)
-        external vehicleRegDetails1Exists(vehicleId) returns (
+        external
+        vehicleRegDetails1Exists(vehicleId)
+        returns (
             uint256,
             bytes32,
             bytes32
         )
     {
-
-        // Emit event for testing purpose
-        emit vehRegDetails1Part2Returned(vehicleId);
-
-        return (
-            vehRegRecords1[vehicleId].omv,
-            vehRegRecords1[vehicleId].originalRegDate,
-            vehRegRecords1[vehicleId].effectiveRegDate
+        uint256 omv = vehRegRecords1[vehicleId].omv;
+        bytes32 originalRegDate = vehRegRecords1[vehicleId].originalRegDate;
+        bytes32 effectiveRegDate = vehRegRecords1[vehicleId].effectiveRegDate;
+        // Emit event
+        emit vehRegDetails1Part2Returned(
+            vehicleId,
+            omv,
+            originalRegDate,
+            effectiveRegDate
         );
+
+        return (omv, originalRegDate, effectiveRegDate);
     }
 
     /**
@@ -310,7 +357,9 @@ contract Vehicle is ERC721Full {
      * Comments:
      */
     function retrieveVehInfo2(uint256 vehicleId)
-        external vehicleRegDetails2Exists(vehicleId) returns (
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        returns (
             uint256,
             bytes32,
             bytes32,
@@ -318,16 +367,16 @@ contract Vehicle is ERC721Full {
             bytes32
         )
     {
-        // Emit event for testing purpose
-        emit vehRegDetails2Returned(vehicleId);
+        uint256 noOfTransfers = vehRegRecords2[vehicleId].noOfTransfers;
+        bytes32 engineCap = vehRegRecords2[vehicleId].engineCap;
+        bytes32 coeCat = vehRegRecords2[vehicleId].coeCat;
+        uint256 quotaPrem = vehRegRecords2[vehicleId].quotaPrem;
+        bytes32 ownerName = vehRegRecords2[vehicleId].owner;
 
-        return (
-            vehRegRecords2[vehicleId].noOfTransfers,
-            vehRegRecords2[vehicleId].engineCap,
-            vehRegRecords2[vehicleId].coeCat,
-            vehRegRecords2[vehicleId].quotaPrem,
-            vehRegRecords2[vehicleId].owner
-        );
+        // Emit event for testing purpose
+        emit vehRegDetails2Returned(vehicleId, ownerName, engineCap);
+
+        return (noOfTransfers, engineCap, coeCat, quotaPrem, ownerName);
     }
 
     /**
@@ -335,17 +384,19 @@ contract Vehicle is ERC721Full {
      * Comments: Updates can only be made to 'effective reg date' & 'vehicle no'.
      * Comments2: Update of vehicle no when owner purchase new license plate no
      */
-    function updateVehInfo1 (
-        uint256 vehicleId,
-        bytes32 _effectiveRegDate) 
-        external vehicleRegDetails1Exists(vehicleId) returns (bool) {
-
+    function updateVehInfo1(uint256 vehicleId, bytes32 _effectiveRegDate)
+        external
+        vehicleRegDetails1Exists(vehicleId)
+        returns (bool)
+    {
         // Update fields
         vehRegRecords1[vehicleId].effectiveRegDate = _effectiveRegDate;
 
         // emit event
-        emit vehRegDetails1Updated(vehicleId, 
-            vehRegRecords1[vehicleId].effectiveRegDate);
+        emit vehRegDetails1Updated(
+            vehicleId,
+            vehRegRecords1[vehicleId].effectiveRegDate
+        );
 
         return true;
     }
@@ -354,11 +405,11 @@ contract Vehicle is ERC721Full {
      * Function 7: Change vehicle license plate no
      * Comments: When owner change his vehicle license plate after sucessfully bidding a vehicle license plate
      */
-    function updateVehNo (
-        uint256 vehicleId, 
-        bytes32 _vehicleNo) 
-        external vehicleRegDetails1Exists(vehicleId) returns (bool) {
-        
+    function updateVehNo(uint256 vehicleId, bytes32 _vehicleNo)
+        external
+        vehicleRegDetails1Exists(vehicleId)
+        returns (bool)
+    {
         // Update mapping of vehicle license plate => vehicle ID
         vehicleNoId[_vehicleNo] = vehicleId;
 
@@ -366,8 +417,10 @@ contract Vehicle is ERC721Full {
         vehRegRecords1[vehicleId].vehicleNo = _vehicleNo;
 
         // emit event
-        emit licensePlateChanged(vehicleId, 
-            vehRegRecords1[vehicleId].vehicleNo);
+        emit licensePlateChanged(
+            vehicleId,
+            vehRegRecords1[vehicleId].vehicleNo
+        );
 
         return true;
     }
@@ -377,15 +430,16 @@ contract Vehicle is ERC721Full {
      * Comments: When owner swap his vehicle license plate with another vehicle license plate
      * Comments2: Ownership mapping does not change
      */
-    function swapLicensePlateNo (
-        uint256 myVehicleId, 
-        uint256 otherVehicleId) 
-        external returns (bool) {
-        
+    function swapLicensePlateNo(uint256 myVehicleId, uint256 otherVehicleId)
+        external
+        returns (bool)
+    {
         // Check that both vehicle ids exist
-        require (vehRegRecords1[myVehicleId].registered
-            && vehRegRecords1[otherVehicleId].registered
-            , 'Vehicle ID Invalid: No Vehicles Registered to the IDs provided');
+        require(
+            vehRegRecords1[myVehicleId].registered &&
+                vehRegRecords1[otherVehicleId].registered,
+            "Vehicle ID Invalid: No Vehicles Registered to the IDs provided"
+        );
 
         // Retrieve my license plate
         bytes32 myLicensePlate = vehRegRecords1[myVehicleId].vehicleNo;
@@ -406,42 +460,46 @@ contract Vehicle is ERC721Full {
         vehRegRecords1[otherVehicleId].vehicleNo = myLicensePlate;
 
         // Emit event
-        emit licensePlateSwapped(vehRegRecords1[myVehicleId].vehicleNo, 
-            myLicensePlate);
-        
-        return true;
+        emit licensePlateSwapped(
+            vehRegRecords1[myVehicleId].vehicleNo,
+            myLicensePlate
+        );
 
+        return true;
     }
 
     /**
      * Function 9: Update 2nd part of reg veh details
      * Comments: Updates can only be made to 'Quota Premium'. Other fields updated seperately below
      */
-    function updateVehInfo2 (uint256 vehicleId, uint256 _quotaPrem) 
-        external vehicleRegDetails2Exists(vehicleId) returns (bool) {
-        
+    function updateVehInfo2(uint256 vehicleId, uint256 _quotaPrem)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        returns (bool)
+    {
         // Update fields
         vehRegRecords2[vehicleId].quotaPrem = _quotaPrem;
 
         // emit event
-        emit vehRegDetails2Updated(vehicleId, 
-            vehRegRecords2[vehicleId].quotaPrem);
+        emit vehRegDetails2Updated(
+            vehicleId,
+            vehRegRecords2[vehicleId].quotaPrem
+        );
 
         return true;
     }
 
     /**
      * Function 10: Update owner details after transfer of vehicle
-     * Commments: Updates made to 'No of Transfers', 'Owner Name', 'Owner address', & 'Owner Details Mapping'
+     * Comments: Updates made to 'No of Transfers', 'Owner Name', 'Owner address', & 'Owner Details Mapping'
      */
-    function transferVehicleUpdate (
-        uint256 vehicleId, 
+    function transferVehicleUpdate(
+        uint256 vehicleId,
         bytes32 newOwner,
-        uint256 newOwnerContact, 
+        uint256 newOwnerContact,
         bytes32 newOwnerPhysicalAddress,
-        address newOwnerAddress) 
-        external vehicleRegDetails2Exists(vehicleId) returns (bool) {
-        
+        address newOwnerAddress
+    ) external vehicleRegDetails2Exists(vehicleId) returns (bool) {
         address currentOwnerAddress = vehRegRecords2[vehicleId].ownerAddress;
 
         // Update fields
@@ -453,42 +511,56 @@ contract Vehicle is ERC721Full {
         uint256 newOwnerId = vehRegRecords2[vehicleId].noOfTransfers;
 
         // Update the mapping using the function below
-        registerNewOwnerDetails(vehicleId, newOwnerId, newOwner, newOwnerContact, newOwnerPhysicalAddress, newOwnerAddress);
+        registerNewOwnerDetails(
+            vehicleId,
+            newOwnerId,
+            newOwner,
+            newOwnerContact,
+            newOwnerPhysicalAddress,
+            newOwnerAddress
+        );
 
         // emit event
-        emit vehTransferInfoUpdated(vehicleId, currentOwnerAddress, newOwnerAddress);
+        emit vehTransferInfoUpdated(
+            vehicleId,
+            currentOwnerAddress,
+            newOwnerAddress
+        );
 
         return true;
     }
 
     /**
      * Function 11: De-register vehicle
-     * Commments: Delete token and update registered boolean after vehicle is scrapped or exported. (Not deleted)
+     * Comments: Delete token and update registered boolean after vehicle is scrapped or exported. (Not deleted)
      */
-     function deregisterVeh(uint256 vehicleId) 
-        external vehicleRegDetails1Exists(vehicleId) vehicleRegDetails2Exists(vehicleId)
-        returns (bool) {
+    function deregisterVeh(uint256 vehicleId)
+        external
+        vehicleRegDetails1Exists(vehicleId)
+        vehicleRegDetails2Exists(vehicleId)
+        returns (bool)
+    {
+        // Update 'registered' boolean
+        vehRegRecords1[vehicleId].registered = false;
+        vehRegRecords2[vehicleId].registered = false;
 
-            // Update 'registered' boolean
-            vehRegRecords1[vehicleId].registered = false;
-            vehRegRecords2[vehicleId].registered = false;
+        // Update mapping of license plate no => vehicle id
+        bytes32 _vehicleNo = vehRegRecords1[vehicleId].vehicleNo;
+        delete vehicleNoId[_vehicleNo];
 
-            // Update mapping of license plate no => vehicle id
-            bytes32 _vehicleNo = vehRegRecords1[vehicleId].vehicleNo;
-            delete vehicleNoId[_vehicleNo];
+        // Burn token
+        _burn(vehicleId);
 
-            // Burn token
-            _burn(vehicleId);
+        // emit event
+        emit vehicleDeregistered(vehicleId);
 
-            // emit event
-            emit vehicleDeregistered(vehicleId);
-
-            return true;
-     }
+        return true;
+    }
 
     /**
      * Function 12: Register new owner of vehicle
-     * Commments: For adding new owner during ownership transfer (Input no. of transfer as owner ID)
+     * Comments: For adding new owner info to track ownership history
+     * Comments 2: (Input no. of transfer as owner ID)
      */
     function registerNewOwnerDetails(
         uint256 vehicleId,
@@ -498,7 +570,6 @@ contract Vehicle is ERC721Full {
         bytes32 ownerPhysicalAddress,
         address ownerAddress
     ) public vehicleRegDetails2Exists(vehicleId) returns (bool) {
-
         VehOwnerDetails memory newOwnerDetails =
             VehOwnerDetails(
                 ownerId,
@@ -511,6 +582,9 @@ contract Vehicle is ERC721Full {
 
         vehOwnerRecords[vehicleId][ownerId] = newOwnerDetails;
 
+        // Update exists boolean under new owner
+        vehOwnerRecords[vehicleId][ownerId].exists = true;
+
         emit vehOwnerDetailsRecorded(vehicleId, ownerId);
 
         return true;
@@ -518,54 +592,64 @@ contract Vehicle is ERC721Full {
 
     /**
      * Function 13: Retrieve ownership history
-     * Commments: Loop from the front end, starting from 0 to the current no. of transfer to get the full ownership history
+     * Comments: Loop from the front end, starting from 0 to the current no. of transfer to get the full ownership history
      */
-    function getOwnershipHistory(uint256 vehicleId, uint256 ownerId) 
-        external 
-            vehicleRegDetails2Exists(vehicleId) 
-            ownershipDetailsExists(vehicleId, ownerId)
-            returns (
-                bytes32, 
-                uint256, 
-                bytes32,
-                address) {
+    function getOwnershipHistory(uint256 vehicleId, uint256 ownerId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        ownershipDetailsExists(vehicleId, ownerId)
+        returns (
+            bytes32,
+            uint256,
+            bytes32,
+            address
+        )
+    {
+        bytes32 owner = vehOwnerRecords[vehicleId][ownerId].ownerName;
+        uint256 contact = vehOwnerRecords[vehicleId][ownerId].ownerContact;
+        bytes32 ownerPhysicalAddress =
+            vehOwnerRecords[vehicleId][ownerId].ownerPhysicalAddress;
+        address ownerAddress = vehOwnerRecords[vehicleId][ownerId].ownerAddress;
+        // emit event
+        emit vehOwnershipHistoryRetrieved(
+            vehicleId,
+            owner,
+            contact,
+            ownerPhysicalAddress,
+            ownerAddress
+        );
 
-                    bytes32 owner = vehOwnerRecords[vehicleId][ownerId].ownerName;
-                    uint256 contact = vehOwnerRecords[vehicleId][ownerId].ownerContact;
-                    bytes32 ownerPhysicalAddress = vehOwnerRecords[vehicleId][ownerId].ownerPhysicalAddress;
-                    address ownerAddress = vehOwnerRecords[vehicleId][ownerId].ownerAddress;
-                    // emit event
-                    emit vehOwnershipHistoryRetrieved(vehicleId, owner, contact, ownerPhysicalAddress, ownerAddress);
-                    
-                    return (owner, contact, ownerPhysicalAddress, ownerAddress);
-
+        return (owner, contact, ownerPhysicalAddress, ownerAddress);
     }
 
     /**
      * Function 14: Update vehicle ownership details
      * Comments: Only can update the current owner's details (previous owner's details fixed)
      */
-    function updateOwnerDetails (
-        uint256 vehicleId, 
-        bytes32 _ownerName, 
+    function updateOwnerDetails(
+        uint256 vehicleId,
+        bytes32 _ownerName,
         uint256 _ownerContact,
-        bytes32 _ownerPhysicalAddress) 
-        external vehicleRegDetails2Exists(vehicleId) returns (bool) {
-            
-            // No. of transfers = 0 (0 refers to the first owner with ownerId = 0)
-            uint256 ownerId = getNoOfTransfers(vehicleId);
+        bytes32 _ownerPhysicalAddress
+    ) external vehicleRegDetails2Exists(vehicleId) returns (bool) {
+        // No. of transfers = 0 (0 refers to the first owner with ownerId = 0)
+        uint256 ownerId = getNoOfTransfers(vehicleId);
 
-            require (vehOwnerRecords[vehicleId][ownerId].exists, 'Owner ID Invalid: Owner does not exists for this vehicle');
-            
-            // Update fields
-            vehOwnerRecords[vehicleId][ownerId].ownerName = _ownerName;
-            vehOwnerRecords[vehicleId][ownerId].ownerContact = _ownerContact;
-            vehOwnerRecords[vehicleId][ownerId].ownerPhysicalAddress = _ownerPhysicalAddress;
+        require(
+            vehOwnerRecords[vehicleId][ownerId].exists,
+            "Owner ID Invalid: Owner does not exists for this vehicle"
+        );
 
-            // emit event
-            emit vehOwnerDetailsUpdated(vehicleId, ownerId);
+        // Update fields
+        vehOwnerRecords[vehicleId][ownerId].ownerName = _ownerName;
+        vehOwnerRecords[vehicleId][ownerId].ownerContact = _ownerContact;
+        vehOwnerRecords[vehicleId][ownerId]
+            .ownerPhysicalAddress = _ownerPhysicalAddress;
 
-            return true;
+        // emit event
+        emit vehOwnerDetailsUpdated(vehicleId, ownerId);
+
+        return true;
     }
 
     /**
@@ -580,9 +664,9 @@ contract Vehicle is ERC721Full {
         bytes32 appointedMechanic,
         bytes32 currentMileage,
         bytes32 workDone,
-        bytes32 totalCharges
+        bytes32 totalCharges,
+        uint256 accidentId // Omitted unless typeOfWorkDone = "Accident" (Frontend hide this field unless accident is selected)
     ) external vehicleRegDetails2Exists(vehicleId) returns (uint256) {
-
         // Increment the number of servicing record for this vehicle
         noOfServicingRecords[vehicleId]++;
 
@@ -599,8 +683,19 @@ contract Vehicle is ERC721Full {
                 currentMileage,
                 workDone,
                 totalCharges,
-                false
+                accidentId // Default: accident id = 0 (Link to no record)
             );
+
+        // Link to accident record if its accident-related servicing:
+        if (typeOfWorkDone == bytes32("Accident")) {
+            linkToAccidentRecord(
+                vehicleId,
+                accidentId,
+                newServicingId,
+                workshopRegNo,
+                workDone
+            );
+        }
 
         vehServicingRecords[vehicleId][newServicingId] = newServicingDetails;
 
@@ -613,85 +708,65 @@ contract Vehicle is ERC721Full {
     }
 
     /**
-     * Function 16: Acknowledge servicing record
-     * Comments: For owner to acknowledge the servicing record
+     * Function 16: Retrieve servicing history
+     * Comments: Loop from the front end to get the full servicing history
      */
-    function acknowledgeServicing(uint256 vehicleId, uint256 servicingId) 
-        external vehicleRegDetails2Exists(vehicleId) 
-        vehicleServicingIdExists(vehicleId, servicingId) returns (bool) {
-
-            // Update acknowledged boolean
-            vehServicingRecords[vehicleId][servicingId].acknowledgedByOwner = true;
-            
-            // emit event
-            emit vehServicingDetailsAcknowledged(vehicleId, servicingId);
-
-            return true;
-    }
-
-    /**
-     * Function 17: Retrieve servicing history
-     * Commments: Loop from the front end to get the full servicing history
-     */
-    function retrieveServHistory1(uint256 vehicleId, uint256 servicingId) 
-        external 
-            vehicleRegDetails2Exists(vehicleId) 
-            vehicleServicingIdExists(vehicleId, servicingId)
-            returns (
-                bytes32,
-                bytes32, 
-                bytes32,
-                bytes32,
-                bytes32) {
-
-                    // emit event
-                    emit vehServicingHistoryRetrieved(vehicleId, servicingId);
-                    
-                    return (
-                        vehServicingRecords[vehicleId][servicingId].dateCompleted,
-                        vehServicingRecords[vehicleId][servicingId].workshopRegNo,
-                        vehServicingRecords[vehicleId][servicingId].appointedMechanic,
-                        vehServicingRecords[vehicleId][servicingId].currentMileage,
-                        vehServicingRecords[vehicleId][servicingId].workDone
-                    );
-    }
-
-    /**
-     * Function 18: Retrieve type of servicing done
-     * Commments: To avoid stack too deep issue (Helper function: getBytes32FromEnum)
-     */
-    function retrieveServHistory2(uint256 vehicleId, uint256 servicingId) external
-        vehicleRegDetails2Exists(vehicleId) 
+    function retrieveServRecord1(uint256 vehicleId, uint256 servicingId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
         vehicleServicingIdExists(vehicleId, servicingId)
-        returns (bytes32, bytes32, bool) {
+        returns (
+            bytes32,
+            bytes32,
+            bytes32,
+            bytes32,
+            bytes32
+        )
+    {
+        // emit event
+        emit vehServicingRecordRetrieved(vehicleId, servicingId);
 
-            // emit event
-            emit vehServicingHistory2Retrieved(vehicleId, servicingId);
-
-            return (
-                getBytes32FromEnum(vehServicingRecords[vehicleId][servicingId].typeOfWorkDone),
-                vehServicingRecords[vehicleId][servicingId].totalCharges,
-                vehServicingRecords[vehicleId][servicingId].acknowledgedByOwner
-            );
-
+        return (
+            vehServicingRecords[vehicleId][servicingId].dateCompleted,
+            vehServicingRecords[vehicleId][servicingId].workshopRegNo,
+            vehServicingRecords[vehicleId][servicingId].appointedMechanic,
+            vehServicingRecords[vehicleId][servicingId].currentMileage,
+            vehServicingRecords[vehicleId][servicingId].workDone
+        );
     }
 
     /**
-     * Function 19: Add accident record function
-     * Commments:
+     * Function 17: Retrieve type of servicing done
+     * Comments: To avoid stack too deep issue (Helper function: getBytes32FromEnum)
+     */
+    function retrieveServRecord2(uint256 vehicleId, uint256 servicingId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        vehicleServicingIdExists(vehicleId, servicingId)
+        returns (bytes32, bytes32)
+    {
+        // emit event
+        emit vehServicingRecord2Retrieved(vehicleId, servicingId);
+
+        return (
+            getBytes32FromEnum(
+                vehServicingRecords[vehicleId][servicingId].typeOfWorkDone
+            ),
+            vehServicingRecords[vehicleId][servicingId].totalCharges
+        );
+    }
+
+    /**
+     * Function 18: Add accident record function
+     * Comments:
      */
     function addAccidentRec(
         uint256 vehicleId,
         bytes32 accidentDateLocation,
         bytes32 driverName,
         bytes32 timeOfAccident,
-        bytes32 descriptionOfAccident,
-        bytes32 insuranceCoName,
-        bytes32 appointedWorkshopNo,
-        uint256 servicingId,
-        bytes32 remarks
+        bytes32 descriptionOfAccident
     ) external vehicleRegDetails2Exists(vehicleId) returns (uint256) {
-
         // Increment the number of accident record for this vehicle
         noOfAccidentRecords[vehicleId]++;
 
@@ -705,11 +780,12 @@ contract Vehicle is ERC721Full {
                 driverName,
                 timeOfAccident,
                 descriptionOfAccident,
-                insuranceCoName,
-                appointedWorkshopNo,
-                servicingId,
-                remarks,
-                false
+                // insuranceCoName, // Archived
+                bytes32(""), // appointedWorkshopRegNo = undefined (completed under linkToAccidentRecord)
+                0, // Default servicing id = 0 (no servicing id recorded yet) (completed under linkToAccidentRecord)
+                bytes32(""), // remarks = undefined (completed under linkToAccidentRecord)
+                false // repaired boolean
+                // false // Archived
             );
 
         vehAccidentRecords[vehicleId][newAccidentId] = newAccidentDetails;
@@ -723,126 +799,139 @@ contract Vehicle is ERC721Full {
     }
 
     /**
-     * Function 20: Update accident claim status
-     * Comments: For insurance company to update the accident claim status
+     * Function 19: Retrieve accident history
+     * Comments: Loop from the front end to get the full accident history
      */
-    function updateClaimStatus(uint256 vehicleId, uint256 accidentId) 
-        external vehicleRegDetails2Exists(vehicleId) 
-        vehicleAccidentIdExists(vehicleId, accidentId) returns (bool) {
+    function getAccidentRecord1(uint256 vehicleId, uint256 accidentId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        vehicleAccidentIdExists(vehicleId, accidentId)
+        returns (
+            bytes32,
+            bytes32,
+            bytes32,
+            bytes32
+        )
+    {
+        // Emit event
+        emit vehAccidentRecordRetrieved(vehicleId, accidentId);
 
-            // Update claim status boolean
-            vehAccidentRecords[vehicleId][accidentId].claimIssued = true;
-            
-            // emit event
-            emit vehInsuranceClaimIssued(vehicleId, accidentId);
-
-            return true;
+        return (
+            vehAccidentRecords[vehicleId][accidentId].accidentDateLocation,
+            vehAccidentRecords[vehicleId][accidentId].driverName,
+            vehAccidentRecords[vehicleId][accidentId].timeOfAccident,
+            vehAccidentRecords[vehicleId][accidentId].descriptionOfAccident
+            // vehAccidentRecords[vehicleId][accidentId].insuranceCoName // Archived
+        );
     }
 
     /**
-     * Function 21: Retrieve accident history
-     * Commments: Loop from the front end to get the full accident history
+     * Function 20: Retrieve accident history 2
+     * Comments: To avoid stack too deep issue
      */
-    function getAccidentHistory1(uint256 vehicleId, uint256 accidentId) 
-        external 
-            vehicleRegDetails2Exists(vehicleId) 
-            vehicleAccidentIdExists(vehicleId, accidentId)
-            returns (
-                bytes32,
-                bytes32, 
-                bytes32,
-                bytes32,
-                bytes32) {
+    function getAccidentRecord2(uint256 vehicleId, uint256 accidentId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        vehicleAccidentIdExists(vehicleId, accidentId)
+        returns (
+            bytes32,
+            uint256,
+            bytes32
+        )
+    {
+        // Emit event
+        emit vehAccidentRecord2Retrieved(vehicleId, accidentId);
 
-                    // Emit event
-                    emit vehAccidentHistoryRetrieved(vehicleId, accidentId);
-                    
-                    return (
-                        vehAccidentRecords[vehicleId][accidentId].accidentDateLocation,
-                        vehAccidentRecords[vehicleId][accidentId].driverName,
-                        vehAccidentRecords[vehicleId][accidentId].timeOfAccident,
-                        vehAccidentRecords[vehicleId][accidentId].descriptionOfAccident,
-                        vehAccidentRecords[vehicleId][accidentId].insuranceCoName
-                    );
+        return (
+            vehAccidentRecords[vehicleId][accidentId].appointedWorkshopNo,
+            vehAccidentRecords[vehicleId][accidentId].servicingId,
+            vehAccidentRecords[vehicleId][accidentId].remarks
+            // vehAccidentRecords[vehicleId][accidentId].claimIssued
+        );
     }
 
     /**
-     * Function 22: Retrieve accident history 2
-     * Commments: To avoid stack too deep issue
+     * Function 21: Retrieve all servicing records on vehicle id
+     * Comments:
      */
-    function getAccidentHistory2(uint256 vehicleId, uint256 accidentId) 
-        external 
-            vehicleRegDetails2Exists(vehicleId) 
-            vehicleAccidentIdExists(vehicleId, accidentId)
-            returns (
-                bytes32,
-                uint256,
-                bytes32,
-                bool) {
-                
-                // Emit event
-                emit vehAccidentHistory2Retrieved(vehicleId, accidentId);
+    function getAllVehServicingRecords(uint256 vehicleId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        returns (uint256[] memory)
+    {
+        // Emit event
+        emit allVehServicingRecordsRetrieved(vehicleId);
 
-                return (
-                    vehAccidentRecords[vehicleId][accidentId].appointedWorkshopNo,
-                    vehAccidentRecords[vehicleId][accidentId].servicingId,
-                    vehAccidentRecords[vehicleId][accidentId].remarks,
-                    vehAccidentRecords[vehicleId][accidentId].claimIssued
-                );
-
+        return vehServicingIds[vehicleId];
     }
 
     /**
-     * Function 23: Retrieve all servicing records on vehicle id
-     * Commments:
+     * Function 22: Retrieve all accident records on vehicle id
+     * Comments:
      */
-    function getAllVehServicingRecords(uint256 vehicleId) external
-        vehicleRegDetails2Exists(vehicleId) returns (uint256[] memory) {
+    function getAllVehAccidentRecords(uint256 vehicleId)
+        external
+        vehicleRegDetails2Exists(vehicleId)
+        returns (uint256[] memory)
+    {
+        // Emit event
+        emit allVehAccidentRecordsRetrieved(vehicleId);
 
-            // Emit event
-            emit vehServicingRecordsRetrieved(vehicleId);
-
-            return vehServicingIds[vehicleId];
-
-    }
-
-    /**
-     * Function 24: Retrieve all accident records on vehicle id
-     * Commments:
-     */
-    function getAllVehAccidentRecords(uint256 vehicleId) external
-        vehicleRegDetails2Exists(vehicleId) returns (uint256[] memory) {
-
-            // Emit event
-            emit vehAccidentRecordsRetrieved(vehicleId);
-
-            return vehAccidentIds[vehicleId];
-
+        return vehAccidentIds[vehicleId];
     }
 
     // ---------------------------- Helper functions ---------------------------- //
-    
     function getOwnerOfContract() public view returns (address) {
         return _owner;
     }
 
-    function getCurrentVehOwnerAddress(uint256 vehicleId) external view returns (address){
+    function getCurrentVehOwnerAddress(uint256 vehicleId)
+        external
+        view
+        vehicleRegDetails2Exists(vehicleId)
+        returns (address)
+    {
         return vehRegRecords2[vehicleId].ownerAddress;
     }
 
-    function getNoOfTransfers(uint256 vehicleId) public view returns (uint256) {
+    function getNoOfTransfers(uint256 vehicleId)
+        public
+        view
+        vehicleRegDetails2Exists(vehicleId)
+        returns (uint256)
+    {
         return vehRegRecords2[vehicleId].noOfTransfers;
     }
 
-    function getNoOfServicingRecords(uint256 vehicleId) public view returns (uint256) {
+    function getNoOfServicingRecords(uint256 vehicleId)
+        public
+        view
+        vehicleRegDetails2Exists(vehicleId)
+        returns (uint256)
+    {
         return noOfServicingRecords[vehicleId];
     }
 
-    function getNoOfAccidentRecords(uint256 vehicleId) public view returns (uint256) {
+    function getNoOfAccidentRecords(uint256 vehicleId)
+        public
+        view
+        vehicleRegDetails2Exists(vehicleId)
+        returns (uint256)
+    {
         return noOfAccidentRecords[vehicleId];
     }
 
-    // Custom function to avoid stack too deep
+    // Helper function to test whether vehicle exists
+    function doesVehicleExists(uint256 vehicleId) external view returns (bool) {
+        return vehRegRecords2[vehicleId].registered;
+    }
+
+    // Helper function to get the total number of vehicles registered in the system
+    function getNoOfVehiclesRegistered() external view returns (uint256) {
+        return _vehicleIds.current();
+    }
+
+    // Helper function to avoid stack too deep
     function setTypeOfServicingEnum(bytes32 typeOfWorkDone)
         internal
         pure
@@ -851,11 +940,12 @@ contract Vehicle is ERC721Full {
         // Setting the enum
         typeOfServicing _typeOfServicing;
 
-        // (compareStrings(bytes32ToString(typeOfWorkDone), "modification"))
-        if (typeOfWorkDone == bytes32("modification")) {
+        if (typeOfWorkDone == bytes32("Modification")) {
             _typeOfServicing = typeOfServicing.modification;
-        } else if (typeOfWorkDone == bytes32("maintenance")) {
+        } else if (typeOfWorkDone == bytes32("Maintenance")) {
             _typeOfServicing = typeOfServicing.maintenance;
+        } else if (typeOfWorkDone == bytes32("Accident")) {
+            _typeOfServicing = typeOfServicing.accident;
         } else {
             _typeOfServicing = typeOfServicing.repair;
         }
@@ -863,7 +953,7 @@ contract Vehicle is ERC721Full {
         return _typeOfServicing;
     }
 
-    // Custom function to derive bytes32 from enum to avoid stack too deep
+    // Helper function to derive bytes32 from enum to avoid stack too deep
     function getBytes32FromEnum(typeOfServicing typeOfWorkDone)
         internal
         pure
@@ -872,49 +962,41 @@ contract Vehicle is ERC721Full {
         // Setting the enum
         bytes32 _typeOfServicing;
 
-        // (compareStrings(bytes32ToString(typeOfWorkDone), "modification"))
         if (typeOfWorkDone == typeOfServicing.modification) {
-            _typeOfServicing = "modification";
+            _typeOfServicing = "Modification";
         } else if (typeOfWorkDone == typeOfServicing.maintenance) {
-            _typeOfServicing = "maintenance";
+            _typeOfServicing = "Maintenance";
+        } else if (typeOfWorkDone == typeOfServicing.accident) {
+            _typeOfServicing = "Accident Repair";
         } else {
-            _typeOfServicing = "repair";
+            _typeOfServicing = "Repair";
         }
 
         return _typeOfServicing;
     }
 
-    // Function for converting bytes32 to string
-    function bytes32ToString(bytes32 _bytes32)
-        internal
-        pure
-        returns (string memory)
-    {
-        uint8 i = 0;
-        while (i < 32 && _bytes32[i] != 0) {
-            i++;
-        }
+    /**
+     * Helper function to link servicing record to accident record if it is an accident-related servicing
+     * Comments: To resolve stack too deep
+     */
 
-        bytes memory bytesArray = new bytes(i);
-        for (i = 0; i < 32 && _bytes32[i] != 0; i++) {
-            bytesArray[i] = _bytes32[i];
-        }
-        return string(bytesArray);
+    function linkToAccidentRecord(
+        uint256 vehicleId,
+        uint256 accidentId,
+        uint256 newServicingId,
+        bytes32 workshopRegNo,
+        bytes32 workDone
+    ) internal vehicleAccidentIdExists(vehicleId, accidentId) returns (bool) {
+        vehAccidentRecords[vehicleId][accidentId]
+            .appointedWorkshopNo = workshopRegNo;
+        vehAccidentRecords[vehicleId][accidentId].servicingId = newServicingId;
+        vehAccidentRecords[vehicleId][accidentId].remarks = workDone; // remarks = workdone
+        vehAccidentRecords[vehicleId][accidentId].repaired = true;
+        vehServicingRecords[vehicleId][newServicingId].accidentId = accidentId;
+
+        // emit event
+        emit servicingToAccidentLinked(vehicleId, accidentId, newServicingId);
+
+        return true;
     }
-
-    // Function to compare strings
-    function compareStrings(string memory a, string memory b)
-        internal
-        pure
-        returns (bool)
-    {
-        return (keccak256(abi.encodePacked((a))) ==
-            keccak256(abi.encodePacked((b))));
-    }
-
-    // Function to test whether vehicle exists
-    function doesVehicleExist(uint256 vehicleId) external view returns (bool) {
-        return vehRegRecords2[vehicleId].registered;
-    }
-
 }
