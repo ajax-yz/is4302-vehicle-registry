@@ -36,56 +36,49 @@ const structure = [
     label: "Dashboard",
     link: "/app/dashboard",
     icon: <HomeIcon />,
-    allowedRole: ROLES_ENUM.ADMINISTRATOR,
+    allowedRoles: [ROLES_ENUM.ADMINISTRATOR],
   },
   {
     id: 1,
     label: "Administrator",
     link: "/app/administrator",
     icon: <TypographyIcon />,
-    allowedRole: ROLES_ENUM.ADMINISTRATOR,
+    allowedRoles: [ROLES_ENUM.ADMINISTRATOR],
   },
   {
     id: 2,
     label: "Owner",
     link: "/app/owner",
     icon: <NotificationsIcon />,
-    allowedRole: ROLES_ENUM.OWNER,
+    allowedRoles: [ROLES_ENUM.OWNER, ROLES_ENUM.DEALER],
   },
   {
     id: 3,
-    label: "Dealer",
-    link: "/app/dealer",
-    icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.DEALER,
-  },
-  {
-    id: 4,
     label: "Workshop",
     link: "/app/workshop",
     icon: <HomeIcon />,
-    allowedRole: ROLES_ENUM.WORKSHOP,
+    allowedRoles: [ROLES_ENUM.WORKSHOP],
   },
-  {
-    id: 5,
-    label: "Add Servicing Record",
-    link: "/app/setSR",
-    icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.WORKSHOP,
-  },
-  {
-    id: 6,
-    label: "Insurance",
-    link: "/app/insurance",
-    icon: <UIElementsIcon />,
-    allowedRole: ROLES_ENUM.INSURANCE,
-  },
-  {
-    id: 7,
-    label: "Misc (to be deleted)",
-    link: "/app/misc",
-    icon: <UIElementsIcon />,
-  },
+  // {
+  //   id: 5,
+  //   label: "Add Servicing Record",
+  //   link: "/app/setSR",
+  //   icon: <UIElementsIcon />,
+  //   allowedRoles: [ROLES_ENUM.WORKSHOP],
+  // },
+  // {
+  //   id: 6,
+  //   label: "Insurance",
+  //   link: "/app/insurance",
+  //   icon: <UIElementsIcon />,
+  //   allowedRoles: [ROLES_ENUM.INSURANCE],
+  // },
+  // {
+  //   id: 7,
+  //   label: "Misc (to be deleted)",
+  //   link: "/app/misc",
+  //   icon: <UIElementsIcon />,
+  // },
 ];
 
 const Sidebar = ({ location, role }) => {
@@ -134,7 +127,15 @@ const Sidebar = ({ location, role }) => {
       </div>
       <List className={classes.sidebarList}>
         {structure.map((link) => {
-          if (!link.allowedRole || link.allowedRole === role) {
+          // return (
+          //   <SidebarLink
+          //     key={link.id}
+          //     location={location}
+          //     isSidebarOpened={isSidebarOpened}
+          //     {...link}
+          //   />
+          // );
+          if (link.allowedRoles.indexOf(role) > -1) {
             return (
               <SidebarLink
                 key={link.id}

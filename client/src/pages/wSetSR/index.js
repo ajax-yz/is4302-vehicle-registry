@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-import {
-  Grid,
-  Button,
-  TextField,
-} from "@material-ui/core";
+import { Grid, Button, TextField } from "@material-ui/core";
 import VehicleRegistryService from "../../services/VehicleRegistry";
 import { vehicleColumns } from "../../constants";
-import ModalForm from "../../components/Modal/form";
+import ModalForm from "../../components/Common/ModalForm";
 
 // drizzle
 import { drizzleReactHooks } from "@drizzle/react-plugin";
@@ -51,20 +47,21 @@ const WorkshopSetSR = () => {
   return (
     <Grid container>
       <TextField
-          id="name"
-          value={ownerAddress}
-          onChange={(e) => setOwnerAddress(e.target.value)}
-          margin="normal"
-          placeholder="Enter Owner Blockchain Address"
-          type="text"
-          fullWidth
-        />
-      <Button 
-      onClick={() => retrieveVehicles()} 
-      variant="contained"
-      size="medium"
-      color="primary"> 
-      Retrieve Vehicles 
+        id="name"
+        value={ownerAddress}
+        onChange={(e) => setOwnerAddress(e.target.value)}
+        margin="normal"
+        placeholder="Enter Owner Blockchain Address"
+        type="text"
+        fullWidth
+      />
+      <Button
+        onClick={() => retrieveVehicles()}
+        variant="contained"
+        size="medium"
+        color="primary"
+      >
+        Retrieve Vehicles
       </Button>
       {/* <AddServicingRecord /> */}
     </Grid>

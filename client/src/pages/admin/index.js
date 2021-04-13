@@ -1,259 +1,186 @@
-import React, { useState } from "react";
+import { newContextComponents } from "@drizzle/react-components";
+// Drizzle
+import { drizzleReactHooks } from "@drizzle/react-plugin";
+import { Button, Grid } from "@material-ui/core";
+import React, { useEffect, useState } from "react";
+
+// components
+import ModalForm from "../../components/Common/ModalForm";
+import ViewCard from "../../components/Common/ViewCard";
+import RegisterButton from "../../components/Common/RegisterButton";
+import PageTitle from "../../components/PageTitle/PageTitle";
+import Widget from "../../components/Widget";
+import { Typography } from "../../components/Wrappers";
+import OwnerTable from "../../components/Admin/OwnerTable";
+import AdminTable from "../../components/Admin/AdminTable";
+import WorkshopTable from "../../components/Admin/WorkshopTable";
+
+// end components
+
 import {
-  Grid,
-  LinearProgress,
-  Select,
-  OutlinedInput,
-  MenuItem,
-  Button,
-} from "@material-ui/core";
-import { useTheme } from "@material-ui/styles";
-import {
-  ResponsiveContainer,
-  ComposedChart,
-  AreaChart,
-  LineChart,
-  Line,
-  Area,
-  PieChart,
-  Pie,
-  Cell,
-  YAxis,
-  XAxis,
-} from "recharts";
-import { 
-  Link,
-  useHistory,
- } from 'react-router-dom';
+  accidentColumns,
+  defaultAccidentValues,
+  adminColumns,
+  ownerColumns,
+  servicingColumns,
+  vehicleColumns,
+  defaultVehicleValues,
+} from "../../constants";
+import VehicleRegistryService from "../../services/VehicleRegistry";
 
 // styles
 import useStyles from "./styles";
 
-import PageTitle from "../../components/PageTitle/PageTitle";
-import Widget from "../../components/Widget";
-import { Typography } from "../../components/Wrappers";
-import Dot from "../../components/Sidebar/components/Dot";
-import ModalForm from "../../components/Modal/form";
-import { vehicleColumns } from "../../constants";
-import VehicleRegistryService from "../../services/VehicleRegistry";
-import { adminColumns } from "../../constants";
-
-// Drizzle
-import { drizzleReactHooks } from "@drizzle/react-plugin";
-import { newContextComponents } from "@drizzle/react-components";
 // End of Drizzle
 
 const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 const { ContractData } = newContextComponents; // AccountData, ContractData
 
-const AdminPage = () => {
-
+const AdminPage = (props) => {
+  const [adminList, setAdminList] = useState([]);
   // Drizzle
   const { drizzle } = useDrizzle();
-  const state = useDrizzleState(state => state);
-  // End of Drizzle  
+  const state = useDrizzleState((state) => state);
+  const account = state.accounts[0]; // End of Drizzle
   var classes = useStyles();
-  var theme = useTheme();
-  return (
-    <>
-      <PageTitle
-        title="Admin"
-        button={
-          <Button variant="contained" size="medium" color="secondary">
-            Latest Reports
-          </Button>
-          
-        }
-      />
-      <Grid container spacing={4}>
-        <Grid item lg={3} md={4} sm={6} xs={12}>
-          <Widget
-            title="Admin Account Functions"
-            upperTitle
-            bodyClass={classes.fullHeightBody}
-            className={classes.card}
-          >
-           
-            {/*<Grid
-              container
-              direction="row"
-              justify="space-between"
-              alignItems="center"
-            >*/}
-              <Grid item xs={12}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Register Admin
-                </Typography>
-                <AddAdminCom />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Retrieve Admin Info
-                </Typography>
-                {/* <ViewAdminCom /> */}
-              </Grid>
-              <Grid item xs={12}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Update Admin Info
-                </Typography>
-                <Typography size="md">32</Typography>
-              </Grid>
-              <Grid item xs={12}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Remove Admin
-                </Typography>
-                <Typography size="md">3.25%</Typography>
-              </Grid>
-            {/*</Grid>*/}
-          </Widget>
-        </Grid>
-        <Grid item lg={3} md={8} sm={6} xs={12}>
-          <Widget
-            title="Workshop Functions"
-            upperTitle
-            className={classes.card}
-            bodyClass={classes.fullHeightBody}
-          >
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Register Workshop
-                </Typography>
-                <Typography size="md">860</Typography>
-              </Grid>
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Update Workshop Information
-                </Typography>
-                <Typography size="md">860</Typography>
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Retrieve Workshop Details
-                </Typography>
-                <Typography size="md">32</Typography>
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Remove Workshop
-                </Typography>
-                <Typography size="md">3.25%</Typography>
-              </Grid>
-          </Widget>
-        </Grid>
-        <Grid item lg={3} md={8} sm={6} xs={12}>
-          <Widget
-            title="Vehicle Functions"
-            upperTitle
-            className={classes.card}
-            bodyClass={classes.fullHeightBody}
-          >
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Add Registered Vehicle
-                </Typography>
-                <AddVehicleCom />
-              </Grid>
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Retrieve Vehicle Information
-                </Typography>
-                {/* <ViewAllVehCom /> */}
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Update Vehicle Information
-                </Typography>
-                <Typography size="md">32</Typography>
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Deregister Vehicle
-                </Typography>
-                <Typography size="md">3.25%</Typography>
-              </Grid>
-          </Widget>
-        </Grid>
-        <Grid item lg={3} md={8} sm={6} xs={12}>
-          <Widget
-            title="Owner Functions (should be under vehicle info i guess)"
-            upperTitle
-            className={classes.card}
-            bodyClass={classes.fullHeightBody}
-          >
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Add Owner Information
-                </Typography>
-                <Typography size="md">860</Typography>
-              </Grid>
-            <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Retrieve Ownership History
-                </Typography>
-                <Typography size="md">860</Typography>
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Update Owner Details
-                </Typography>
-                <Typography size="md">32</Typography>
-              </Grid>
-              <Grid item xs={16}>
-                <Typography color="text" colorBrightness="secondary" noWrap>
-                  Retrieve Servicing History
-                </Typography>
-                <Typography size="md">3.25%</Typography>
-              </Grid>
-          </Widget>
-        </Grid>
-        </Grid>
-    </>
-  );
-};
-// find out where adminaddress comes from
-const AddAdminCom = () => {
-  const [visible, setVisible] = useState(false);
-  const { drizzle } = useDrizzle();
 
-  const registerAdmin = async (data) => {
-    console.log("data =", data);
-    const body1 = {};
-    const bodyKeys1 = [
-      ...adminColumns.admin1,
-    ];
-    bodyKeys1.map((key) => {
-      body1[key] = data[key];
-    });
-
-    const resp = await Promise.all([
-      VehicleRegistryService.registerAdmin(
-        drizzle,
-        body1,
-      ),
-    ]);
-    console.log("resp =", resp);
+  const [admin, setAdmin] = useState({});
+  const [isRegistryOwner, setIsRegistryOwner] = useState(false);
+  const checkIsRegistryOwner = async () => {
+    const ownerAddress = await drizzle.contracts.VehicleRegistry.methods
+      .vehicleRegistryOwner()
+      .call();
+    if (ownerAddress === account) {
+      setIsRegistryOwner(true);
+    }
+  };
+  const retrieveAdmin = async () => {
+    const results = await VehicleRegistryService.retrieveAdminInfo(
+      drizzle,
+      account,
+    );
+    // console.log("results", results);
+    setAdmin(results);
   };
 
-  return (
-    <div>
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={() => setVisible(!visible)}
-      >
-        Register Admin
-      </Button>
+  const getAllAdmins = async () => {
+    if (isRegistryOwner) {
+      const admins = await drizzle.contracts.VehicleRegistry.methods
+        .getAllActiveAdmins()
+        .call();
+      if (admins) {
+        setAdminList(admins);
+      }
+    }
+  };
 
-      <ModalForm
-        title={"Register Admin"}
-        visible={visible}
-        toggleVisible={() => setVisible(!visible)}
-        onSubmit={registerAdmin}
-        keys={[
-          ...adminColumns.admin1,
-        ]}
-      />
-    </div>
+  useEffect(() => {
+    retrieveAdmin();
+    checkIsRegistryOwner().then(() => {
+      getAllAdmins();
+    });
+
+    // getAllAdmins();
+  }, [state.drizzleStatus.initialized]);
+
+  const addAccidentRecord = (body) => {
+    return VehicleRegistryService.addAccidentRecord(drizzle, {
+      vehicleId: body.vehicleId,
+      accidentDateLocation: body.accidentDateLocation,
+      driverName: body.driverName,
+      timeOfAccident: body.timeOfAccident,
+      descriptionOfAccident: body.descriptionOfAccident,
+    });
+  };
+
+  const updateVehCOEReg = (data) => {
+    return VehicleRegistryService.updateVehCOEReg(drizzle, data);
+  };
+
+  const updateVehLicensePlate = (data) => {
+    return VehicleRegistryService.updateVehLicensePlate(drizzle, data);
+  };
+
+  // console.log("adminList =", adminList);
+  return (
+    <>
+      <PageTitle title="Admin" />
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <Grid container spacing={2}>
+            <Grid item lg={8} sm={8} xs={12}>
+              <ViewCard data={admin} title={"User Details"} />
+            </Grid>
+            <Grid item lg={4} sm={4} xs={12}>
+              <Widget
+                title="Admin Functions"
+                upperTitle
+                className={classes.card}
+                bodyClass={classes.fullHeightBody}
+              >
+                <Grid item xs={12}>
+                  <Typography color="text" colorBrightness="secondary" noWrap>
+                    Register Vehicle to Owner
+                  </Typography>
+
+                  <AddVehicleCom />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <Typography color="text" colorBrightness="secondary" noWrap>
+                    Add Accident Record
+                  </Typography>
+
+                  <RegisterButton
+                    submitRegister={addAccidentRecord}
+                    registerText={"Add Accident Record"}
+                    keys={[
+                      "vehicleId",
+                      ...accidentColumns.accident1,
+                      ...accidentColumns.accident2,
+                    ]}
+                    defaultValues={defaultAccidentValues}
+                  />
+                </Grid>
+
+                <Grid item xs={12}>
+                  <div>Vehicle Functions</div>
+                  <div style={{ display: "flex" }}>
+                    <div style={{ marginRight: "8px" }}>
+                      <RegisterButton
+                        submitRegister={updateVehCOEReg}
+                        registerText={"Update Vehicle COE"}
+                        keys={["vehicleId", "effectiveRegDate", "quotaPrem"]}
+                        defaultValues={["", "10-04-2021", "40000"]}
+                      />
+                    </div>
+                    <RegisterButton
+                      submitRegister={updateVehLicensePlate}
+                      registerText={"Update License Plate"}
+                      keys={["vehicleId", "newLicensePlate"]}
+                      defaultValues={["", "SR2110J"]}
+                    />
+                  </div>
+                </Grid>
+              </Widget>
+            </Grid>
+          </Grid>
+        </Grid>
+
+        {isRegistryOwner ? (
+          <Grid item lg={12} sm={12} xs={12}>
+            <AdminTable isRegistryOwner={isRegistryOwner} />
+          </Grid>
+        ) : null}
+        <Grid item lg={12} sm={12} xs={12}>
+          <OwnerTable />
+        </Grid>
+
+        <Grid item lg={12} sm={12} xs={12}>
+          <WorkshopTable />
+        </Grid>
+      </Grid>
+    </>
   );
 };
 
@@ -262,7 +189,6 @@ const AddVehicleCom = () => {
   const { drizzle } = useDrizzle();
 
   const addVehicle = async (data) => {
-    console.log("data =", data);
     const body1 = {};
     const body2 = {};
     const bodyKeys1 = [
@@ -289,7 +215,62 @@ const AddVehicleCom = () => {
         ownerAddress,
       ),
     ]);
-    console.log("resp =", resp);
+
+    return resp;
+  };
+
+  const deregisterVehicle = (data) => {
+    return VehicleRegistryService.deregisterVehicle(drizzle, data);
+  };
+
+  return (
+    <div style={{ display: "flex" }}>
+      <div style={{ marginRight: "8px" }}>
+        <RegisterButton
+          submitRegister={addVehicle}
+          registerText={"Add Vehicle"}
+          keys={[
+            ...vehicleColumns.details1,
+            ...vehicleColumns.details1p2,
+            ...vehicleColumns.details2,
+            ...vehicleColumns.ownerAddress,
+          ]}
+          defaultValues={defaultVehicleValues}
+        />
+      </div>
+      <RegisterButton
+        submitRegister={deregisterVehicle}
+        registerText={"Deregister Vehicle"}
+        keys={["vehicleId", "ownerDealerAddress"]}
+      />
+    </div>
+  );
+};
+
+const AddWorkshopCard = () => {
+  const [visible, setVisible] = useState(false);
+  const { drizzle } = useDrizzle();
+
+  const addWorkshop = async (data) => {
+    // console.log("data =", data);
+    const body1 = {};
+    const bodyKeys1 = [
+      "workshopAddress",
+      "workshopName",
+      "workshopRegNo",
+      "physicalAddress",
+      "contact",
+      "dateOfReg",
+    ];
+    bodyKeys1.map((key) => {
+      body1[key] = data[key];
+    });
+    // const workshopAddress = data.workshopAddress;
+
+    const resp = await Promise.all([
+      VehicleRegistryService.registerWorkshop(drizzle, body1),
+    ]);
+    // console.log("resp =", resp);
   };
 
   return (
@@ -299,52 +280,25 @@ const AddVehicleCom = () => {
         color="primary"
         onClick={() => setVisible(!visible)}
       >
-        Add Vehicle
+        Add Workshop
       </Button>
 
       <ModalForm
-        title={"Add Vehicle"}
+        title={"Add Workshop"}
         visible={visible}
         toggleVisible={() => setVisible(!visible)}
-        onSubmit={addVehicle}
+        onSubmit={addWorkshop}
         keys={[
-          ...vehicleColumns.details1,
+          "workshopAddress",
+          "workshopName",
+          "workshopRegNo",
+          "physicalAddress",
+          "contact",
+          "dateOfReg",
         ]}
       />
     </div>
   );
 };
-
-// const ViewAdminCom = () => {
-//   const history = useHistory();
-//   return (
-//     <div>
-//       <Button
-//         variant="contained"
-//         color="primary"
-//         onClick={() => history.push("/app/administrator/admin-info")}
-//       >
-//         View Admin Info
-//         </Button>
-      
-//     </div>
-//   );
-// };
-
-// const ViewAllVehCom = () => {
-//   const history = useHistory();
-//   return (
-//     <div>
-//       <Button
-//         variant="contained"
-//         color="primary"
-//         onClick={() => history.push("/app/administrator/admin-tables/vehicle-table")}
-//       >
-//         View all vehicles
-//         </Button>
-      
-//     </div>
-//   );
-// };
 
 export default AdminPage;

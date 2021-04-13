@@ -19,15 +19,16 @@ const { useDrizzle, useDrizzleState } = drizzleReactHooks;
 const App = () => {
   // global
   const [userRole, setUserRole] = useState(null);
+  const [isRegistryOwner, setRegistryOwner] = useState(false);
   const drizzleState = useDrizzleState((state) => state);
   const account = drizzleState.accounts[0];
-  console.log("drizzlestate.accounts =", drizzleState.accounts);
+  // console.log("drizzlestate.accounts =", drizzleState.accounts);
   const accountsLength = Object.keys(drizzleState.accounts).length;
   const { drizzle } = useDrizzle();
 
   const getRole = async () => {
-    console.log("drizzle =", drizzle);
-    console.log("drizzleState =", drizzleState);
+    // console.log("drizzle =", drizzle);
+    // console.log("drizzleState =", drizzleState);
 
     const roleBytes = await drizzle.contracts.VehicleRegistry.methods
       .roleOfAddress(account)
@@ -35,21 +36,31 @@ const App = () => {
     if (roleBytes) {
       const role = drizzle.web3.utils.toUtf8(roleBytes);
       setUserRole(role);
-      console.log("accountt =", account);
-      console.log("role =", role);
+      // console.log("accountt =", account);
+      // console.log("role =", role);
+    }
+  };
+
+  const checkIsRegistryOwner = async () => {
+    const ownerAddress = await drizzle.contracts.VehicleRegistry.methods
+      .vehicleRegistryOwner()
+      .call();
+    if (ownerAddress === account) {
+      setRegistryOwner(true);
     }
   };
 
   useEffect(() => {
     if (drizzleState.drizzleStatus.initialized && accountsLength == 1) {
       getRole();
+      // checkIsRegistryOwner();
     }
   }, [drizzleState.drizzleStatus.initialized]);
 
   // length == 1 means user is logged in on meta mask (Includes correct and incorrect accounts). Length > 1 means user not logged in.
   const isLoggedInOnMetaMask = Object.keys(drizzleState.accounts).length === 1;
   if (userRole == null) {
-    return <div> Loading...</div>;
+    return <Login isLoggedIn={isLoggedInOnMetaMask} />;
   }
   return (
     <HashRouter>
@@ -60,7 +71,12 @@ const App = () => {
           path="/app"
           render={() => <Redirect to="/app/dashboard" />}
         />
-        <PrivateRoute path="/app" component={Layout} role={userRole} />
+        <PrivateRoute
+          path="/app"
+          component={Layout}
+          role={userRole}
+          // isRegistryOwner={isRegistryOwner}
+        />
         <PublicRoute
           path="/login"
           component={Login}
@@ -73,14 +89,16 @@ const App = () => {
   );
 };
 
-const PrivateRoute = ({ component, role, ...rest }) => {
-  const isAuthenticated = allRoles.indexOf(role) != -1;
+const PrivateRoute = ({ component, role, isRegistryOwner, ...rest }) => {
+  // const isAuthenticated = allRoles.indexOf(role) != -1;
+  const isAuthenticated = true;
+  // console.log("test ");
   return (
     <Route
       {...rest}
       render={(props) =>
         isAuthenticated ? (
-          React.createElement(component, { ...props, role })
+          React.createElement(component, { ...props, role, isRegistryOwner })
         ) : (
           <Redirect
             to={{

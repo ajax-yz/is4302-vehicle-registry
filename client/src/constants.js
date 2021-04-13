@@ -14,6 +14,26 @@ export const ROLES_ENUM = {
   INSURANCE: "Insurance Company",
 };
 
+export const ownerColumns = [
+  "ownerDealerAddress",
+  "name",
+  "contact",
+  "companyRegNo",
+  "physicalAddress",
+  "dateOfReg",
+  "isDealer",
+];
+
+export const ownerDefaultValues = [
+  "",
+  "Owner",
+  "93312133",
+  "CoReg1",
+  "Block 801 Marina Bay Gardens",
+  "01-08-20",
+  "",
+];
+
 export const vehicleColumns = {
   details1: [
     "vehicleNo",
@@ -26,18 +46,37 @@ export const vehicleColumns = {
   details2: ["noOfTransfers", "engineCap", "coeCat", "quotaPrem", "ownerName"],
   ownerAddress: ["ownerAddress"],
 };
-
+export const defaultVehicleValues = [
+  "GT2122C",
+  "Nissan",
+  "2015",
+  "Engine2",
+  "ChasisNum2051",
+  "10",
+  "01-03-2016",
+  "1052",
+  "Light Weight",
+  "50000",
+  "Owner",
+];
 export const accidentColumns = {
   accident1: [
     "accidentDateLocation",
     "driverName",
     "timeOfAccident",
     "descriptionOfAccident",
-    "insuranceCoName",
   ],
-  accident2: ["appointedWorkshopNo", "servicingId", "remarks", "claimIssued"],
+  accident2: ["appointedWorkshopNo", "servicingId", "remarks"],
 };
-
+export const defaultAccidentValues = [
+  "Yishun Avenue 5",
+  "Dickson",
+  "01:02am",
+  "A red color Mercedes car knocked into a lamp post on yishun avenue 5",
+  "",
+  "",
+  "NA",
+];
 export const servicingColumns = {
   history1: [
     "dateCompleted",
@@ -46,14 +85,42 @@ export const servicingColumns = {
     "currentMileage",
     "workDone",
   ],
-  history2: ["typeOfWorkDone", "totalCharges", "acknowledgedByOwner"],
+  history2: ["typeOfWorkDone", "totalCharges"],
 };
 
-export const adminColumns = {
-  admin1: [
-    "adminAddress",
-    "adminName",
-    "dateJoined",
-    "contact",
-  ],
-};
+export const defaultServicingValues = [
+  "12-12-2020",
+  "WorkReg",
+  "Workshop",
+  "9114",
+  "Replaced brake lining and aircon filter",
+  "Maintenance",
+  "130",
+];
+
+export const adminColumns = [
+  "adminAddress",
+  "adminName",
+  "dateJoined",
+  "contact",
+];
+
+export const adminDefaultValues = ["", "Admin", "01-10-2019", "93340129"];
+
+export const workshopColumns = [
+  "workshopAddress",
+  "workshopName",
+  "workshopRegNo",
+  "physicalAddress",
+  "contact",
+  "dateOfReg",
+];
+
+export const defaultWorkshopColumns = [
+  "",
+  "Workshop",
+  "WorkReg",
+  "Blockk 31 Geylang Bahru",
+  "93178271",
+  "02-03-20",
+];
