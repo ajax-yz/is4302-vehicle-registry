@@ -108,11 +108,11 @@ const WorkshopPage = ({ role }) => {
       <Grid container direction={"column"} spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={4}>
-            <Grid item lg={10} xs={10}>
+            <Grid item lg={8} xs={8}>
               <ViewCard data={workshopInfo} title={"Workshop Details"} />
             </Grid>
             {role === ROLES_ENUM.WORKSHOP ? (
-              <Grid item xs={2}>
+              <Grid item xs={4}>
                 <Card
                   style={{ width: "100%", minHeight: "284px", height: "100%" }}
                 >

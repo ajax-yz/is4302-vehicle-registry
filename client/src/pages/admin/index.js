@@ -139,7 +139,7 @@ const AdminPage = (props) => {
                       ...accidentColumns.accident1,
                       ...accidentColumns.accident2,
                     ]}
-                    defaultValues={defaultAccidentValues}
+                    defaultValues={["", ...defaultAccidentValues]}
                   />
                 </Grid>
 
@@ -151,7 +151,7 @@ const AdminPage = (props) => {
                         submitRegister={updateVehCOEReg}
                         registerText={"Update Vehicle COE"}
                         keys={["vehicleId", "effectiveRegDate", "quotaPrem"]}
-                        defaultValues={["", "10-04-2021", "40000"]}
+                        defaultValues={["", "10-04-2021", 40000]}
                       />
                     </div>
                     <RegisterButton
@@ -188,6 +188,21 @@ const AddVehicleCom = () => {
   const [visible, setVisible] = useState(false);
   const { drizzle } = useDrizzle();
 
+  const _addVehicle = async (data) => {
+    console.log("data =", data);
+    return await Promise.all([
+      VehicleRegistryService.registerVehicleToOwner1(
+        drizzle,
+        data,
+        data.ownerAddress,
+      ),
+      VehicleRegistryService.registerVehicleToOwner2(
+        drizzle,
+        data,
+        data.ownerAddress,
+      ),
+    ]);
+  };
   const addVehicle = async (data) => {
     const body1 = {};
     const body2 = {};
@@ -227,7 +242,7 @@ const AddVehicleCom = () => {
     <div style={{ display: "flex" }}>
       <div style={{ marginRight: "8px" }}>
         <RegisterButton
-          submitRegister={addVehicle}
+          submitRegister={_addVehicle}
           registerText={"Add Vehicle"}
           keys={[
             ...vehicleColumns.details1,

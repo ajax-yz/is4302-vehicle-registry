@@ -27,7 +27,7 @@ export const ownerColumns = [
 export const ownerDefaultValues = [
   "",
   "Owner",
-  "93312133",
+  93312133,
   "CoReg1",
   "Block 801 Marina Bay Gardens",
   "01-08-20",
@@ -49,14 +49,16 @@ export const vehicleColumns = {
 export const defaultVehicleValues = [
   "GT2122C",
   "Nissan",
-  "2015",
+  2015,
   "Engine2",
   "ChasisNum2051",
-  "10",
+  10,
   "01-03-2016",
+  "01-03-2016",
+  0,
   "1052",
   "Light Weight",
-  "50000",
+  50000,
   "Owner",
 ];
 export const accidentColumns = {
@@ -72,7 +74,7 @@ export const defaultAccidentValues = [
   "Yishun Avenue 5",
   "Dickson",
   "01:02am",
-  "A red color Mercedes car knocked into a lamp post on yishun avenue 5",
+  "A red color Mercedes car",
   "",
   "",
   "NA",
@@ -89,11 +91,12 @@ export const servicingColumns = {
 };
 
 export const defaultServicingValues = [
+  "",
   "12-12-2020",
   "WorkReg",
   "Workshop",
-  "9114",
-  "Replaced brake lining and aircon filter",
+  9114,
+  "Replaced brake",
   "Maintenance",
   "130",
 ];
@@ -105,7 +108,7 @@ export const adminColumns = [
   "contact",
 ];
 
-export const adminDefaultValues = ["", "Admin", "01-10-2019", "93340129"];
+export const adminDefaultValues = ["", "Admin", "01-10-2019", 93340129];
 
 export const workshopColumns = [
   "workshopAddress",
@@ -121,6 +124,6 @@ export const defaultWorkshopColumns = [
   "Workshop",
   "WorkReg",
   "Blockk 31 Geylang Bahru",
-  "93178271",
+  93178271,
   "02-03-20",
 ];
