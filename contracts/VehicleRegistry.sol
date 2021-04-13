@@ -16,6 +16,7 @@ contract VehicleRegistry is Ownable, Vehicle {
     Roles.Role private _ownerDealer;
     Roles.Role private _workshop;
     Roles.Role private _administrator;
+    Roles.Role private _authorizedParty;
 
     constructor(Vehicle vehicleAddress) public {
         vehicleContract = vehicleAddress;
@@ -72,11 +73,19 @@ contract VehicleRegistry is Ownable, Vehicle {
         bool active; // To check whether admin is active
     }
 
+    struct AuthorizedParty {
+        uint256 authorizedPartyId;
+        uint256[] authorizedVehicles; // uint256[] array of vehicle ids
+        mapping(uint256 => uint256) vehIdIndexInAuthorized; // vehIdIndexInAuthorized[Vehicle ID] = Index in the authorizedVehicles array
+        uint256 totalNoOfVehsAuthorized; // Total number of vehicles authorized to view
+    }
+
     // ---------------------------- Mappings ---------------------------- //
 
     mapping(address => OwnerDealer) ownersDealers;
     mapping(address => Workshop) workshops;
     mapping(address => Administrator) admins;
+    mapping(address => AuthorizedParty) authorizedParties;
 
     // ---------------------------- Arrays ---------------------------- //
 
@@ -143,6 +152,9 @@ contract VehicleRegistry is Ownable, Vehicle {
         address authorizer,
         address authorizedAddress
     );
+    event vehicleAddedToAuthorizedParty(uint256 vehicleId, address authorizedAddress);
+    event vehicleRemovedFromAuthorizedParty(uint256 vehicleId, address authorizedAddress);
+    event allAuthorizedVehiclesRetrieved(address authorizedAddress);
 
     // Vehicle-related events
     event allVehiclesOwnedRetrieved(address ownerDealerAddress);
@@ -213,6 +225,14 @@ contract VehicleRegistry is Ownable, Vehicle {
         require(
             _administrator.has(msg.sender),
             "Address Invalid: Not registered as adminstrator"
+        );
+        _;
+    }
+
+    modifier onlyAuthorizedParties() {
+        require(
+            _authorizedParty.has(msg.sender),
+            "Address Invalid: Not registered as authorized party"
         );
         _;
     }
@@ -289,6 +309,16 @@ contract VehicleRegistry is Ownable, Vehicle {
             || _administrator.has(msg.sender)
             || _workshop.has(msg.sender),
             "Only owner/dealer, admin, and workshops can acess this function"
+        );
+        _;
+    }
+
+    // Only admin and authorized party
+    modifier onlyAdminAndAuthorized() {
+        require(
+            _administrator.has(msg.sender) 
+            || _authorizedParty.has(msg.sender), 
+            "Only administrator or authorized party can access this function"
         );
         _;
     }
@@ -772,9 +802,10 @@ contract VehicleRegistry is Ownable, Vehicle {
         address _authorizer = msg.sender;
 
         // Update fields
+        uint256 _authorizedPartyId = ownersDealers[_authorizer].noOfAuthorizedParties[_vehicleId];  // 0 for first authorized party
         ownersDealers[_authorizer].authorizedPartyIndex[_vehicleId][
             _authorizedAddress
-        ] = ownersDealers[_authorizer].noOfAuthorizedParties[_vehicleId]; // 0 for first authorized party
+        ] = _authorizedPartyId;
         ownersDealers[_authorizer].noOfAuthorizedParties[_vehicleId]++;
         ownersDealers[_authorizer].isAuthorized[_vehicleId][
             _authorizedAddress
@@ -782,6 +813,9 @@ contract VehicleRegistry is Ownable, Vehicle {
         ownersDealers[_authorizer].authorizedParties[_vehicleId].push(
             _authorizedAddress
         );
+
+        // Add vehicle into the list of vehicles that authorized parties can view
+        addVehicleToAuthorizedParty(_vehicleId, _authorizedPartyId, _authorizedAddress);
 
         // emit event
         emit addressAuthorized(_vehicleId, _authorizer, _authorizedAddress);
@@ -843,6 +877,9 @@ contract VehicleRegistry is Ownable, Vehicle {
             _authorizedAddress
         ] = false;
         ownersDealers[_authorizer].noOfAuthorizedParties[_vehicleId]--;
+
+        // Remove vehicle from the list of vehicles authorized parties can view
+        removeVehicleFromAuthorizedParty(_vehicleId, _authorizedAddress);
 
         // emit event
         emit authorizationRemoved(_vehicleId, _authorizer, _authorizedAddress);
@@ -1641,7 +1678,18 @@ contract VehicleRegistry is Ownable, Vehicle {
         return activeOwnersDealers;
     }
 
+    /**
+     * Function 48: Returns all vehicles under authorized address
+     * Comments: 
+     * Allowed Roles:
+     */
+    function retrieveAllVehiclesUnderAuthorizedParty(address _authorizedAddress) 
+        public onlyAdminAndAuthorized returns (uint256[] memory) {
 
+            emit allAuthorizedVehiclesRetrieved(_authorizedAddress);
+
+            return authorizedParties[_authorizedAddress].authorizedVehicles;
+    }
 
     // ---------------------------- Helper Functions ---------------------------- //
 
@@ -1955,6 +2003,75 @@ contract VehicleRegistry is Ownable, Vehicle {
 
         // emit event
         emit adminReregistered(_adminAddress);
+
+        return true;
+
+    }
+
+    // Helper function to add vehicle into authorized party
+    function addVehicleToAuthorizedParty(uint256 _vehicleId, uint256 _authorizedPartyId, address _authorizedAddress) internal returns (bool) {
+
+         uint256 currentTotalNoOfVehsAuthorized = authorizedParties[_authorizedAddress].totalNoOfVehsAuthorized; // default = 0
+
+        if (currentTotalNoOfVehsAuthorized == 0) {
+
+            // If it is the first vehicle, hence new authorized party
+            AuthorizedParty memory newAuthorizedParty = AuthorizedParty (
+                _authorizedPartyId,
+                new uint256[](0),
+                1 // totalNoOfVehsAuthorized = 1
+            );
+
+            authorizedParties[_authorizedAddress] = newAuthorizedParty;
+            authorizedParties[_authorizedAddress].authorizedVehicles.push(_vehicleId);
+            authorizedParties[_authorizedAddress].vehIdIndexInAuthorized[_vehicleId] = currentTotalNoOfVehsAuthorized; // first vehicle index = 0
+
+            _authorizedParty.add(_authorizedAddress);
+
+        } else {
+
+            // If authorized party already exists
+            authorizedParties[_authorizedAddress].authorizedVehicles.push(_vehicleId);
+            authorizedParties[_authorizedAddress].vehIdIndexInAuthorized[_vehicleId] = currentTotalNoOfVehsAuthorized;
+            authorizedParties[_authorizedAddress].totalNoOfVehsAuthorized++;
+
+        }
+
+        emit vehicleAddedToAuthorizedParty(_vehicleId, _authorizedAddress);
+
+        return true;
+
+    }
+
+    // Helper function to remove vehicle from authorized party
+    function removeVehicleFromAuthorizedParty(uint256 _vehicleId, address _authorizedAddress) internal returns (bool) {
+
+        uint256 index = authorizedParties[_authorizedAddress].vehIdIndexInAuthorized[_vehicleId];
+        uint256 authorizedVehiclesLength = authorizedParties[_authorizedAddress].authorizedVehicles.length;
+
+        require (index < authorizedVehiclesLength, "Index does not exists");
+
+        for(uint256 i = index; i < authorizedVehiclesLength - 1; i++) {
+
+            authorizedParties[_authorizedAddress].vehIdIndexInAuthorized[
+                authorizedParties[_authorizedAddress].authorizedVehicles[i + 1]
+            ] = i;
+
+            authorizedParties[_authorizedAddress].authorizedVehicles[i] = authorizedParties[_authorizedAddress].authorizedVehicles[i + 1];
+        }
+
+        delete authorizedParties[_authorizedAddress].authorizedVehicles[authorizedVehiclesLength - 1];
+        authorizedParties[_authorizedAddress].authorizedVehicles.length--;
+
+        // update total number of vehicles authorized
+        authorizedParties[_authorizedAddress].totalNoOfVehsAuthorized--;
+
+        // If authorized address does not have any vehicles authorized anymore, remove access right
+        if (authorizedParties[_authorizedAddress].totalNoOfVehsAuthorized == 0) {
+            _authorizedParty.remove(_authorizedAddress);
+        }
+
+        emit vehicleRemovedFromAuthorizedParty(_vehicleId, _authorizedAddress);
 
         return true;
 
