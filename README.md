@@ -1,15 +1,13 @@
 # vehicle-ledger 🚗
 
-IS4302 Project
+## IS4302 Project Group 11
 
-IS4302 Group 11
-
-Team members:<br />
-Arcillas Brian Joshua Pelaez (A0167854N) <br />
-Woo Keng Thong (A0167991L) <br /> 
-Justin Eng Wei Jie (A0167946L)<br />
-Gnanapoongkothai Annamalai (A0225284E)<br />
-Chen Yizhao (A0168759E)<br />
+### Team members:
+- Arcillas Brian Joshua Pelaez (A0167854N)
+- Woo Keng Thong (A0167991L)
+- Justin Eng Wei Jie (A0167946L)
+- Gnanapoongkothai Annamalai (A0225284E)
+- Chen Yizhao (A0168759E)
 
 ### Installation commands
 
@@ -42,4 +40,4 @@ Chen Yizhao (A0168759E)<br />
 1. Run `npm run start:frontend`
 2. There might be a Metamask popup that requires signing the message
 
-> Link to frontend template docs: https://flatlogic.com/templates/react-material-admin
+> Citation link: Frontend template: https://flatlogic.com/templates/react-material-admin
