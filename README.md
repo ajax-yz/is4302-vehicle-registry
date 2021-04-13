@@ -5,11 +5,11 @@ IS4302 Project
 IS4302 Group 11
 
 Team members:
-Arcillas Brian Joshua Pelaez (A0167854N)
-Woo Keng Thong (A0167991L)
-Justin Eng Wei Jie (A0167946L)
-Gnanapoongkothai Annamalai (A0225284E)
-Chen Yizhao (A0168759E)
+Arcillas Brian Joshua Pelaez (A0167854N) <br />
+Woo Keng Thong (A0167991L) <br /> 
+Justin Eng Wei Jie (A0167946L)<br />
+Gnanapoongkothai Annamalai (A0225284E)<br />
+Chen Yizhao (A0168759E)<br />
 
 ### Installation commands
 
