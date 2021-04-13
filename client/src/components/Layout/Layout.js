@@ -218,9 +218,11 @@ const PrivateRoute = ({
 }) => {
   // const isAuthenticated = role === allowedRole;
   const isAuthenticated = allowedRoles ? allowedRoles.indexOf(role) > -1 : true;
+  const redirectLogin = Object.values(ROLES_ENUM).indexOf(role) == -1;
+
   const rolePath = role.split(" ")[0].toLowerCase();
   // const isAuthenticated = true;
-
+  console.log("rolePath =", rolePath);
   return (
     <Route
       {...rest}
@@ -231,6 +233,16 @@ const PrivateRoute = ({
             role,
             isRegistryOwner,
           })
+        ) : redirectLogin ? (
+          <Redirect
+            to={{
+              // pathname: path,
+              pathname: `/login`,
+              state: {
+                from: props.location,
+              },
+            }}
+          />
         ) : (
           <Redirect
             to={{

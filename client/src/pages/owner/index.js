@@ -204,14 +204,14 @@ const Authorize = () => {
         <div style={{ display: "flex" }}>
           <div style={{ marginRight: "8px" }}>
             <RegisterButton
-              registerSubmit={authorize}
+              submitRegister={authorize}
               registerText={"Authorize"}
               keys={["vehicleId", "authorizedAddress"]}
             />
           </div>
 
           <RegisterButton
-            registerSubmit={removeAuthorization}
+            submitRegister={removeAuthorization}
             registerText={"Remove Authorization"}
             keys={["vehicleId", "authorizedAddress"]}
           />
@@ -247,6 +247,10 @@ const TransferVehicle = () => {
     }
   };
 
+  const _transfer = async (data) => {
+    return VehicleRegistryService.transferVehicle(drizzle, data);
+  };
+
   return (
     <>
       <div style={{ padding: "8px" }}>
@@ -254,20 +258,41 @@ const TransferVehicle = () => {
           You may transfer your vehicle ownership to another owner registered on
           our network
         </div>
-        <Button
+        <RegisterButton
+          submitRegister={_transfer}
+          registerText={"Transfer Vehicle"}
+          defaultValues={[
+            "",
+            "",
+            "Owner2",
+            92213211,
+            "Block 821",
+            "12-04-2021",
+          ]}
+          keys={[
+            "vehicleId",
+            "newOwnerAddress",
+            "newOwnerName",
+            "newOwnerContact",
+            "newOwnerPhysicalAddress",
+            "newOwnerDateOfReg",
+          ]}
+        />
+        {/* <Button
           variant="contained"
           color="primary"
           onClick={() => setVisible(!visible)}
         >
           Transfer Vehicle Ownership
-        </Button>
+        </Button> */}
       </div>
 
-      <ModalForm
-        title={"Authorize"}
+      {/* <ModalForm
+        title={"Transfer Vehicle"}
         visible={visible}
         toggleVisible={() => setVisible(!visible)}
         onSubmit={transfer}
+        defaultValues={["", "", "Owner2", 92213211, "Block 821", "12-04-2021"]}
         keys={[
           "vehicleId",
           "newOwnerAddress",
@@ -276,7 +301,7 @@ const TransferVehicle = () => {
           "newOwnerPhysicalAddress",
           "newOwnerDateOfReg",
         ]}
-      />
+      /> */}
     </>
   );
 };
